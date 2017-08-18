@@ -1,0 +1,26 @@
+% A bottom-up chart of a TeX workflow
+% Author: Stefan Kottwitz
+% https://www.packtpub.com/hardware-and-creative/latex-cookbook
+\documentclass[border=10pt]{standalone} 
+%%%<
+\usepackage{verbatim}
+%%%>
+\begin{comment}
+:Title: A bottom-up chart of a TeX workflow
+:Tags: Diagrams;Flowcharts;Smartdiagram;Cookbook
+:Author: Stefan Kottwitz
+:Slug: smart-priority
+
+A priority chart showing a common TeX workflow
+from bottom to top, using the smartdiagram package.
+\end{comment}
+\usepackage{smartdiagram}
+\begin{document}
+\smartdiagram[priority descriptive diagram]{
+  Develop a document structure,
+  Choose a document class,
+  Select suitable packages,
+  Setup the document preamble,
+  Write your document,
+  Finetune the layout}
+\end{document}

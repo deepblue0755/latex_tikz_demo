@@ -1,0 +1,44 @@
+\documentclass[tikz]{standalone}
+
+
+
+\usepackage{smartdiagram}
+\usepackage{pgf,tikz}
+
+
+\begin{document}
+
+
+\begin{center}
+    \smartdiagram[flow diagram:horizontal]{step1,step2,step3,step3,step4}
+\end{center}
+
+\begin{center}
+    \smartdiagram[circular diagram]{Set up,Run,Analyse,Modify~/ Add}
+\end{center}
+
+\begin{center}
+    \smartdiagram[sequence diagram]{PGF,Ti\textit{k}Z,Smartdiagram}
+\end{center}
+
+\begin{center}
+    \smartdiagram[flow diagram:horizontal]{Product Idea,Product Profile,Product Concept,Product Development,Product Launch,Product Support}
+\end{center}
+
+\begin{tikzpicture}
+	\node {A}
+		child { node {B}}
+		child { node {C}}
+		child { node {D}
+			 child {
+				node{E}
+				}
+			 child {
+				node{F}
+                child { node{HH} }
+				}
+			}	
+	;
+\end{tikzpicture}
+
+\end{document}
