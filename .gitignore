@@ -1,0 +1,16 @@
+intermediates/*
+pictures/*
+backup/*
+pdf/*
+output/*
+*.pdf
+*.aux
+*.png
+*.jpg
+*.aux
+*.lof
+*.bak
+*.zip
+tmp.txt
+
+
