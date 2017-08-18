@@ -1,0 +1,30 @@
+
+\documentclass[tikz]{standalone}
+
+
+
+\usepackage{pgf,tikz}
+\usetikzlibrary{arrows,positioning}
+
+\begin{document}
+
+\tikzset{
+    mynode/.style={rectangle,rounded corners,draw=black, top color=white, bottom color=yellow!50,very thick, inner sep=1em, text centered},
+    myarrow/.style={->, >=latex', shorten >=1pt, thick},
+    mylabel/.style={text width=7em, text centered} 
+}
+
+\begin{tikzpicture}[node distance=5cm,auto]
+    \node[mynode](init){initialize model};
+    \node[mynode,left of=init](expert){expert};
+    \node[mynode,right of=init](system){system};
+
+
+    %draw path
+    \path[myarrow](init) -- (expert);
+    \path[myarrow](init) -- (system);
+    
+\end{tikzpicture}
+
+
+\end{document}
