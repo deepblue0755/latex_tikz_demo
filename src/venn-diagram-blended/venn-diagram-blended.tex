@@ -1,0 +1,32 @@
+% Venn diagramm with PGF 3.0 blend mode
+% Author: Paul Gaborit
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+%%%<
+\usepackage{verbatim}
+%%%>
+\begin{comment}
+:Title: Venn diagramm with PGF 3.0 blend mode
+:Tags: Diagrams;Blending;PGF 3.0
+:Author: Paul Gaborit
+:Slug: venn-diagram-blended
+
+With TikZ 3.0, there's a new kind of transparency: you can use `blend modes`.
+
+From the manual:
+
+A blend mode specifies how colors mix when you paint on a canvas. Normally, if you paint a red box on a green circle, the red color will completely replace the green circle. However, in some situations you might also wish the red color to somehow "mix" or "blend" with the green circle. We already saw that, using transparency, we can draw something without completely obscuring the background. Blending is a similar operation, only here we mix colors in more complicated ways.
+
+Note: Blending is a rather "advanced" feature of PDF. Most renderers, let alone printers, will have trouble rendering blending correctly.
+
+Below is an example of screen blend mode (there are 16 modes: normal, multiply, screen, overlay, darken, lighten, color dodge, color burn, hard light, soft light, difference, exclusion, hue, saturation, color, luminosity).
+
+This code was written by Paul Gaborit and published on TeX.SE.
+\end{comment}
+\begin{document}
+\begin{tikzpicture}[blend group=screen]
+  \fill[red!90!black]   ( 90:.6) circle (1);
+  \fill[green!80!black] (210:.6) circle (1);
+  \fill[blue!90!black] (330:.6) circle (1);
+\end{tikzpicture}
+\end{document}
