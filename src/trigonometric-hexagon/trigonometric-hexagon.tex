@@ -1,0 +1,39 @@
+% A hexagon for memorizing trigonometric identities
+% Author: Josef Nilsen
+% \documentclass{article}
+\documentclass[border=5pt]{standalone}
+\usepackage{tikz}
+%%%<
+\usepackage{verbatim}
+\usepackage[active,tightpage]{preview}
+\PreviewEnvironment{tikzpicture}
+\setlength\PreviewBorder{5pt}%
+%%%>
+\begin{comment}
+:Title: A hexagon for memorizing trigonometric identities
+:Tags: Foreach, Paths,Mathematics
+:Author: Josef Nilsen
+:Slug: trigonometric-hexagon
+\end{comment}
+\begin{document}
+\begin{tikzpicture}[scale=4,cap=round,>=latex]
+% Radius of regular polygons
+  \newdimen\R
+  \R=0.8cm
+  \coordinate (center) at (0,0);
+ \draw (0:\R)
+     \foreach \x in {60,120,...,360} {  -- (\x:\R) }
+              -- cycle (300:\R) node[below] {$\csc \theta$}
+              -- cycle (240:\R) node[below] {$\sec \theta$}
+              -- cycle (180:\R) node[left] {$\tan \theta$}
+              -- cycle (120:\R) node[above] {$\sin \theta$}
+              -- cycle (60:\R) node[above] {$\cos \theta$}
+              -- cycle (0:\R) node[right] {$\cot \theta$};
+  \draw { (60:\R) -- (120:\R) -- (center) -- (60:\R) } [fill=gray];
+  \draw { (180:\R) -- (240:\R) -- (center) -- (180:\R) } [fill=gray];
+  \draw { (0:\R) -- (300:\R) -- (center) -- (0:\R) }  [fill=gray];
+   \R=0.1cm
+  \draw (0:\R) \foreach \x in {60,120,...,360} { -- (\x:\R) }
+    [fill=white] -- cycle (center) node {1};
+\end{tikzpicture}
+\end{document}

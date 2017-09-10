@@ -32,7 +32,7 @@ TARGET_FULL_PATH := $(addprefix $(OUTPUT_DIR),$(TARGET))
 
 all: $(TARGET) 
 
-%.pdf:%.tex ../node-shape-define/define-shape.tex
+%.pdf:%.tex
 	$(LATEX) $(FLAGS) $<
 	$(MAKE) tidy
 	$(MAKE) view

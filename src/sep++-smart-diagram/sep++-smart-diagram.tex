@@ -1,19 +1,37 @@
 \documentclass[tikz]{standalone}
 
-
-
 \usepackage{smartdiagram}
-\usepackage{pgf,tikz}
 
+\usetikzlibrary{shapes,arrows,patterns}
+\usetikzlibrary{shapes,snakes}
+\usetikzlibrary{shapes.arrows}
+\usetikzlibrary{shapes.symbols}
+\usetikzlibrary{positioning}
+\usetikzlibrary{calc}
+
+\tikzstyle{block} = [sample, draw, fill=blue!30,line width=1.5pt,
+    text width=10em, text centered,minimum height=2cm,minimum width=4cm]
+
+\input{../node-shape-define/define-shape.tex}
 
 \begin{document}
 
-\smartdiagramset{
-sequence item height =  1.5cm,
-sequence item width = 2cm
-}
+    \smartdiagramset
+    {
+        sequence item height =  1.5cm,
+        sequence item width = 2cm
+    }
 
-\smartdiagram[sequence diagram]{Product Idea,Product Profile,Product Concept, Product Development,Product Launch,Product Support}
+    \smartdiagram[sequence diagram]{Product Idea,Product Profile,Product Concept, Product Development,Product Launch,Product Support}
 
+\begin{tikzpicture}
+
+    \node[block] (ProductIdea) {Product Idea};
+    \node[block,right=1pt of ProductIdea] (ProductProfile) {Product Profile};
+    \node[block,right=1pt of ProductProfile] (ProductConcept) {Product Concept};
+    \node[block,right=1pt of ProductConcept] (ProductDevelopment) {Product Development};
+    \node[block,right=1pt of ProductDevelopment] (ProductLaunch) {Product Launch};
+    \node[block,right=1pt of ProductLaunch] (ProductSupport) {Product Support};
+\end{tikzpicture}
 
 \end{document}

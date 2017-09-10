@@ -1,0 +1,12 @@
+./logic-circuits-library.tex:40: Package pgfkeys Error: I do not know the key '
+/tikz/cktbaselength', to which you passed '0.5pt', and I am going to ignore it.
+ Perhaps you misspelled it.
+ 
+./manet.tex:55: Package pgfkeys Error: Choice 'ball' unknown in choice key '/ti
+kz/shade'. I am going to ignore this key.
+
+circuitikz.tex: d:/texlive/2016/texmf-dist/tex/latex/circuitikz/circuitikz.sty:311: LaTeX Error
+: Unknown option `symbols' for package `circuitikz'
+
+
+./power-electronics-solar-system ! LaTeX Error: File `yl.tikz' not found.

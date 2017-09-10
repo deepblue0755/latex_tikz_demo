@@ -1,7 +1,15 @@
 \documentclass[tikz,border=10pt]{standalone}
+
 \usepackage{tikz}
 \usetikzlibrary{shapes,snakes}
+\usetikzlibrary{shapes.arrows}
+\usetikzlibrary{shapes.symbols}
+\usetikzlibrary{positioning}
+
+\usepackage{smartdiagram}
 \usepackage{verbatim}
+
+\input{../node-shape-define/define-shape.tex}
 
 \begin{comment}
 :Title: Node shapes
@@ -39,9 +47,33 @@ An overview of predefined node shapes. Note that only the ``rectangle`` and
     \node[ann]{Regular polygon};\\
     \node[star,star points=4] {$p=4$};&
     \node[star,star points=7,star point ratio=0.8] {$p=7$};&
-    \node[star,star points=10] {$p=9$};&
+    \node[star,star points=10] (start-nine) {$p=9$};&
     \node[ann]{Star};\\
+    \node[kite] (Kite) {Kite}; &
+    \node[trapezium] (Trapezium) {trapezium}; &
+    \node[dart] (Dart) {dart}; \\
+    \node[cylinder] (Cylinder) {cylinder}; &
+    \node[isosceles triangle] (Iso) {Iso}; &
+    \node[circular sector] (Circle-Sector) {circular sector}; \\
+    % \node[inputarrow] (Inputarrow) {inputarrow}; &
+    % \node[currarrow] (Currarrow) {currarrow}; &
+    \node[rectangle,rectangle split,rectangle split horizontal,rectangle split parts=3] (test) 
+    {
+        \nodepart{one} one 
+        \nodepart{two} two 
+        \nodepart{three} three 
+    }; &
+    \node[rectangle,rectangle split,rectangle split parts=3] (test) 
+    {
+        \nodepart{one} one 
+        \nodepart{two} two 
+        \nodepart{three} three
+        
+    }; &
+    \node[sample] (DefineShapeNode) {defined node shape}; \\
     };
+
+
 \end{tikzpicture}
 
 
