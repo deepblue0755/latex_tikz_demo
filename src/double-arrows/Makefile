@@ -23,7 +23,7 @@ FLAGS+=-interactionmode=nonstop
 DRAFTMODE_FLAGS=-draftmode
 
 # define tex source file
-TEX_FILES := $(shell $(FIND) ./ -name '*.tex')
+TEX_FILES := $(shell $(FIND) ./ -maxdepth 1 -name  '*.tex')
 TEX_FILES := $(notdir $(TEX_FILES))
 
 # define target
