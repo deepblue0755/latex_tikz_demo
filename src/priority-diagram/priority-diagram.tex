@@ -1,0 +1,33 @@
+% A bottom-up chart of a TeX workflow
+% Author: Stefan Kottwitz
+% https://www.packtpub.com/hardware-and-creative/latex-cookbook
+\documentclass[border=10pt]{standalone} 
+%%%<
+\usepackage{verbatim}
+%%%>
+\begin{comment}
+:Title: A bottom-up chart of a TeX workflow
+:Tags: Diagrams;Flowcharts;Smartdiagram;Graphics;TikZ
+:Author: Stefan Kottwitz
+:Slug: priority-diagram
+
+A priority chart is a descriptive diagram which has a certain order,
+and where you would like to emphasize that order.
+
+Here, we use one to show a common TeX workflow
+from bottom to top. It's done with the smartdiagram package.
+
+Full explanation in Chapter 9, Creating Graphics:
+[Building smart diagrams](http://latex-cookbook.net/articles/smart-diagrams/)
+\end{comment}
+\usepackage{smartdiagram}
+\begin{document}
+\smartdiagram[priority descriptive diagram]{
+  Develop a document structure,
+  Choose a document class,
+  Select suitable packages,
+  Setup the document preamble,
+  Write your document,
+  Finetune the layout}
+\end{document}
+
