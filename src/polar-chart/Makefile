@@ -12,7 +12,7 @@ else
 endif
 
 # set output directory
-OUTPUT_DIR=./intermediates/
+OUTPUT_DIR=../../intermediates/
 
 # define flags
 FLAGS+=-file-line-error
