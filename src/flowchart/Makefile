@@ -7,12 +7,12 @@ ifeq ($(shell uname), Linux)
 else 
 	LATEX := /cygdrive/d/texlive/2016/bin/win32/pdflatex
 	MOVE := mv 
-	PDF_VIEWER := /cygdrive/d/SumatraPDF/SumatraPDF
+	PDF_VIEWER := /cygdrive/d/SumatraPDF-Tex/SumatraPDF -reuse-instance -inverse-search "gvim --remote-silent +%l %f"
 	FIND := d:\cygwin64\bin\find.exe
 endif
 
 # set output directory
-OUTPUT_DIR=../../intermediates/
+OUTPUT_DIR=./intermediates/
 
 # define flags
 FLAGS+=-file-line-error
