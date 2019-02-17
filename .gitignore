@@ -3,6 +3,8 @@ pictures/*
 backup/*
 pdf/*
 output/*
+bash
+intermediates
 *.pdf
 *.aux
 *.png
@@ -11,6 +13,7 @@ output/*
 *.lof
 *.bak
 *.zip
+*.svg
 tmp.txt
 tmp.sh
 
