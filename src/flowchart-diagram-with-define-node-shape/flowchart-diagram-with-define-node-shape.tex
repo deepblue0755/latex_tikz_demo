@@ -1,0 +1,80 @@
+\documentclass[tikz, border = 5pt]{standalone}
+
+\usetikzlibrary{shapes}
+\usetikzlibrary{arrows}
+\usetikzlibrary{positioning}
+
+\makeatletter
+
+\pgfdeclareshape{display}
+{
+  \inheritsavedanchors[from=rectangle] % this is nearly a rectangle
+  \inheritanchorborder[from=rectangle]
+  \inheritanchor[from=rectangle]{north}
+  \inheritanchor[from=rectangle]{west}
+  \inheritanchor[from=rectangle]{east}
+  \inheritanchor[from=rectangle]{south}
+  \inheritanchor[from=rectangle]{center}
+  \inheritbackgroundpath[from=rectangle]
+  \backgroundpath{
+    % points
+    \southwest \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    % dimensions
+    \pgfmathsetlength{\pgfutil@tempdima}{\pgf@xb-\pgf@xa}
+    \pgfmathsetlength{\pgfutil@tempdimb}{\pgf@yb-\pgf@ya}
+    % path
+    \pgfpathmoveto{\pgfpointadd{\pgfqpoint{\pgf@xa}{\pgf@ya}}{\pgfqpoint{0pt}{0pt}}}
+    \pgfpathlineto{\pgfpointadd{\pgfqpoint{\pgf@xa}{\pgf@ya}}{\pgfqpoint{0.2\pgfutil@tempdima}{0.5\pgfutil@tempdimb}}}
+    \pgfpathlineto{\pgfpointadd{\pgfqpoint{\pgf@xa}{\pgf@yb}}{\pgfqpoint{0pt}{0pt}}}    
+    \pgfpathlineto{\pgfpointadd{\pgfqpoint{\pgf@xb}{\pgf@yb}}{\pgfqpoint{-0.2\pgfutil@tempdima}{0pt}}}
+    % \pgfpatharc{90}{-90}{0.2\pgfutil@tempdima and 0.5\pgfutil@tempdimb}
+    \pgfpathlineto{\pgfpointadd{\pgfqpoint{\pgf@xb}{\pgf@ya}}{\pgfqpoint{0pt}{0.5\pgfutil@tempdimb}}}
+    \pgfpathlineto{\pgfpointadd{\pgfqpoint{\pgf@xb}{\pgf@ya}}{\pgfqpoint{-0.2\pgfutil@tempdima}{0pt}}}
+    \pgfpathclose    
+  }
+}
+
+
+\makeatother
+
+\tikzstyle{decision} = [diamond, draw, fill=blue!20, 
+text width = 4.5em, text badly centered, node distance = 3cm, inner sep = 0pt]
+\tikzstyle{block} = [rectangle, draw, fill = blue!20, 
+text width = 5em, text centered, rounded corners, minimum height = 4em]
+\tikzstyle{line} = [draw, -latex']
+\tikzstyle{disp} = [display, draw, fill = cyan!20, 
+text width = 5em, text centered, minimum height = 4em]
+
+
+
+\begin{document}
+
+\begin{tikzpicture}[node distance = 4cm, auto]  
+  % nodes
+  \node [block] (init) {Think of picture};
+  \node [disp, right of = init] (display) {Draw picture};
+  \node [decision, below of = init] (question) {Did they guess it?};
+  \node [block, right of = question] (no) {Point repeteadly to the same picture};
+  \node [block, left of = question] (yes) {You win!};
+  % edges
+  \path [line] (init) -- (display);
+  \path [line] (init) -- (question);
+  \path [line] (question) -- (no) node[midway, fill = white]{No};
+  \path [line] (question) -- (yes) node[midway, fill = white, above]{Yes};
+  \path [line] (no.south) -- ++(0, -1cm) -| (question.south);
+  %
+  \node[above = 0.5cm of init] {How to play Pictionary};
+\end{tikzpicture}
+
+\newpage
+
+\begin{tikzpicture}[node distance = 2cm, auto]  
+  \node [disp] (1;1) {Draw picture};
+  \node [disp,right of = 1;1] (2;2) {Draw picture};
+  \node [disp,right of = 2;2] (3;3) {Draw picture};
+  \node [disp,right of = 3;3] (4;4) {Draw picture};
+  \node [disp,right of = 4;4] (5;5) {Draw picture};
+\end{tikzpicture}
+
+\end{document}

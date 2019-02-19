@@ -1,0 +1,99 @@
+\documentclass[border=50pt]{standalone}
+
+\usepackage{pgfplots,tikz}
+\usetikzlibrary{fadings}
+\pgfdeclarelayer{sides}
+\pgfdeclarelayer{shadow}
+\pgfsetlayers{shadow,sides,main}
+\pgfkeys{%
+  /piechartthreed/.cd,
+  scale/.code                =  {\def\piechartthreedscale{#1}},
+  mix color/.code            =  {\def\piechartthreedmixcolor{#1}},
+  mix rate high/.code        =  {\def\piechartthreedmixratehigh{#1}},
+  mix rate low/.code         =  {\def\piechartthreedmixratelow{#1}},
+  background color/.code     =  {\def\piechartthreedbackcolor{#1}},
+  name/.code                 =  {\def\piechartthreedname{#1}}}
+
+\newcommand\piechartthreed[2][]{% 
+  \pgfkeys{/piechartthreed/.cd,
+    scale            = 1,
+    mix color        = gray,
+    mix rate high    = 20,
+    mix rate low     = 5,
+    background color = white,
+    zeroangle/.store in = \zeroan,
+    zeroangle        = 0,
+    name             = pc} 
+  \pgfqkeys{/piechartthreed}{#1}
+  \begin{scope}[scale=\piechartthreedscale] 
+    \begin{scope}[xscale=5,yscale=3]
+      \begin{pgfonlayer}{shadow}
+      \path[preaction={fill=black,opacity=.8,path fading=circle with fuzzy edge 20 percent,transform canvas={yshift=-15mm*\piechartthreedscale}}] (0,0) circle (1cm);
+      \fill[gray](0,0) circle (0.5cm);  
+      \path[preaction={fill=\piechartthreedbackcolor,opacity=.8,path fading=circle with fuzzy edge 20 percent,transform canvas={yshift=-10mm*\piechartthreedscale}}] (0,0) circle (0.5cm);
+      \end{pgfonlayer}
+      \pgfmathsetmacro\totan{0}\global\let\totan\totan
+      \pgfmathsetmacro\bottoman{180}\global\let\bottoman\bottoman 
+      \pgfmathsetmacro\topan{0}\global\let\topan\topan
+      \begin{scope}[draw=black,thin]
+        \def\piechartthreed@norm{0}
+        \foreach \name/\an/\col [count=\xi] in {#2}{%
+          \pgfmathparse{\piechartthreed@norm+\an}\xdef\piechartthreed@norm{\pgfmathresult}
+        }
+        \foreach \name/\val/\col [count=\xi] in {#2}{%
+          \pgfmathparse{360/\piechartthreed@norm * \val}\let\an\pgfmathresult
+          \pgfmathsetmacro\finan{\totan+\an+\zeroan}
+          \pgfmathsetmacro\midan{\totan+\an/2+\zeroan}
+          \pgfmathsetmacro\began{\totan+\zeroan}
+          \def\space{ } 
+          \coordinate (\piechartthreedname\space\name) at (\midan:0.75cm);
+          \ifdim 180pt>\began pt
+          \begin{pgfonlayer}{sides}
+          % inner border
+          \shadedraw[left color=\col!\piechartthreedmixratehigh!\piechartthreedmixcolor,right color=\col!\piechartthreedmixratelow!\piechartthreedmixcolor,draw=black,very thin]
+          (\began:.5cm)-- ++(0,-3mm) arc(\began:\finan:.5cm) -- ++(0,3mm)  arc(\finan:\began:.5cm);
+          \end{pgfonlayer}
+          \fi
+          \ifdim 360pt<\finan pt 
+          % inner border
+           \begin{pgfonlayer}{sides}
+          \shadedraw[left color=\col!\piechartthreedmixratehigh!\piechartthreedmixcolor,right color=\col!\piechartthreedmixratelow!\piechartthreedmixcolor,draw=black,very thin]
+          (\began:.5cm)-- ++(0,-3mm) arc(\began:\finan:.5cm) -- ++(0,3mm)  arc(\finan:\began:.5cm);
+          \end{pgfonlayer}%
+          \fi   
+          \fill[\col!\piechartthreedmixratehigh!\piechartthreedmixcolor,draw=black] (\began:0.5cm)--(\began:1cm)  arc(\began:\finan:1cm) --(\finan:0.5cm) arc(\finan:\began :0.5cm);     
+          \ifdim 180pt<\finan pt
+          % outer border
+          \begin{pgfonlayer}{sides}
+          \pgfmathsetmacro\bbegan{max(\began,180)}
+          \pgfmathsetmacro\bfinan{min(\finan,360)}
+        \shadedraw[left color=\col!\piechartthreedmixratehigh!\piechartthreedmixcolor,right color=\col!\piechartthreedmixratelow!\piechartthreedmixcolor,draw=black,very thin]
+        (\bbegan:1cm)-- ++(0,-3mm) arc(\bbegan:\bfinan:1cm) -- ++(0,3mm)  arc(\bfinan:\bbegan:1cm);
+        \end{pgfonlayer}%
+          \fi
+          \pgfmathsetmacro\totan{\totan+\an}\global\let\totan\totan 
+        } 
+      \end{scope}
+      \draw[thin,black](0,0) circle (0.5cm);
+    \end{scope}  
+  \end{scope}
+}
+
+\begin{document}
+  \begin{tikzpicture}
+    \piechartthreed[scale=0.7,
+      mix color=gray,
+      mix rate high=80,
+      mix rate low=60,
+      zeroangle = 180,
+    ]{%
+      yy/0.228/yellow,
+      zz/2.67/pink,
+      cc/2.9/orange,
+      tt/6.3/green,
+      gg/8.56/red,
+      ww/21.6/blue,
+      bb/57.5/brown%
+    }
+  \end{tikzpicture}
+\end{document}

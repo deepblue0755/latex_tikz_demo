@@ -1,0 +1,55 @@
+\documentclass[border=4pt]{standalone}
+\usepackage{forest}
+
+\forestset{
+  frbox/.style={
+    draw=cyan!20,
+    fill=#1,
+    line width=1pt,
+    anchor=north,
+    text width=4cm,
+    minimum height=5ex
+  },
+  leftn/.style={
+    text width=#1,
+    draw=cyan,
+    double,
+    line width=1pt,
+    align=left,
+    anchor=west,
+    minimum height=5ex
+  }
+}
+
+\begin{document}
+
+\begin{forest}
+for tree={
+  if={level>3}{edge path={}}{},
+},
+[Some Title
+  [Only Child,frbox=cyan
+    [Only child,frbox=cyan
+      [Left child,name=left,frbox=cyan!30
+        [Left two,leftn=3cm
+          [Left three,leftn=3.5cm
+            [Left four,leftn=4cm
+              [Left five,leftn=4.5cm
+                [Left six,leftn=5cm
+                  [Left seven,leftn=5.5cm,name=last
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ]
+      ]
+      [Right child,frbox=cyan!30
+      ]
+    ]
+  ]
+]
+\draw ([xshift=-3pt]left.south) -- ([shift={(-3pt,-5pt)}]last.south west);
+\end{forest}
+
+\end{document}

@@ -1,0 +1,135 @@
+\documentclass[tikz, preview=true, border=2mm]{standalone}
+
+\renewcommand*\familydefault{\sfdefault}
+
+\usepackage{tikz}
+\usetikzlibrary{mindmap,trees,shadows}
+
+\begin{document}
+\makeatletter
+\def\tikz@compute@circle@radii@b{%
+  \pgf@process{\pgfpointtransformed{\pgfpointanchor{\tikztostart}{center}}}%
+  \pgf@xa=\pgf@x%
+  \pgf@process{\pgfpointtransformed{\pgfpointanchor{\tikztostart}{west}}}%
+  \advance\pgf@xa by-\pgf@x%
+  \pgf@xa=1.6\pgf@xa\relax%
+  \pgfkeys{/pgf/decoration/start radius/.expanded=\the\pgf@xa}%
+  \pgf@process{\pgfpointtransformed{\pgfpointanchor{\tikztotarget}{center}}}%
+  \pgf@xa=\pgf@x%
+  \pgf@process{\pgfpointtransformed{\pgfpointanchor{\tikztotarget}{west}}}%
+  \advance\pgf@xa by-\pgf@x%
+  \pgf@xa=1.6\pgf@xa\relax%
+  \pgfkeys{/pgf/decoration/end radius/.expanded=\the\pgf@xa}%
+}
+
+\def\tikz@compute@segmentamplitude@b{%
+  \pgf@x=\pgfkeysvalueof{/pgf/decoration/start radius}\relax%
+  \ifdim\pgf@x>\pgfkeysvalueof{/pgf/decoration/end radius}\relax%
+    \pgf@x=\pgfkeysvalueof{/pgf/decoration/end radius}\relax%
+  \fi%
+  \pgf@x=.35\pgf@x\relax%
+  \edef\pgfdecorationsegmentamplitude{\the\pgf@x}%
+}
+\tikzoption{thick bar concept color}{%
+  \let\tikz@old@concept@color=\tikz@concept@color%
+  \let\tikz@old@compute@circle@radii=\tikz@compute@circle@radii%
+  \let\tikz@compute@circle@radii=\tikz@compute@circle@radii@b%
+  \let\tikz@old@compute@segmentamplitude=\tikz@compute@segmentamplitude%
+  \let\tikz@compute@segmentamplitude=\tikz@compute@segmentamplitude@b%
+  \def\tikz@edge@to@parent@path{
+    (\tikzparentnode)
+    to[circle connection bar switch color=from (\tikz@old@concept@color) to (#1)]
+    (\tikzchildnode)}
+  \def\tikz@concept@color{#1}%
+}
+ \tikzoption{standard bar concept color}{%
+   \let\tikz@old@concept@color=\tikz@concept@color%
+   \let\tikz@compute@circle@radii=\tikz@old@compute@circle@radii%
+   \let\tikz@compute@segmentamplitude=\tikz@old@compute@segmentamplitude%
+   \def\tikz@edge@to@parent@path{
+     (\tikzparentnode)
+     to[circle connection bar switch color=from (\tikz@old@concept@color) to (#1)]
+     (\tikzchildnode)}
+   \def\tikz@concept@color{#1}%
+}
+
+\makeatother
+
+\begin{tikzpicture}
+
+% Define experience colors
+\colorlet{afcolor}{blue!50}
+\colorlet{mdcolor}{red!75}
+\colorlet{nmndcolor}{orange!80}
+\colorlet{nmescolor}{teal!70!green}
+\colorlet{citscolor}{violet!75}
+
+\begin{scope}[mindmap,
+every node/.style={concept, circular drop shadow, minimum size=0pt,execute at begin node=\hskip0pt, font=\bfseries},
+root concept/.append style={
+    concept color=black, fill=white, line width=1.5ex, text=black, font=\huge\scshape\bfseries,},
+level 1 concept/.append style={font=\bfseries},
+text=white,
+partner/.style={thick bar concept color=blue!80!black},
+air force/.style={standard bar concept color=afcolor},
+metadata/.style={standard bar concept color=mdcolor},
+nmnd/.style={standard bar concept color=nmndcolor},
+nmes/.style={standard bar concept color=nmescolor},
+cits/.style={standard bar concept color=citscolor},
+grow cyclic,
+level 1/.append style={level distance=6.2cm,sibling angle=45},
+level 2/.append style={level distance=3cm,sibling angle=45},
+]
+\node [root concept] (team) {Team\\Foo}[rotate=202.5] % root
+    child [partner] { node {Comp 8}
+        child [nmes] { node {\small NM/ES} }
+    }
+    child [partner] { node {Comp 1}
+        child [metadata] { node {\small Metadata} }
+        child [air force] { node {\small Air Force} }
+        child [nmnd] { node {\small NM/ND} }
+        child [cits] { node {\small CITS} }
+        child [nmes] { node {\small NM/ES} }
+    }
+    child [partner] { node {Comp 2}
+        child [metadata] { node {\small Metadata} }
+    }
+    child [partner] { node (comp3) {Comp 3}
+        child [air force] { node {\small Air Force} }
+        child [nmnd] { node {\small NM/ND} }
+        child [cits] { node (leftmost) {\small CITS} }
+        child [nmes] { node {\small NM/ES} }
+    }
+    child [partner] { node {Comp 4}
+        child [air force] { node {\small Air Force} }
+        child [nmes] { node {\small NM/ES} }
+    }
+    child [partner] { node {Comp 5}
+        child [metadata] { node {\small Metadata} }
+        child [nmnd] { node {\small NM/ND} }
+        child [nmes] { node {\small NM/ES} }
+    }
+    child [partner] { node {Comp 6}
+        child [air force] { node {\small Air Force} }
+        child [nmnd] { node {\small NM/ND} }
+        child [nmes] { node {\small NM/ES} }
+    }
+    child [partner] { node {Comp 7}
+        child [air force] { node {\small Air Force} }
+        child [nmnd] { node {\small NM/ND} }
+        child [nmes] { node {\small NM/ES} }
+    };
+\end{scope}
+
+\begin{scope}[xshift=-4.5cm, yshift=-10.5cm,every node/.style={text=black}]
+\matrix[row sep=0pt,column sep=1mm, nodes={anchor=west}] {
+    \fill [afcolor] (0,.25ex) circle (1ex); & \node{Air Force Experience};\\
+    \fill [mdcolor] (0,.25ex) circle (1ex); & \node{Metadata Environments Development Experience};\\
+    \fill [nmndcolor] (0,.25ex) circle (1ex); & \node{Network Management and Network Defense Experience};\\
+    \fill [nmescolor] (0,.25ex) circle (1ex); & \node{Network Management and Enterprise Services Experience};\\
+    \fill [citscolor] (0,.25ex) circle (1ex); & \node{CITS Information Transport Systems Experience};\\
+    };
+\end{scope}
+\end{tikzpicture}
+
+\end{document}

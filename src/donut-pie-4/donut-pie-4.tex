@@ -1,0 +1,62 @@
+\documentclass[border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{backgrounds}
+\pgfkeys{/donut/.cd,
+inner radius/.initial=0.7cm,
+inner radius=0.7cm,
+outer radius/.initial=3.14cm,
+outer radius=3.14cm,
+text color/.initial=white,
+text color=white}
+\newcommand{\donutchart}[2][]{
+   % Calculate total
+   \pgfmathsetmacro{\totalnum}{0}
+   \foreach [count=\n] \value/\colour/\name in {#2} {
+     \pgfmathparse{\value+\totalnum}
+     \global\let\totalnum=\pgfmathresult
+     \xdef\numitems{\n}
+   }
+
+  \begin{tikzpicture}
+  \pgfmathsetmacro{\wheelwidth}{\pgfkeysvalueof{/donut/outer
+  radius}-\pgfkeysvalueof{/donut/inner radius}}
+  \pgfmathsetmacro{\midradius}{(\pgfkeysvalueof{/donut/outer radius}
+  +\pgfkeysvalueof{/donut/inner radius})/2}
+
+  \begin{scope}[#1]
+
+    \pgfmathsetmacro{\cumnum}{0}
+    \foreach \value/\colour/\name in {#2} {
+        \pgfmathsetmacro{\newcumnum}{\cumnum + \value/\totalnum*360}
+
+        \pgfmathsetmacro{\midangle}{-(\cumnum+\newcumnum)/2}
+        \begin{scope}[on background layer]
+          \filldraw[draw=white,fill=\colour]
+          (-\cumnum:\pgfkeysvalueof{/donut/outer radius}) 
+          arc(-\cumnum:-(\newcumnum):\pgfkeysvalueof{/donut/outer radius}) --
+          (-\newcumnum:\pgfkeysvalueof{/donut/inner radius}) 
+          arc(-\newcumnum:-(\cumnum):\pgfkeysvalueof{/donut/inner radius}) -- cycle;
+        \end{scope}
+        \draw node [text=\pgfkeysvalueof{/donut/text color}, 
+        font=\bfseries\sffamily] at 
+        (\midangle:{\pgfkeysvalueof{/donut/inner radius}+\wheelwidth/2}) {\name};
+
+        \global\let\cumnum=\newcumnum
+    }
+
+  \end{scope}
+
+  \end{tikzpicture}}
+
+\begin{document}
+
+ \donutchart[rotate=45]{15/blue/R,15/green/minitab, 15/red/arena, 15/orange/matlab,
+ 10/teal/capitaline, 10/violet/MS office, 20/purple/{C/C++},
+ 7/cyan/Java,7/gray/Python,25/yellow/mySQL}
+
+ \donutchart[rotate=45,/donut/outer radius=4cm,/donut/inner radius=1cm,
+ /donut/text color=black]{15/blue/R,15/green/minitab, 15/red/arena, 15/orange/matlab,
+ 10/teal/capitaline, 10/violet/MS office, 20/purple/{C/C++},
+ 7/cyan/Java,7/gray/Python,25/yellow/mySQL}
+
+\end{document}

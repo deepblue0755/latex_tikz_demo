@@ -1,0 +1,185 @@
+\documentclass[tikz,border=5]{standalone}
+\usepackage{xxcolor}
+\usetikzlibrary{calc,arrows,fadings}
+\def\pieifthenelse#1#2#3{%
+  \def\pienext{#3}%
+  \pgfmathparse{#1}%
+  \ifdim\pgfmathresult pt=1pt\relax%
+    \def\pienext{#2}%
+  \fi%
+  \pienext}
+\tikzset{%
+    zero angle/.initial=0,
+    start angle/.initial=0,
+    end angle/.initial=0,
+    pie inner x radius/.initial=2,
+    pie inner y radius/.initial=1,
+    pie outer x radius/.initial=4,
+    pie outer y radius/.initial=2,
+    inner radius/.style args={#1 and #2}{%
+      pie inner x radius=#1,
+      pie inner y radius=#2
+    },
+    outer radius/.style args={#1 and #2}{%
+      pie outer x radius=#1,
+      pie outer y radius=#2
+    },
+    pie thickness/.initial=1,
+    pie slice name/.initial=slice,
+    pie slice top/.style={fill=gray},
+    pie slice inner/.style={fill=gray!50!black},
+    pie slice outer/.style={fill=gray!75!black}
+}
+
+\pgfdeclarelayer{shadow}
+\pgfdeclarelayer{inner}
+\pgfdeclarelayer{outer}
+\pgfsetlayers{shadow,inner,outer,main}
+\newcommand\pieslice[1][]{%
+\begingroup%
+  \tikzset{#1}%
+  \pgfmathparse{Mod(\pgfkeysvalueof{/tikz/start angle}, 360)}%
+  \let\pa=\pgfmathresult%
+  \pgfmathparse{Mod(\pgfkeysvalueof{/tikz/end angle}, 360)}%
+  \let\pb=\pgfmathresult%
+  %
+  \pgfmathparse{\pb<\pa ? \pb+360 : \pb}%
+  \let\pc=\pgfmathresult%
+  %
+  \edef\rx{\pgfkeysvalueof{/tikz/pie inner x radius}}%
+  \edef\ry{\pgfkeysvalueof{/tikz/pie inner y radius}}%
+  \edef\Rx{\pgfkeysvalueof{/tikz/pie outer x radius}}%
+  \edef\Ry{\pgfkeysvalueof{/tikz/pie outer y radius}}%
+  \edef\r{\rx\space and \ry}%
+  \edef\R{\Rx\space and \Ry}%
+  \edef\t{\pgfkeysvalueof{/tikz/pie thickness}}%
+  \edef\name{\pgfkeysvalueof{/tikz/pie slice name}}%
+  \begin{pgfonlayer}{shadow}
+  \foreach \i [evaluate={\x=\i/5;}] in {0,0.1,...,1}
+    \path [fill=black, opacity=0.01, shift=(270:\t), even odd rule]
+      (0:\Rx+\x\space and \Ry+\x) arc (0:360:\Rx+\x\space and \Ry+\x) -- cycle
+      (0:\rx-\x\space and \ry-\x) arc (0:360:\rx-\x\space and \ry-\x) -- cycle;
+  \end{pgfonlayer}
+  \pieifthenelse{\pa==\pb}{%
+    % Only one slice!
+    \begin{pgfonlayer}{inner}%
+    \path [every pie slice/.try, pie slice inner/.try]
+      (0:\r) arc (0:180:\r) -- ++(0,-\t) arc (180:0:\r) -- cycle;
+    \end{pgfonlayer}%
+    \begin{pgfonlayer}{outer}%
+      \path [every pie slice/.try, pie slice outer/.try]
+    (360:\R) arc (360:180:\R) -- ++(0,-\t) arc (180:360:\R) -- cycle;
+    \end{pgfonlayer}%
+    \path [every pie slice/.try, pie slice top/.try, even odd rule]
+      (0:\R) arc (0:360:\R) -- cycle
+      (0:\r) arc (0:360:\r) -- cycle;
+    }{%
+      % Inner
+      \begin{pgfonlayer}{inner}%
+      \pieifthenelse{\pa>\pb}{%
+        \pieifthenelse{\pb<180}{%
+          \path [every pie slice/.try, pie slice inner/.try]
+            (0:\r) arc (0:\pb:\r) -- ++(0,-\t) arc (\pb:0:\r);
+        }{%
+          \path [every pie slice/.try, pie slice inner/.try]
+            (0:\r) arc (0:180:\r) -- ++(0,-\t) arc (180:0:\r);
+        }%
+      }{%
+        \pieifthenelse{\pa<180}{%
+           \pieifthenelse{\pb<180}{%
+             \path [every pie slice/.try, pie slice inner/.try]
+               (\pa:\r) arc (\pa:\pb:\r) -- ++(0,-\t) arc (\pb:\pa:\r);
+           }{%
+             \path [every pie slice/.try, pie slice inner/.try]
+               (\pa:\r) arc (\pa:180:\r) -- ++(0,-\t) arc (180:\pa:\r);
+           }%
+        }{%
+           \path [every pie slice/.try, pie slice inner/.try]
+            (\pa:\r) arc (\pa:\pb:\r) -- ++(0,-\t) arc (\pb:\pa:\r);
+         }%
+       }%
+     \end{pgfonlayer}%
+     % Outer
+     \begin{pgfonlayer}{outer}%
+       \pieifthenelse{\pa>\pb}{%
+         \path [every pie slice/.try, pie slice outer/.try]
+           (\pa:\R) arc (\pa:360:\R) -- ++(0,-\t) arc (360:\pa:\R) -- cycle;
+         \pieifthenelse{\pb>180}{%
+           \path [every pie slice/.try, pie slice outer/.try]
+             (180:\R) arc (180:\pb:\R) -- ++(0,-\t) arc (\pb:180:\R) -- cycle;
+         }{}%
+       }{%
+      \pieifthenelse{\pa>180}{%
+        \path [every pie slice/.try, pie slice outer/.try]
+          (\pa:\R) arc (\pa:\pb:\R) -- ++(0,-\t) arc (\pb:\pa:\R) -- cycle;
+      }{%
+        \pieifthenelse{\pb>180}{%
+          \path [every pie slice/.try, pie slice outer/.try]
+            (180:\R) arc (180:\pb:\R) -- ++(0,-\t) arc (\pb:180:\R) -- cycle;}{}
+        }}%
+      \end{pgfonlayer}%
+    % Top
+    \path [every pie slice/.try, pie slice top/.try] (\pa:\r) -- (\pa:\R)
+      arc (\pa:\pc:\R) -- (\pb:\r) arc (\pc:\pa:\r) -- cycle;
+  }%
+  \path
+    (\pa:\r) coordinate (\name-start-inner)
+    (\pa:\R) coordinate (\name-start-outer)
+    (\pa/2+\pc/2:\r) coordinate (\name-mid-inner)
+    (\pa/2+\pc/2:\R) coordinate (\name-mid-outer)
+    (\pb:\r) coordinate (\name-end-inner)
+    (\pb:\R) coordinate (\name-end-outer);
+\endgroup
+}
+
+\newcommand\pie[2][]{%
+  \begingroup%
+  \tikzset{#1}%
+  \pgfmathparse{\pgfkeysvalueof{/tikz/zero angle}}%
+  \let\zeroangle=\pgfmathresult%
+  \foreach \l/\n/\c [remember=\total (initially 0),
+    evaluate={\total=\total+\n;}]in {#2}{}%
+    \foreach \l/\n/\c [remember=\angleoffset (initially \zeroangle),
+    evaluate={\startangle=\angleoffset; \endangle=\startangle+\n/\total*360;
+      \angleoffset=\angleoffset+\n/\total*360;}] in {#2}{
+      \colorlet{pie slice}{\c}%
+      \pieslice[%
+        start angle=\startangle,
+        end angle=\endangle,
+        pie slice name/.expanded=\l]%
+    }
+  \endgroup%
+}
+\begin{document}
+\foreach \z in {0, 10, ..., 350}{
+  \begin{tikzpicture}[>=stealth, line join=round, line cap=round]
+  \useasboundingbox (-2,-2) rectangle (2,4);
+  \begin{colormixin}{80!white}
+\pie[every pie slice/.style={
+      pie slice top/.style={fill=pie slice, draw=pie slice},
+      pie slice inner/.style={fill=pie slice!50!black, draw=pie slice!50!black},
+      pie slice outer/.style={fill=pie slice!50!black, draw=pie slice!50!black}
+    },
+    inner radius=1 and 1/2,
+    outer radius=2 and 1,
+    pie thickness=1/2,
+    zero angle=\z]
+{%
+  Red/1/red,
+  Yellow/2/yellow,
+  Pink/3/pink,
+  Green/4/green,
+  Orange/5/orange,
+  Purple/6/purple,
+  Blue/7/blue%
+}
+\end{colormixin}
+\draw [*-, thick, draw=black!80]
+  ($(Orange-mid-inner)!0.5!(Orange-mid-outer)$)
+  -- ++(0,2) node [above, font=\sffamily] {Orange};
+\draw [*-, thick, draw=black!80]
+  ($(Blue-mid-inner)!0.5!(Blue-mid-outer)$)
+   -- ++(0,2) node [above, font=\sffamily] {Blue};
+\end{tikzpicture}
+}
+\end{document}
