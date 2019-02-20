@@ -19,7 +19,7 @@ FLAGS+=-file-line-error
 FLAGS+=-halt-on-error
 FLAGS+=-output-directory=$(OUTPUT_DIR)
 FLAGS+=-output-format=pdf
-FLAGS+=-interactionmode=nonstop
+FLAGS+=-interaction=nonstopmode
 DRAFTMODE_FLAGS=-draftmode
 
 # define tex source file
