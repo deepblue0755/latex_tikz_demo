@@ -1,0 +1,18 @@
+\documentclass[standalone,border=10pt]{standalone}
+\usepackage{tikz}
+\begin{document}
+
+  \tikzset{
+    net node/.style = {circle, draw=black,line width=1.2pt,minimum width=0.8cm, inner sep=0pt, outer sep=0pt},
+    net connect/.style = {line width=1pt, draw=black},
+    net thick connect/.style = {net connect, line width=1.7pt},
+  }
+  \begin{tikzpicture}
+    \path [net thick connect] (0.8,0) -- (5.2,0);
+    \foreach \i/\j [count=\k]in {2/-1,4/-1,1/1,3/1,5/1} 
+    {
+        \path (\i,\j) node [net node] (C\k) {\i};
+        \path [net connect] (\i,0) --  (C\k);
+    }
+  \end{tikzpicture}
+\end{document}

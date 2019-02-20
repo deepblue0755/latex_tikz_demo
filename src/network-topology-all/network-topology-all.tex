@@ -1,0 +1,78 @@
+\documentclass[border=5pt]{standalone}
+\usepackage{tikz}
+\usepackage{forest}
+\begin{document}
+    \def\ab{.4}
+    \tikzset{
+      net node/.style = {circle, minimum width=2*\ab cm, inner sep=0pt, outer sep=0pt, ball color=blue!50!cyan},
+      net root node/.style = {net node, minimum width=3*\ab cm},
+      net connect/.style = {line width=1pt, draw=blue!50!cyan!25!black},
+      net thick connect/.style = {net connect, line width=2.5pt},
+    }
+      \begin{tikzpicture}
+        \path [net thick connect]
+          (0,0) -- (6,0);
+      \foreach \i/\j in {2/-1,4/-1,1/1,3/1,5/1}
+      \path [net connect] (\i,0) -- (\i,\j) node [net node] {};
+      \end{tikzpicture}
+
+    \begin{tikzpicture}
+      \node (root) [net root node] {};
+      \foreach \i in {0,...,4}
+        \path [net connect] (root) -- (-90+\i*72:2) node [net node] {};
+    \end{tikzpicture}
+
+    \begin{tikzpicture}
+      \foreach \i in {0,...,4}
+        \path (-90+\i*72:2) node (n\i) [net node] {};
+      \path [net connect] (n0) -- (n1) -- (n2) -- (n3) -- (n4) -- (n0);
+    \end{tikzpicture}
+
+    \begin{tikzpicture}
+      \foreach \i in {0,...,4}
+        \path (-90+\i*72:2) node (n\i) [net node] {};
+      \foreach \i in {0,...,4}
+        \foreach \j in {0,...,4}
+          \path [net connect]
+            (n\i) -- (n\j);;
+    \end{tikzpicture}
+
+    \begin{forest}
+      for tree={
+        edge=net connect,
+        if level=0{%
+          net root node,
+          before typesetting nodes={
+            repeat=2{
+              append={[,
+                net node,
+                repeat=3{
+                  append={[, net node]},
+                },
+              ]},
+            },
+          },
+        }{},
+      }
+      []
+    \end{forest}
+
+    \begin{tikzpicture}
+      \foreach \i in {0,...,4}
+        \path (-90+\i*72:2) node (n\i) [net node] {};
+      \path [net connect]
+        (n0)
+          edge node [net node, pos=1] {} +(0,-15mm)
+          edge node [net node, pos=1] {} +(10mm,-15mm)
+          edge node [net node, pos=1] {} +(-10mm,-15mm)
+          -- (n1)
+          edge (n4)
+          edge (n3)
+          -- (n2)
+          -- (n3)
+          -- (n4)
+          -- (n0)
+          ($(n2)!1/2!(n3)$) -- +(0,15mm) node [net node] {}
+        ;
+    \end{tikzpicture}
+\end{document}

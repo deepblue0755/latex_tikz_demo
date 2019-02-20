@@ -1,0 +1,46 @@
+\documentclass[border=10pt]{standalone}
+% \usepackage{geometry}
+\usepackage[templates]{genealogytree}
+\usepackage{lmodern}
+
+\begin{document}
+  \begin{genealogypicture}[
+    template=signpost,
+    level distance=10mm,
+    level size=8mm,
+    node size=15mm,
+    box={colback=white,sharp corners,fontupper=\sffamily},
+    mark/.style={box={colback=blue!20}},
+    edges={foreground={line width=1pt,red,-LaTeX,},background={line width=2pt,white}}
+    ]
+child{
+  g{root}
+  child{ g{l}
+    child{ g{lx1}
+      child{ g[mark]{lx11}
+        c[mark]{lx111} c[mark]{lx112}
+      }
+      c[mark]{lx12} c[mark]{lx13} c[mark]{lx14}
+    }
+    child{ g{ll1}
+      child{ g{ll11}
+        c[mark]{ll111}
+      }
+      child{ g{ll12}
+        c[mark]{ll121} c[mark]{ll122}
+      }
+    }
+  }
+  child{ g{r}
+    child{ g{r1}
+      child{ g{r11}
+        c[mark]{r111} c[mark]{r112}
+      }
+      child{ g{r12}
+        c[mark]{r121} c[mark]{r122}
+      }
+    }
+  }
+}
+  \end{genealogypicture}
+\end{document}
