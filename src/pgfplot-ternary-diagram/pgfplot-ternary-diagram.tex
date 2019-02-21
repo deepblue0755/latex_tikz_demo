@@ -1,0 +1,28 @@
+\documentclass{standalone}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.12} 
+\usepgfplotslibrary{ternary}
+
+\begin{document}
+\begin{tikzpicture}
+    \begin{ternaryaxis}[
+        axis on top,
+        xlabel=x,ylabel=y,zlabel=z,
+        colorbar]
+        \addplot3[
+            patch,
+            shader=interp,
+            point meta=\thisrow{C}
+        ] table{
+             X Y Z C
+             0 0 1  100
+             1 0 0  0
+             0.5 0.5 0  0
+
+             0.5 0.5 0  0
+             0 1 0  20
+             0 0 1 100
+        };
+    \end{ternaryaxis}
+\end{tikzpicture}
+\end{document}

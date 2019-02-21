@@ -1,0 +1,21 @@
+\documentclass[10pt,xcolor=dvipsnames,xcolor=table,border=5pt]{standalone}
+\usepackage{tikz}
+\usepackage{xcolor}
+\usetikzlibrary{positioning,arrows,arrows.meta}
+\definecolor{Apricot}{rgb}{0.984,0.808,0.694}
+\begin{document}
+\tikzset{block/.style={rectangle, draw, fill=Apricot!70,
+text width=10em, text centered, rounded corners=0pt, minimum height=0em}}
+\tikzset{arw/.style={>={Triangle[length=3mm,width=5mm]},line width=2mm,draw=gray}}
+
+\begin{tikzpicture}
+    \node[block, text width=1cm, draw= none]at (-1.3,0) (cpu1){PC};
+    \node[block, text width=1cm, minimum height=2cm, draw = none, right=0.5cm of cpu1] (cpu3) {Register file};
+    \node[block, text width=3cm, draw= none, below=0.7cm of cpu3] (cpu2){BUS Interface};
+    \node[block, text width=1cm, minimum height=2cm, draw= none,right=1cm of cpu3]  (cpu4){ALU};
+    \draw[arw,<->] (cpu3.south|-cpu2.north) -- (cpu3);
+    \draw[arw,->] (cpu3.340) -- (cpu4.200);
+    \draw[arw,<-] (cpu3.20) -- (cpu4.160);
+\end{tikzpicture}
+
+\end{document}

@@ -1,0 +1,30 @@
+\documentclass[border=5pt]{standalone}  
+\usepackage[american,siunitx]{circuitikz}
+\usetikzlibrary{arrows,shapes,calc,positioning}
+
+\begin{document}  
+\begin{circuitikz}[american]
+\draw (0,0) node [scale=1.5,transformer core
+] (T){}
+      (T.A1) node[above] {A1}
+      (T.A2) node[below] {A2}
+      (T.B1) node[above] {B1} 
+      (T.B2) node[below] {B2}
+      (T.base) node{K};
+\draw (T.B1) -- ++(1,0) to[D*, v=${V_\gamma=0.7}$, i>_=](4.5,0)--(6,0);        
+\draw (T.B2) -- ++(1,0) to[D*, v=${V_\gamma=0.7}$ ,i>_=] ++(2,0) -| (5,0);
+\draw(T.A1) to[open,v<={$240V_{rms}$,o-o}](T.A2);
+\draw($(T.B1)!0.3!(T.B2)$) node[]{$9V_{rms,AC}$}(T.B1);
+\draw ($(T.B1)!0.8!(T.B2)$)node[]{$9V_{rms,AC}$}(T.B2);
+\draw[thick] ($(T.B1)!0.51!(T.B2)-(1cm,0)$)coordinate[](c){} -- ++ (12.44,0);
+\draw(5.5,0)node[](d1){} to [C,l_=$C_1$, o-o] (c -| d1);
+\draw(10,0)node[](d2){}  to [C,l_=$C_2$, o-o](c -| d2);
+\draw(13,0)node[](d3){}  to [R,l=$R_L$](c -| d3);
+\draw(11,0)node[](d4){}  to [open,o-o, v^={$V_{out}$}] (c -| d4);
+\draw (7,0.5)node[below left=0cm and 0.1cm](){In} rectangle(8,-0.5)node[above right=0.5cm and 0.1cm](){Out};
+\draw(6,0)node[](d6){}   to [open,o-o, v^={$V_{in}$}] (c -| d6);
+\draw (7.5,-0.5)node[](d5){} to[C,l=$C$]  (c -| d5);
+\draw(6,0) -- (7,0);
+\draw(8,0) --(11,0)      to[short,i^={$i_D$}] (13,0);
+\end{circuitikz}
+\end{document}

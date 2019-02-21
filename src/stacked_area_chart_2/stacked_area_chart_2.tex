@@ -1,0 +1,182 @@
+% works with PGFPlots v1.13 and TikZ v3.0.1a
+\documentclass[border=5pt,many]{standalone}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+    \pgfplotsset{compat=1.11}
+
+\usepackage{filecontents}
+    \begin{filecontents}{data.txt}
+        Time core1 core2 core3 core4 mem
+        0   7.847  19.51   18.389  18.943    400.90
+        1   6.863  64.706  12.871  30        913.50
+        2  10      88       0       0       1215.19
+        3  57.576  39       0       0       1691.61
+        4   0.99   99       0.99    0       1694.64
+        5   0      40.594  60       0       1698.15
+        6   0      96.939   3.03    0       1699.55
+        7   0      50.495  48.515   0       1700.09
+        8   0.99   53      47       0       1703.00
+        9   0      28.283  69       3       1696.77
+        10 31.313   0       0      67.677   1697.30
+        11 15      84       1.01    2.941   2252.78
+        12   0     15      14.141  71.717   2249.72
+        13  31     27       6.931  37       2249.00
+        14  2      13.725  60.606  28       2248.16
+        15  9      34.343  41      19       2248.31
+        16 32      41.414  25.743   0       2250.18
+        17 26      33.663  20.408  21       2249.89
+        18 23      13      40      25.253   2249.89
+        19 47.525  18.182  22      12.121   2249.60
+        20 34.694  25.253  22.772  16.832   2249.32
+        21 22       0.99   42.574  37.374   2249.01
+        22 12.871  24      12.121  56.436   2251.39
+        23 17.172  15.152  49.02   20.202   2252.57
+        24 27       5.051  32.653  36       2252.72
+    \end{filecontents}
+
+    \begin{filecontents}{data2.txt}
+        0
+        3
+        10
+        22
+        24
+    \end{filecontents}
+
+\begin{document}
+    \begin{tikzpicture}
+
+        % define `xmax' value
+        % (it has to be a command because it is later needed outside of an
+        %  axis environment to filter the `steps' elements, which are greater
+        %  than `xmax')
+        \def\xmax{24}
+
+        % define color for the vertical lines for the steps
+        \colorlet{step color}{black!60}
+
+
+        % define here what both axis environments have in common
+        % so you don't have to repeat this stuff at every axis
+        \pgfplotsset{
+            every axis/.append style={
+                enlargelimits=false,
+                width=15cm,
+                height=8cm,
+                xmin=0,
+                xmax=\xmax,
+                axis on top,
+            },
+        }
+
+            %%% collect all time stamps of the steps in `\allX'
+            %%% it is later used in the axis environment to draw the lines
+            %%% below the axis lines
+            % store table for the steps
+            \pgfplotstableread[header=true]{data2.txt}{\data}
+            % store number of rows
+            \pgfplotstablegetrowsof{\data}
+                \pgfmathsetmacro{\rows}{\pgfplotsretval-1}
+            % store first element to `\allX'
+            \pgfplotstablegetelem{0}{[index] 0}\of\data
+                \pgfmathsetmacro{\first}{\pgfplotsretval}
+            \def\allX{\first}
+            % cycle through the rest of the list and append the time to
+            % `\allX' if the value is smaller than `\xmax'
+            \pgfplotsforeachungrouped \i in {1,...,\rows} {
+                \pgfplotstablegetelem{\i}{[index] 0}\of\data
+                \pgfmathparse{(\pgfplotsretval<\xmax) ? 1 : 0}
+                \ifdim \pgfmathresult pt>0pt
+                    \edef\allX{\allX,\pgfplotsretval}
+                \fi
+            }
+
+        \begin{axis}[
+            area style,
+            stack plots=y,
+            xlabel={Time},
+            ylabel={CPU usage},
+            ymin=0,
+            ymax=150,
+            ytick distance=25,  % <-- to match ticks on both axis
+        ]
+
+            \foreach \i in {1,...,4}{
+                \addplot table [x=Time,y=core\i]{data.txt} \closedcycle;
+            }
+
+            % use `ybar interval' plot to fake the vertical fills
+            % (for that the `stack plots' has to be turned of to avoid
+            %  an error message. Also this has to be plotted _after_ the
+            %  `stack plots', because the plot sequence is reversed for
+            %  `stack plots' --> last `\addplot' is drawn first)
+            \addplot [
+                stack plots=false,
+                draw=none,
+                fill=green!10,
+                ybar interval,
+            ]
+                table [
+                    x index=0,
+                    % because only every second step should be filled
+                    % switch the height of the bar between `ymax' and
+                    % `ymin'. (To fill it the other way round, just
+                    % replace `ymin' with `ymax' and vice versa)
+                    y expr={ifthenelse(mod(\coordindex,2) == 0,
+                        \pgfkeysvalueof{/pgfplots/ymax},
+                        \pgfkeysvalueof{/pgfplots/ymin})
+                    },
+                ]
+                    {data2.txt};
+
+        \end{axis}
+
+        \begin{axis}[
+            no markers,
+            %
+            %%% draw step labels
+            % therefore use the data of the first `\addplot'
+            xtick=data,
+            % they should be drawn in the middle of two values
+            x tick label as interval,
+            % define how the label should look like
+            xticklabel={
+                % because indexing starts at 0 --> add 1
+                \pgfmathparse{\ticknum + 1}
+                Step \pgfmathprintnumber{\pgfmathresult}
+            },
+            %
+            ymin=0,
+            ymax=3000,
+            ylabel=memory usage,
+            % draw "step" labels on top of graph
+            xticklabel pos=upper,
+            yticklabel pos=right,% <---
+            clip=false,% <---
+            % in case steps are larger than `xmax' -->  force it to be `xmax'
+            % (here you see how to extract the `xmin' and `xmax' values
+            %  when you are _inside_ of an axis environment)
+            restrict x to domain*=
+                \pgfkeysvalueof{/pgfplots/xmin}:\pgfkeysvalueof{/pgfplots/xmax},
+        ]
+
+            % use `ybar interval' plot to fake some vertical lines
+            % this also enables the easy printing of the `xticklabels'
+            \addplot [
+                draw=step color,
+                ybar interval,
+            ]
+                table [
+                    x index=0,
+                    y expr={ifthenelse(mod(\coordindex,2) == 0,
+                        \pgfkeysvalueof{/pgfplots/ymax},
+                        \pgfkeysvalueof{/pgfplots/ymin})
+                    },
+                ]
+                    {data2.txt};
+
+            % now draw the other lines regarding to the second y axis
+            \addplot [very thick,draw=green] table [x=Time,y=mem] {data.txt};
+
+        \end{axis}
+    \end{tikzpicture}
+\end{document}
