@@ -1,0 +1,29 @@
+\documentclass[10pt,border=10pt]{standalone}
+\usepackage{pgf,tikz,pgfplots}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.8}
+\usepackage{mathrsfs}
+\usetikzlibrary{arrows}
+\pagestyle{empty}
+
+\begin{document}
+\definecolor{rvwvcq}{rgb}{0.08235294117647059,0.396078431372549,0.7529411764705882}
+\begin{tikzpicture}[line cap=round,line join=round,>=triangle 45,x=1cm,y=1cm]
+\clip(-6.28,-7.29) rectangle (6.28,7.29);
+\fill[line width=2pt,color=rvwvcq,fill=rvwvcq,fill opacity=0.10000000149011612] (-1.72,0.59) -- (-4.48,0.85) -- (-1.98,2.17) -- (-0.2,-0.73) -- cycle;
+\draw [line width=2pt,color=rvwvcq] (-1.72,0.59)-- (-4.48,0.85);
+\draw [line width=2pt,color=rvwvcq] (-4.48,0.85)-- (-1.98,2.17);
+\draw [line width=2pt,color=rvwvcq] (-1.98,2.17)-- (-0.2,-0.73);
+\draw [line width=2pt,color=rvwvcq] (-0.2,-0.73)-- (-1.72,0.59);
+\begin{scriptsize}
+\draw [fill=rvwvcq] (-1.98,2.17) circle (2.5pt);
+\draw[color=rvwvcq] (-1.82,2.6) node {$A$};
+\draw [fill=rvwvcq] (-4.48,0.85) circle (2.5pt);
+\draw[color=rvwvcq] (-4.32,1.28) node {$B$};
+\draw [fill=rvwvcq] (-0.2,-0.73) circle (2.5pt);
+\draw[color=rvwvcq] (-0.04,-0.3) node {$C$};
+\draw [fill=rvwvcq] (-1.72,0.59) circle (2.5pt);
+\draw[color=rvwvcq] (-1.56,1.02) node {$D$};
+\end{scriptsize}
+\end{tikzpicture}
+\end{document}

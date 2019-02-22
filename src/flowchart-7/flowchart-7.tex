@@ -1,0 +1,96 @@
+\documentclass[11pt,border=5pt]{standalone}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{matrix,shapes,arrows,positioning,chains,calc}
+
+\begin{document}
+
+% Define block styles
+\tikzset{
+desicion/.style={
+    diamond,
+    draw, thick,
+    text width=4em,
+    text badly centered,
+    inner sep=0pt
+},
+block/.style={
+    rectangle,
+    draw, thick,
+    text width=9em,
+    text centered,
+    rounded corners
+},
+cloud/.style={
+    draw,
+    ellipse,
+    minimum height=2em
+},
+descr/.style={
+    fill=white,
+    inner sep=2.5pt
+},
+connector/.style={
+    -latex,
+    font=\scriptsize
+},
+rectangle connector/.style={
+    connector,
+    to path={(\tikztostart) -- ++(#1,0pt) \tikztonodes |- (\tikztotarget) },
+    pos=0.5
+},
+rectangle connector/.default=-2cm,
+straight connector/.style={
+    connector,
+    to path=--(\tikztotarget) \tikztonodes
+},
+line/.style={>=latex,->,thick}
+}
+
+\begin{tikzpicture}
+\matrix (m)[matrix of nodes, column  sep=3cm, row  sep=8mm, align=center, nodes={rectangle,draw, anchor=center} ]
+{
+ |[block]| {Start}       &   & \\
+ |[block]| {Assume that $a=c$ the optimilalty cretierin given by }  &  &                                  \\
+ |[desicion]| {Locally optimal}          &           &                                 \\
+ |[block]| {Assume that $a=d$ the optimilalty cretierin given by}    &                                            & \\
+ |[desicion]| {Locally optimal}         &               &                           \\
+ |[block]| {Assume that $a=e$ the optimilalty cretierin given by}    &       |[block]| {$A=c^2$ \\ $A=b^2$}           &        |[block]| {Globsl \\  Optimal \\ Configuration}                 \\
+ |[desicion]| {Locally optimal}         &    &                       \\
+ |[block]| {Assume that $a=f$ the optimilalty cretierin given by}    &   &   \\
+ |[desicion]| {Locally optimal}               & &  |[block]| {Stop}  \\
+ |[block]| {Assume that $a=k$ the optimilalty cretierin given by}    &    |[desicion]| {Locally optimal}    &     \\
+};
+\foreach \f/\t[evaluate=\f as \t using int(\f+1)]  in {3,4,5,6,7,8,9}{
+\draw [line] (m-\f-1) -- node[midway,right]{No} (m-\t-1);
+}
+\node[above,xshift=1.5cm] at (m-10-2){No};
+\foreach \f/\t[evaluate=\f as \t using int(\f+1)]  in {1,2}{
+\draw [line] (m-\f-1) --  (m-\t-1);
+}
+\path  [line,red] (m-10-1) edge (m-10-2);
+\path  [line,red] (m-6-3) edge (m-9-3);
+\draw [line,red] (m-10-2) -| (m-9-3);
+
+\draw [line,red] (m-3-1.east) --node[midway,above,text=black]{Yes, Pass (a1,c1)} ++ (2.8cm,0)coordinate[](a);
+\draw [line,red] (m-3-1.east) -| ([xshift=1.5cm]m-4-1.north);
+\draw [line,red] (m-5-1.east) --node[midway,above,text=black]{Yes, Pass (a2,c2)} ++ (2.8cm,0)coordinate[](b);
+\draw [line,red] (m-5-1.east) -| ([xshift=1.5cm]m-6-1.north);
+\draw [line,red] (m-7-1.east) --node[midway,above,text=black]{Yes, Pass (a3,c3)} ++ (2.8cm,0)coordinate[](c);
+\draw [line,red] (m-7-1.east) -| ([xshift=1.5cm]m-8-1.north);
+\draw [line,red] (m-9-1.east) --node[midway,above,text=black]{Yes, Pass (a4,c4)} ++ (2.8cm,0)coordinate[](d);
+\draw [line,red] (m-9-1.east) -| ([xshift=1.5cm]m-10-1.north);
+\draw[line,red] (m-10-2) -- (m-6-2) node[pos=0.3,right,text=black]{Yes, Pass (a5,c5)};
+\draw [line] (m-6-2) --node[midway,below,text=black]{Yes, Pass (a6,c6)} node[midway,above,text=black]{Step 6} (m-6-3);
+
+\node[xshift=4cm] at (m-1-1) {A,b,c,d,k given};
+\node[xshift=-2cm] at (m-3-1){Step 1(4)};
+\node[xshift=-2cm] at (m-5-1){Step 2 (7)};
+\node[xshift=-2cm] at (m-7-1){Step 3 (9)};
+\node[xshift=-2cm] at (m-9-1){Step 4 (3)};
+\node[xshift=-2cm,above] at (m-10-2){Step 5};
+\draw [>=latex,-,red,thick] (a) --(d);
+\draw [line,red] ($(a)!0.5!(d)$) -- (m-6-2);
+\end{tikzpicture}
+
+\end{document}
