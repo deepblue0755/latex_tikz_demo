@@ -1,0 +1,12 @@
+\documentclass[border=5pt]{standalone}
+\usepackage{pgfplots}
+\usepackage{filecontents}
+
+\begin{document}
+    \begin{tikzpicture}
+    % \includegraphics[width=\textwidth,height=4cm]{tiger}
+    \begin{axis}
+    \addplot table [x=a, y=b, col sep=comma, mark=none, smooth] {pilot.csv};
+    \end{axis}
+    \end{tikzpicture}
+\end{document}
