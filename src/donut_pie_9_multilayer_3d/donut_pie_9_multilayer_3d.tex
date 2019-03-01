@@ -1,0 +1,141 @@
+\documentclass[border=5pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{fadings}
+
+\pgfkeys{%
+/piechartthreed/.cd,
+scale/.code                =  {\def\piechartthreedscale{#1}},
+mix color/.code            =  {\def\piechartthreedmixcolor{#1}},
+background color/.code     =  {\def\piechartthreedbackcolor{#1}},
+name/.code                 =  {\def\piechartthreedname{#1}}}
+
+ \newcommand\piechartthreed[2][]{% 
+   \pgfkeys{/piechartthreed/.cd,
+     scale            = 1,
+     mix color        = gray,
+     background color = white,
+     name             = pc} 
+  \pgfqkeys{/piechartthreed}{#1}
+  \begin{scope}[scale=\piechartthreedscale] 
+  \begin{scope}[xscale=5,yscale=3] 
+     \path[preaction={fill=black,opacity=.8,
+         path fading=circle with fuzzy edge 20 percent,
+         transform canvas={yshift=-15mm*\piechartthreedscale}}] (0,0) circle (1cm);
+    \fill[gray](0,0) circle (0.5cm);  
+     \path[preaction={fill=\piechartthreedbackcolor,opacity=.8,
+          path fading=circle with fuzzy edge 20 percent,
+          transform canvas={yshift=-10mm*\piechartthreedscale}}] (0,0) circle (0.5cm);
+     \pgfmathsetmacro\totan{0} 
+     \global\let\totan\totan 
+     \pgfmathsetmacro\bottoman{180} \global\let\bottoman\bottoman 
+     \pgfmathsetmacro\toptoman{0}   \global\let\toptoman\toptoman 
+     \begin{scope}[draw=black,thin]
+     \foreach \an/\col [count=\xi] in {#2}{%
+     \def\space{ } 
+        \coordinate (\piechartthreedname\space\xi) at (\totan+\an/2:0.75cm); 
+        \ifdim 180pt>\totan pt 
+         \ifdim 0pt=\toptoman pt
+            \shadedraw[left color=\col!20!\piechartthreedmixcolor,
+                       right color=\col!5!\piechartthreedmixcolor,
+                       draw=black,very thin] (0:.5cm) -- ++(0,-3mm) arc (0:\totan+\an:.5cm) 
+                                                       -- ++(0,3mm)  arc (\totan+\an:0:.5cm);
+            \pgfmathsetmacro\toptoman{180} 
+            \global\let\toptoman\toptoman         
+            \else
+            \shadedraw[left color=\col!20!\piechartthreedmixcolor,
+                       right color=\col!5!\piechartthreedmixcolor,
+                       draw=black,very thin](\totan:.5cm)-- ++(0,-3mm) arc(\totan:\totan+\an:.5cm)
+                                                        -- ++(0,3mm)  arc(\totan+\an:\totan:.5cm); 
+          \fi
+        \fi   
+        \fill[\col!20!gray,draw=black] (\totan:0.5cm)--(\totan:1cm)  arc(\totan:\totan+\an:1cm)
+                                     --(\totan+\an:0.5cm) arc(\totan+\an:\totan :0.5cm);     
+       \pgfmathsetmacro\finan{\totan+\an}
+       \ifdim 180pt<\finan pt 
+         \ifdim 180pt=\bottoman pt
+            \shadedraw[left color=\col!20!\piechartthreedmixcolor,
+                       right color=\col!5!\piechartthreedmixcolor,
+                       draw=black,very thin] (180:1cm) -- ++(0,-3mm) arc (180:\totan+\an:1cm) 
+                                                       -- ++(0,3mm)  arc (\totan+\an:180:1cm);
+            \pgfmathsetmacro\bottoman{0}
+            \global\let\bottoman\bottoman
+            \else
+            \shadedraw[left color=\col!20!\piechartthreedmixcolor,
+                       right color=\col!5!\piechartthreedmixcolor,
+                       draw=black,very thin](\totan:1cm)-- ++(0,-3mm) arc(\totan:\totan+\an:1cm)
+                                                        -- ++(0,3mm)  arc(\totan+\an:\totan:1cm); 
+          \fi
+        \fi
+        \pgfmathsetmacro\totan{\totan+\an}  \global\let\totan\totan 
+       } 
+    \end{scope}
+    \draw[thin,black](0,0) circle (0.5cm);
+   \end{scope}  
+\end{scope}
+}
+\newcommand{\innerchartthreed}[1]{
+   % Calculate total
+   \pgfmathsetmacro{\totalnum}{0}
+   \foreach \value/\colour/\name in {#1} {
+     \pgfmathparse{\value+\totalnum}
+     \global\let\totalnum=\pgfmathresult
+   }
+
+
+  \pgfmathsetmacro{\wheelwidth}{\outerradius-\innerradius}
+  \pgfmathsetmacro{\midradius}{(\outerradius+\innerradius)/2}
+
+  \begin{scope}[rotate=90,xscale=0.6,yscale=1]
+
+    \pgfmathsetmacro{\cumnum}{0}
+    \foreach [count=\n] \value/\colour/\name in {#1} {
+        \pgfmathsetmacro{\newcumnum}{\cumnum + \value/\totalnum*360}
+
+        \pgfmathsetmacro{\midangle}{-(\cumnum+\newcumnum)/2}
+
+        \filldraw[draw=white,fill=\colour] (-\cumnum:\outerradius) arc (-\cumnum:-(\newcumnum):\outerradius) --
+        (-\newcumnum:\innerradius) arc (-\newcumnum:-(\cumnum):\innerradius) -- cycle;
+
+        \fill[darkgray!25] circle (\innerradius);
+
+        \draw node [text=white, font=\bfseries] (inner \n) at (\midangle:{\innerradius+\wheelwidth/2}) {\name};
+
+
+        \global\let\cumnum=\newcumnum
+    }
+        \node[scale=1.0, color=black, font=\bfseries](\innerradius) {A};
+
+  \end{scope}
+
+  }
+\begin{document} 
+ \begin{tikzpicture}
+   \piechartthreed[scale=0.8,
+                   background color=orange!50,
+                   mix color= darkgray]
+                   {40/green,60/blue,90/red,50/orange,120/yellow}
+   \foreach \i in {1,...,5} { \fill (pc \i) circle (.5mm);}
+   \draw[darkgray] (pc 1)  -- ++(4,0) coordinate (s1) node[anchor=south east] {Sector 1}
+                                                      node[anchor=north east] {11\%};
+   \draw[darkgray] (pc 5)  -- (pc 5 -| s1) node[anchor=south east] {Sector 5}
+                                                      node[anchor=north east] {33\%}; 
+   \draw[darkgray] (pc 2)  -- ++(1,1) coordinate (s2) -- (s2 -| s1) node[anchor=south east] {Sector 2}
+                                                      node[anchor=north east] {17\%}; 
+   \draw[darkgray] (pc 3)  -- ++(-4,0) coordinate (s3) node[anchor=south west] {Sector 3}
+                                                      node[anchor=north west] {14\%};
+   \draw[darkgray] (pc 4)  -- ++(-1,-1) coordinate (s4) --(s4 -| s3) node[anchor=south west] {Sector 4}
+                                                          node[anchor=north west] {25\%};
+   \def\innerradius{0.7cm}
+\def\outerradius{2cm}
+\pgfmathsetlengthmacro{\centerradius}{(\outerradius + \innerradius)/2}
+\pgfmathsetlengthmacro{\donutcenter}{\innerradius/2}
+
+ \innerchartthreed{18/gray/1,12/purple/2}
+  \draw[darkgray] (inner 1)  -- (inner 1-|s1) node[anchor=south east] {inner
+  sector 1};
+  \draw[darkgray] (inner 2)  -- (inner 2|-s2) node[anchor=south] {inner
+  sector 2};
+
+ \end{tikzpicture}
+
+\end{document}

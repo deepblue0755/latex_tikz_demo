@@ -1,0 +1,83 @@
+% By J. Leon V. Share as Beerware philosophy
+\documentclass[border=20pt]{standalone}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{makeidx}
+\usepackage{graphicx}
+\usepackage{lmodern}
+\usepackage{kpfonts}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{decorations.text, arrows.meta}
+
+
+\usetikzlibrary{calc}
+\begin{document}
+    \begin{tikzpicture}[
+        % Environment Cfg
+        >={Stealth[inset=0pt,length=10pt]}
+    ]
+
+%Variables: 1:Position 2:Radio 3:pseudo sharpsness 4: Name/Color array
+\def\ColorWeel(#1)[#2][#3]#4{%
+    \begin{scope}[shift={(#1)}] 
+    %Drawing features separations.
+    \foreach \elements [count=\n]  in {#4}{}
+    \pgfmathparse{int(360/\n)}
+    \edef\Angle{\pgfmathresult}
+    \foreach \text/\color [count=\i from 0] in {#4}{
+        \draw[fill=\color,thick](\Angle*\i:#2) 
+            arc (\Angle*\i:\Angle*\i+\Angle:#2) 
+            -- (\Angle*\i+\Angle:#2-0.5cm) arc (\Angle*\i+\Angle:\Angle*\i:#2-0.5cm) -- cycle;
+            \pgfmathparse{int(\Angle*\i)}
+            \ifnum\pgfmathresult<180
+                \path[decoration={text along path,raise=-4pt,text={||\text},text align=center,reverse path},decorate]
+                (\Angle*\i:#2+0.5cm) arc (\Angle*\i:\Angle*\i+\Angle:#2+0.5cm); 
+            \fi
+            \ifnum\pgfmathresult>179
+                \path[decoration={text along path,text={||\text},text align=center},decorate]
+                (\Angle*\i:#2+0.5cm) arc (\Angle*\i:\Angle*\i+\Angle:#2+0.5cm); 
+            \fi
+    }
+    \clip (0,0) circle (#2-0.5cm);
+    \foreach \text/\color [count=\j from 0] in {#4}{
+        \foreach \k in {1,2,...,20}{    
+            \path[fill=\color, opacity=#3](\Angle*\j+\Angle/2: #2-0.7cm) circle (\k*0.2);
+        }
+        \draw[thick, ->] (0,0) -- (\Angle*\j+\Angle/2: #2-1.2cm);       
+    }
+    \end{scope}
+}
+
+\ColorWeel(0,0)[5cm][0.05]{
+        Orange/orange,
+        jaune/yellow,
+        jaune-vert/lime,
+        vert/green,
+        bleu-vert/SeaGreen,
+        cyan/Cyan,
+        bleu roi/NavyBlue,
+        bleu/blue,
+        violet/violet,
+        magenta/magenta,
+        rouge-ros{\'e}/RubineRed,
+        rouge/red}
+
+\ColorWeel(11,0)[3.5cm][0.08]{
+    Blue/blue,
+    Red/red,
+    Yellow/yellow}
+
+\ColorWeel(7,-10)[4cm][0.08]{
+    black/black,
+    white/white,
+    green-60-black/green!60!black,
+    blue-50-green/blue!50!green,
+    blue-50-red/blue!50!red}
+
+    \end{tikzpicture}
+\end{document}

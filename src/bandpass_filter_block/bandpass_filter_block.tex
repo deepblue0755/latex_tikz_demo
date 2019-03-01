@@ -1,0 +1,44 @@
+\documentclass[border=10pt]{standalone}  
+\usepackage{tikz}
+\usepackage[american,siunitx]{circuitikz}
+\usetikzlibrary{arrows,calc,positioning}
+
+\newcommand{\cross}[1] 
+{  % #1 = name , 
+\draw[thick] (#1) circle (12pt);
+\draw[rotate=45,line width=0.5pt]   (#1)  +(0,-12pt) -- +(0,12pt);
+\draw[rotate=-45,line width=0.5pt]  (#1)  +(0,-12pt) -- +(0,12pt);
+}
+
+\newcommand{\BPF}[2] 
+{  % #1 = name , #2 = rotation angle
+\begin{scope}[transform shape,rotate=#2]
+\draw[thick] (#1)node[](a){} +(-12pt,-12pt) rectangle +(12pt,12pt);
+\draw (a) +(-8pt,0) to[bend left] +(0,0) edge[bend right] +(8pt,0);
+\draw ([yshift=5pt]a) +(-8pt,0) to[bend left] +(0,0) to[bend right] +(8pt,0);
+\draw ([yshift=-5pt]a) +(-8pt,0) to[bend left] +(0,0) edge[bend right] +(8pt,0);
+\draw[rotate=20] ([yshift=5pt]a) +(-4pt,0) -- +(7pt,0);
+\draw[rotate=20] ([yshift=-5pt]a) +(-7pt,0) -- +(4pt,0);
+\end{scope}
+}
+
+\tikzset{ar/.style={-latex,shorten >=-1pt, shorten <=-1pt}}
+\begin{document}  
+
+\begin{circuitikz}
+\path (4,0) node[above=2pt]() {LO} to[sV]node[pos=0,inner sep=0pt](b){} (4,2);
+\draw (0,3) node[buffer,scale=0.8](buf){}
+node[above =0.8 cm]{LNA};
+\path (1,3) to[sV,color=white,name=bp]
+node[pos=0,inner sep=0pt](d){}
+node[above left=0.8cm and 0.2cm]{BPF} (3,3);
+\BPF{bp}{0}
+\path (4,2) to[sV,color=white,name=M1]node[midway,above=0.1cm]{Mixer}(4,4);
+\cross{M1}
+\draw[] (-1,3) node [antenna,xscale=-1] (A) {}--(buf.in);
+\draw[ar] (bp)--(M1);
+\draw[ar] (buf.out)--(bp);
+\draw[ar] (b)--(M1);
+\draw[ar] (M1) -- +(2,0);
+\end{circuitikz}
+\end{document}

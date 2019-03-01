@@ -1,0 +1,83 @@
+\documentclass[tikz,border=7mm]{standalone}
+\usetikzlibrary{calc,patterns,through,intersections}
+\begin{document}
+  \begin{tikzpicture}
+    % x, y axis
+    \draw[->] (-1.5,0) -- (3,0) node[right] {$x$};
+    \draw[->] (0,-1.5) -- (0,3) node[above] {$y$};
+    % Origin
+    \coordinate (O) at (0,0);
+    % Point z0
+    \coordinate (z0) at (1,0);
+    \node [below right] at (z0) {$z_0$};
+    % Circle C0
+    \draw [name path=C0] (O) circle [radius=1];
+    \node [above left] at (170:1) {$C_0$};
+    % Point z1
+    \coordinate (z1) at (30:0.7);
+    \fill (z1) circle [radius=1pt];
+    \node [below] at (z1) {$z_1$};
+    % Circle C1
+    \node [draw, circle through=(z0), name path=C1,
+      path picture={
+        \clip (-20,-20) rectangle +(40,40) (O) circle [radius=1 cm +.5\pgflinewidth];
+        \fill[pattern=crosshatch, pattern color=green] (-20,-20) rectangle +(40,40);
+      }
+    ] at (z1) {};
+    \node [above right] at ($(30:0.7)+(20:0.5)$) {$C_1$};
+  \end{tikzpicture}
+
+
+\begin{tikzpicture}
+ % x, y axis
+ \draw[->] (-1.5,0) -- (3,0) node[right] {$x$};
+ \draw[->] (0,-1.5) -- (0,3) node[above] {$y$};
+ % Origin
+ \coordinate (O) at (0,0);
+ % Point z0
+ \coordinate (z0) at (1,0);
+ \node [below right] at (z0) {$z_0$};
+ % Circle C0
+ \draw  (O) circle [radius=1];
+ \node [above left] at (170:1) {$C_0$};
+ % Point z1
+ \coordinate (z1) at (30:0.7);
+ \fill (z1) circle [radius=1pt];
+ \node [below] at (z1) {$z_1$};
+ % Circle C1
+ \node [draw, circle through=(z0)] at (z1) {};
+ \node [above right] at ($(30:0.7)+(20:0.5)$) {$C_1$};
+ \begin{scope}
+   \clip (3,0) -- (z0) arc (0:90:1) -- (0,3) -| cycle;
+   \node [pattern=north west lines, draw, pattern color=gray!60!white, circle through=(z0)] at (z1) {};
+  \end{scope}
+\end{tikzpicture}
+
+\begin{tikzpicture}
+ % Coordinates
+ \coordinate (O) at (0,0);
+ \coordinate (z0) at (1,0);
+ \coordinate (z1) at (30:0.7);
+
+ \node [fill, circle through=(z0), pattern=north west lines, pattern color=gray!60!white] at (z1) {};
+ \fill [color=white] (O) circle [radius=1];
+
+ % Point z0
+ \node [below right] at (z0) {$z_0$};
+ % Circle C0
+ \draw [name path=C0] (O) circle [radius=1];
+ \node [above left] at (170:1) {$C_0$};
+ % Point z1
+ \fill (z1) circle [radius=1pt];
+ \node [below] at (z1) {$z_1$};
+
+ % Circle C1
+ \node [draw, circle through=(z0), name path=C1] at (z1) {};
+ \node [above right] at ($(30:0.7)+(20:0.5)$) {$C_1$};
+
+ % x, y axis
+ \draw[->] (-1.5,0) -- (3,0) node[right] {$x$};
+ \draw[->] (0,-1.5) -- (0,3) node[above] {$y$};
+\end{tikzpicture}
+
+\end{document}

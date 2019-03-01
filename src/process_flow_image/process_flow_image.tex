@@ -1,0 +1,63 @@
+\documentclass[10pt]{article}
+\usepackage{geometry}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,
+                chains,
+                fit,
+                positioning,
+                shapes.arrows}
+
+\usepackage[floats,active,tightpage]{preview}
+\setlength\PreviewBorder{1em}
+
+\usepackage{showframe}
+
+\begin{document}
+
+\begin{figure}[h]
+    \centering
+\begin{tikzpicture}
+[
+node distance = 10mm and 6mm,
+  start chain = A going right,
+ force/.style = {rectangle, rounded corners, draw, fill=cyan!30,
+                 inner sep=2mm, outer sep=0mm, minimum size=8mm,
+                 font=\bfseries\sffamily, on chain},
+    CA/.style = {% Connection Arrow
+                 single arrow, draw,
+                 single arrow head extend=1.5mm,
+                 minimum height=6mm, minimum width=5mm, outer sep=0mm},
+    LA/.style = {% Long Arrow
+                 CA, draw=none, left color=cyan!20, right color=cyan,
+                 inner xsep = 6mm, minimum width=9mm, label=center:#1,},
+ ]
+    \begin{scope}[every node/.style={force}]
+\node   {Planejar};     % A-1
+\node   {Adquirir};
+\node   {Processar};
+\node   {Analisar};
+\node   {Preservar};
+\node   {Publicar};     % A-6
+    \end{scope}
+% arrows between nodes
+\foreach \i in {1,...,5}
+    \node[CA, right=0mm of A-\i] {};
+% long arrows with text
+\coordinate[below=of A-1]   (a1);
+\coordinate[below=of a1]    (a2);
+\coordinate[below=of a2]    (a3);
+    \node[LA=Metadados e Documentação,
+          fit=(a1) (a1 -| A-6)] {};
+    \node[LA=Gestão da Qualidade,
+          fit=(a2) (a2 -| A-6)] {};
+    \node[LA=Disponibilidade e Segurança dos Dados,
+          fit=(a3) (a3 -| A-6)]    {};
+\end{tikzpicture}
+\caption{Modelo de ciclo de vida dos dados de pesquisa proposto pela USGS. Adaptado de}
+\label{fig:modeloUSG}
+\end{figure}
+
+\end{document}

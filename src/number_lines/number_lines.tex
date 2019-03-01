@@ -1,0 +1,36 @@
+\documentclass[tikz,border=10pt,multi]{standalone}
+\usepackage{xparse}
+% ref: WeCanLearnAnything at http://tex.stackexchange.com/questions/267921/macro-for-mixed-numbers-on-number-line-tikz (but I doubt this is the original source)
+\NewDocumentCommand\NL { s m m m m m }
+{\tikz[xscale=#2,yscale=#3]
+ {
+ \filldraw[orange] (0,0) rectangle (#6,0.2);% shaded portion of number line
+ \draw
+  (0,0)--(#4,0)% lower part of x-axis
+  (0,0.2)--(#4,0.2);% higher part of x-axis
+ \foreach \x in {0,...,#4}
+  \node [anchor=mid] at (\x,-0.5) {\x};% whole numbers underneath number line
+  \pgfmathparse{#4*#5}
+ \foreach \x in {0,...,\pgfmathresult}% fractional tick marks and numbers above number line
+  {
+   \draw (\x/#5,-0.2)--(\x/#5,0.2);
+   \node[above] at (\x/#5,0.25) {$\frac{\x}{#5}$};
+   \IfBooleanF {#1}{
+     \pgfmathsetmacro\intbit{int(\x/#5)}
+     \pgfmathsetmacro\fracbit{int(\x-#5*\intbit)}
+     \ifnum\intbit=0\let\intbit\relax\fi
+     \ifnum\fracbit=0\else
+     \node [anchor=mid] at (\x/#5,-0.5) {$\intbit\frac{\fracbit}{#5}$};
+     \fi
+   }
+  }
+ \fill[green,opacity=0.75] (#6,0.1) circle[x radius=0.2cm/#2,y radius=0.2cm/#3];% green dot
+ }
+}
+
+\begin{document}
+
+\NL{4}{1.2}{3}{4}{7/4}
+\NL*{4}{1.2}{3}{4}{7/4}
+
+\end{document}

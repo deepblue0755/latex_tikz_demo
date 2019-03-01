@@ -1,0 +1,124 @@
+\documentclass{beamer}
+\usepackage{lmodern}
+
+\usepackage{tikz}
+\usepgfmodule{oo}
+\usetikzlibrary{calc,positioning,decorations.pathmorphing}
+
+\tikzset{pencil draw/.style={
+    draw,
+    decorate,
+    decoration={random steps,segment length=3mm,amplitude=0.2mm}
+  }
+}
+
+
+\pgfooclass{module}{
+
+ % class attributes
+ \attribute text;
+ \attribute text width=2.5cm;
+ \attribute label;
+ \attribute width=3cm;
+ \attribute height=1cm;
+
+ % constructor method
+ \method module() {
+ }
+
+ \method text(#1) {
+  \pgfooset{text}{#1}
+ }
+
+ \method set text width(#1) {
+  \pgfooset{text width}{#1}
+ }
+
+ \method set label(#1) {
+  \pgfooset{label}{#1}
+ }
+
+ \method set width(#1) {
+  \pgfooset{width}{#1}
+ }
+
+ \method set height(#1) {
+  \pgfooset{height}{#1}
+ }
+
+ \method draw(#1,#2) {
+  \node [rectangle,
+    thick,
+    pencil draw,
+    align=center,
+    text width=\pgfoovalueof{text width},
+    minimum width=\pgfoovalueof{width},
+    minimum height=\pgfoovalueof{height},
+    ] (\pgfoovalueof{label}) at (#1,#2) {\pgfoovalueof{text}};
+ }
+
+ \method place(#1) {
+  \node [rectangle,
+    thick,
+    pencil draw,
+    align=center,
+    text width=\pgfoovalueof{text width},
+    minimum width=\pgfoovalueof{width},
+    minimum height=\pgfoovalueof{height},
+    #1
+    ] (\pgfoovalueof{label}) {\pgfoovalueof{text}};
+ }
+
+ \method connect(#1,#2) {
+    \draw[-stealth,pencil draw,thick,decorate,decoration={raise=1mm}] (#1)--(#2);
+    \draw[-stealth,pencil draw,thick,decorate,decoration={raise=1mm}] (#2)--(#1);   
+ }
+
+ % shortcut method to easily set labels, text and draw
+ % use the \pgfoothis to refer to the current object
+ \method set and draw(#1,#2,#3,#4) {
+  \pgfoothis.set label(#1)
+  \pgfoothis.text(#2)
+  \pgfoothis.draw(#3,#4)
+ }
+
+ % shortcut method to easily set labels, text and place
+ % objects
+ \method set and place(#1,#2,#3) {
+  \pgfoothis.set label(#1)
+  \pgfoothis.text(#2)
+  \pgfoothis.place(#3)
+ }
+
+ % shortcut method to easily set the dimensions
+ \method set dimensions(#1,#2,#3) {
+  \pgfoothis.set width(#1)
+  \pgfoothis.set height(#2)
+  \pgfoothis.set text width(#3)
+ }
+
+}
+
+\begin{document}
+\begin{frame}{Diagram}
+\centering
+\only<1-4>{
+\begin{tikzpicture}[scale=0.75, transform shape]
+\pgfoonew \mod=new module()
+
+\mod.set and draw(reg 1,Region 1,0,0)
+\mod.set and place(reg 2,Region 2,right= 3cm of reg 1)
+\mod.set and place(contr 1,Controller 1,below= 2cm of reg 1)
+\mod.set and place(contr 2,Controller 2,right= 3cm of contr 1)
+
+\mod.connect(reg 1,reg 2)
+\mod.connect(reg 1,contr 1)
+\mod.connect(reg 2,contr 2)
+\mod.connect(contr 1,contr 2)
+
+\node at ($(reg 1)!0.5!(reg 2)-(0,3ex)$) {Interconnect};
+\node at ($(contr 1)!0.5!(contr 2)-(0,3ex)$) {Communication};
+\end{tikzpicture}
+}
+\end{frame}
+\end{document}

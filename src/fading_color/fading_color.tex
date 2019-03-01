@@ -1,0 +1,12 @@
+\documentclass[border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{fadings}
+\pagestyle{empty}
+\begin{document}
+\begin{tikzpicture}
+\fill [blue,path fading=west] (0,0) rectangle (5cm,3mm);
+\fill [red,path fading=east] (0,0) rectangle (5cm,3mm);
+\fill [yellow,path fading=east] (0,0) rectangle (2cm,3mm);
+\fill [green,path fading=west] (3,0) rectangle (5cm,3mm);
+\end{tikzpicture}
+\end{document}

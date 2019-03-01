@@ -1,0 +1,47 @@
+\documentclass[border=5pt]{standalone}
+\usepackage{tikz,collcell}
+\newcommand*{\cellset}{\pgfqkeys{/cell}}
+\newcommand*{\myCell}{\cellset}
+\newcolumntype{C}[1]{>{\collectcell\myCell}#1<{\endcollectcell}}
+\makeatletter
+\tikzset{overlay linewidth/.code=\tikz@addmode{\tikzset{overlay}}}
+\cellset{.unknown/.code={\edef\pgfkeys@temp{\noexpand\cellset{box=\pgfkeyscurrentname}}\pgfkeys@temp}}
+\makeatother
+\cellset{
+  head/.code=\rlap{\rotatebox{60}{#1}}\hspace*{1.2em},
+  myCell/.style={
+    draw=black,
+    overlay linewidth,
+    inner sep=+0pt,
+    outer sep=+0pt,
+    anchor=center,
+    fill={#1},
+    minimum size=+1.7em},
+  box/.code={%
+    \tikz[baseline=-1ex]
+      \node[/cell/myCell={#1}]{};},
+  box/.default=none,
+  ./.style={box},
+  @define/.style args={#1:#2}{#1/.style={box=#2}},
+  @define/.list={%
+    not present:black,  possible:cyan,
+    probable:   yellow, common:  red,
+    o:          orange, y:       yellow}
+  }
+\begin{document}
+\begin{tabular}{>{\footnotesize}r *4{C{c} @{}} @{\hspace*{.5cm}} *4{C{c} @{}}}
+                                               & head=Fibroadenoma [xx] & head=Simply Cyst & head=Complex Cist & head=Pailloma & head=CDI & head=CLI     & head=FA & head=Cyst      \\[1em]
+    \multicolumn{1}{l}{Background Echotexture} &                        &                  &                   &               &          &              &         &  \\
+               Homogeneous adipose-echotexture & common                 & .                & .                 & .             & o        & y            & .       & .              \\
+        Homogeneous fibroglandular-echotexture & common                 & .                & .                 & .             & blue     & .            & .       & .              \\
+               Homogeneous adipose-echotexture & common                 & .                & .                 & .             & .        & .            & .       & .              \\[1em]
+                \multicolumn{1}{l}{Mass Shape} &                        &                  &                   &               &          &              &         &  \\
+                                          Oval & common                 & .                & .                 & .             & .        & .            & .       & o              \\
+                                         Round & common                 & .                & .                 & .             & .        & .            & .       & .              \\
+                                     Irregular & probable               & .                & .                 & .             & .        & .            & .       & .              \\
+                                       Iobular & probable               & .                & .                 & .             & .        & .            & .       & .              \\[1em]
+          \multicolumn{1}{l}{Mass Orientation} &                        &                  &                   &               &          &              &         &  \\
+                              Parallel to skin & common                 & .                & .                 & .             & blue     & .            & red     & red!50!black   \\
+                          Non-parallel to skin & possible               & .                & .                 & .             & red      & red!30!black & blue    & blue!50!black 
+\end{tabular}
+\end{document}

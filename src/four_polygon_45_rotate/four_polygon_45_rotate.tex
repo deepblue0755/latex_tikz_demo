@@ -1,0 +1,15 @@
+\documentclass[tikz,border=2mm]{standalone} 
+\usetikzlibrary{shapes.geometric}
+\usepackage{lmodern}
+
+\begin{document}
+\begin{tikzpicture}[box/.style={shape=regular polygon, regular polygon sides=4, 
+   shape border rotate=45, draw, fill=#1, 
+   font=\fontsize{40pt}{45pt}\sffamily\bfseries, 
+   text width=1.5cm, align=center, inner sep=1pt}]
+\node[box=red, anchor=south] (1) {1};
+\node[box=blue, anchor=east] (2) {2};
+\node[box=yellow, anchor=west] (3) {3};
+\node[box=white,font=\fontsize{22pt}{23pt}\sffamily\bfseries, anchor=north] (4) {ALK};
+\end{tikzpicture}
+\end{document}

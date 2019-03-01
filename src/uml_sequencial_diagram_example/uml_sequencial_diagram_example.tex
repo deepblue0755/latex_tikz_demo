@@ -1,0 +1,28 @@
+\documentclass[border=5pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{arrows,shadows,calc}
+\usepackage{pgf-umlsd}
+
+\begin{document}
+
+\begin{sequencediagram}
+\tikzstyle{inststyle}=[rectangle,anchor=west,minimum
+    height=0.8cm, minimum width=1.6cm, fill=white]
+\tikzstyle{dotted}=[line width=2pt,red!50]
+\newinst{ue}{UE}
+\newinst[3]{nodeb}{Node B}
+\newinst[3]{rnc}{RNC}
+\mess{ue}{RRC Connection Request}{rnc}
+\mess{rnc}{Radio Link Setup Request}{nodeb}
+\mess{nodeb}{Radio Link Setup Response}{rnc}
+\mess{rnc}{Establish Request}{nodeb}
+\mess{nodeb}{Establish Confirm}{rnc}
+\mess{rnc}{RRC Connection Setup}{ue}
+\postlevel
+\mess{nodeb}{Synchronization Indication}{rnc}
+\filldraw[fill=black!30] ($(RRC Connection Setup to)+(0,-.3)$) rectangle ($(Synchronization Indication from) +(0,.3)$)
+  node[midway] {L1 Synchronization};
+\mess{ue}{RRC Connection Setup Complete}{rnc}
+\end{sequencediagram}
+
+\end{document}

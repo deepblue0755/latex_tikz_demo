@@ -1,0 +1,41 @@
+% Original code by Claudio Fiandrino in
+% https://tex.stackexchange.com/questions/100560/single-arrow-with-heads-on-both-sides-pointing-in-same-direction/100562#100562
+\documentclass[tikz,border=2pt,png]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{shapes.symbols}
+
+\tikzset{product size/.style={minimum width=2cm, 
+    minimum height=1cm,
+    text height=1ex,
+  },
+  product/.style={ % removed fill and text colour setting
+    draw,signal, 
+    signal to=east, 
+    signal from=west,
+    product size,
+    draw=black!50
+  },
+}
+
+\newcommand{\diagram}[1]{%
+ % changed from "\x in" to "\x/\clr in"
+ \foreach [count=\xi, count=\prevx from 0] \x/\clr in {#1}{%
+  \ifnum\xi=1
+    % added fill=\clr,signal from=none
+    \node[product,fill=\clr,signal from=none] (x-\xi) {\x};
+  \else
+    % added fill=\clr
+    \node[product,fill=\clr,anchor=west] (x-\xi) at (x-\prevx.east) {\x};
+  \fi
+ }
+}
+
+
+\begin{document}
+
+\begin{tikzpicture}
+% "text/colour name", instead of just "text"
+\diagram{One/blue!50,Two/red!50,Three/green!50,Four/orange!50}
+\end{tikzpicture}
+
+\end{document}

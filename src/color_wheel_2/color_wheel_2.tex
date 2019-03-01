@@ -1,0 +1,52 @@
+\documentclass[border=25pt]{standalone}
+%\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{makeidx}
+\usepackage{graphicx}
+\usepackage{lmodern}
+\usepackage{kpfonts}
+\usepackage[margin=2cm]{geometry}
+
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usetikzlibrary{arrows,decorations.text}
+\usetikzlibrary{babel}
+
+\begin{document}
+\begin{tikzpicture}
+%draw names
+\foreach \couleur  [count=\n from 0, evaluate= \n as \angle using \n*30-15] in {orange, jaune,jaune-vert ,vert,bleu-vert,cyan,bleu-roi}
+{
+\path[decoration={
+        text along path,
+        text={\couleur},
+        text align=center,
+        reverse path},
+        postaction={decorate}]
+         (\angle : 4.1) arc (\angle :\angle + 30 : 4.1);
+}
+
+%% draw names
+\foreach \couleur [count=\n from 7,evaluate= \n as \angle using \n*30-15]  in {bleu, violet, magenta, rouge-ros{é}, rouge}
+{
+\path[decoration={
+    text along path,
+        text={\couleur},
+    text align=center},
+    postaction={decorate}]    (\angle:4.3) arc (\angle :\angle+30:4.3);
+}
+
+\foreach \couleur [count=\n from 0, evaluate= \n as \angle using \n*30-15]  in {orange, yellow,LimeGreen,green, SeaGreen,   Cyan, NavyBlue, blue, Violet, magenta, RubineRed, red}
+    {
+    \draw[double=\couleur, 
+    semithick,
+          double distance=5mm] (\angle:3.6) arc (\angle:\angle+30:3.6);
+    \draw[->,thick] (0,0) -- (\angle-15:3);
+ }
+\end{tikzpicture}
+\end{document}

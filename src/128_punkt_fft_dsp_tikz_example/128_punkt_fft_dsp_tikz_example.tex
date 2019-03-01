@@ -1,0 +1,59 @@
+\documentclass[border=15pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,dsp,chains,calc}
+\DeclareMathAlphabet{\mathpzc}{OT1}{pzc}{m}{it}
+\newcommand{\z}{\mathpzc{z}}
+
+\begin{document}
+\begin{tikzpicture}
+\matrix (m1) [row sep=15mm, column sep=20mm]
+{
+    %------------------------------------------
+    \node[dspnodeopen,dsp/label=above] (m00) {$x[n]$};    &
+    \node[dspnodeopen]                 (m01) {};        &
+    \node[dspnodeopen]                 (m02) {};        &
+    \node[dspnodeopen]                 (m03) {};        &
+    \node[dspnodeopen]                 (m04) {};        &
+    \node[dspnodeopen]                 (m05) {};        \\
+    %------------------------------------------
+    \node[coordinate]                  (m10) {};        &
+    \node[coordinate]                  (m11) {};        &
+    \node[coordinate]                  (m12) {};        &
+    \node[coordinate]                  (m13) {};        &
+    \node[coordinate]                  (m14) {};        &
+    \node[coordinate]                  (m15) {};  \\
+    %------------------------------------------
+    \node[coordinate]                  (m20) {};        &
+    \node[coordinate]                  (m21) {};        &
+    \node[coordinate]                  (m22) {};        &
+    \node[coordinate]                  (m23) {};        &
+    \node[coordinate]                  (m24) {};        &
+    \node[coordinate]                  (m25) {};  \\
+    %------------------------------------------
+    \node[coordinate]                   (m30) {};        &
+    \node[dspnodeopen,dsp/label=below]  (m31) {$B[0]$};  &
+    \node[dspnodeopen,dsp/label=below]  (m32) {$B[1]$};  &
+    \node[dspnodeopen,dsp/label=below]  (m33) {$B[2]$};  &
+    \node[dspnodeopen,dsp/label=below]  (m34) {$B[3]$};  &
+    \node[dspnodeopen,dsp/label=below]  (m35) {$B[128]$};  \\
+};
+
+\draw[dspflow] (m00) -- (m01);
+
+\foreach \i [evaluate = \i as \j using int(\i+1)] in {1,2,3}
+    \draw[dspflow] (m0\i) -- node[midway,above] {$\z^{-1}$} (m0\j);
+
+\path (m04) -- node[auto=false]{\ldots} (m05);
+
+\foreach \i [evaluate = \i as \j using int(\i-1)] in {1,2,...,4}
+    \draw[dspflow] (m0\i) -- node[midway,right] {$h[\j]$} (m1\i);
+\draw[dspflow] (m05) --node[midway,right] {$h[128]$} (m15);
+
+\draw ($(m11) - (2mm,0)$) rectangle node[midway] {128-Punkt FFT} ($(m25) + (2mm,0)$);
+
+\foreach \i [evaluate = \i as \j using int(\i-1)] in {1,2,...,4}
+    \draw[dspflow] (m2\i) --  (m3\i);
+\draw[dspflow] (m25) -- (m35);
+
+\end{tikzpicture}
+\end{document}

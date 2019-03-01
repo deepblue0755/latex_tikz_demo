@@ -1,0 +1,47 @@
+\documentclass[11pt,border=10pt]{standalone}
+\usepackage[dvipsnames]{xcolor}     
+\usepackage{tkz-fct}
+
+
+\begin{document} 
+
+\def\spirographlike#1{%
+\def\repeatno{#1}
+ \foreach \i in {1,...,\repeatno}
+   {%
+    \begin{scope}[rotate around={360/\repeatno*\i:(.5,0)}]
+      \mycloedcurve
+    \end{scope}}%
+    } 
+
+\def\mycloedcurve{\tkzFctPolar[color=MidnightBlue,thick,domain=0:2*pi,samples=400]{ 1+cos(3*t)+(sin(3*t))**2}}    
+
+\begin{tikzpicture}
+ \mycloedcurve 
+\end{tikzpicture}    
+\begin{tikzpicture}[scale=2]
+ \tkzInit [xmin=-5,xmax=5,ymin=-5,ymax=5] 
+  \spirographlike{20}    
+\end{tikzpicture} 
+
+% \begin{tikzpicture}[very thin]
+% \foreach \n in {0,...,19}
+%     {
+%         \foreach \x [remember=\x as \lastx (initially 0)] in {0.01,0.02,...,6.28}
+%             {
+%                 \draw [red] (\lastx*2,{(4+sin(5*(180*\lastx/pi)))+((7+sin(7*(180*\lastx/pi)))-(4+sin(5*(180*\lastx/pi))))*(1+sin(5*(180*\lastx/pi)+\n*20))/2}) -- (\x*2,{(4+sin(5*(180*\x/pi)))+((7+sin(7*(180*\x/pi)))-(4+sin(5*(180*\x/pi))))*(1+sin(5*(180*\x/pi)+\n*20))/2});
+%             }
+%     }
+% \end{tikzpicture}
+
+\begin{tikzpicture}[very thin]
+
+  \foreach \n in {0,...,19} {
+      \draw [red] (0,{(4+sin(5*(0)))+((7+sin(7*(0)))-(4+sin(5*(0))))*(1+sin(5*(0)+\n*20))/2}) 
+      \foreach \x in {0.01,0.02,...,6.28} { 
+          -- (\x*2,{(4+sin(5*(180*\x/pi)))+((7+sin(7*(180*\x/pi)))-(4+sin(5*(180*\x/pi))))*(1+sin(5*(180*\x/pi)+\n*20))/2}) 
+      }; % <- Here the \draw ends
+  }
+\end{tikzpicture}
+
+\end{document} 
