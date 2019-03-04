@@ -1,0 +1,29 @@
+\documentclass[margin=5mm]{standalone}
+\usepackage[ngerman]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amssymb}
+
+\usepackage{tikz}
+ \usetikzlibrary{shapes}
+
+%===========
+\begin{document}
+%===========
+\begin{tikzpicture}[every node/.style={scale=2.25}, font=\footnotesize]
+\node [
+  fill=blue!50, draw, 
+  single arrow,  single arrow head indent=1ex,
+  rotate=0, 
+  font=\sffamily
+] at (0,4) 
+{\rotatebox{0}{Pfeil mit Text}};
+
+%----------------------
+
+\draw[] (0,0)--(-1,1)--(2,1)--(2,2)--(4,0) node[xshift=-7ex, align=center]{gewünschte \\ Form};
+\draw[yscale=-1] (0,0)--(-1,1)--(2,1)--(2,2)--(4,0);
+
+\end{tikzpicture}
+%===========
+\end{document}
+%===========
