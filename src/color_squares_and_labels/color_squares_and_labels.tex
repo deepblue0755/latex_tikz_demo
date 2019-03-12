@@ -1,0 +1,34 @@
+\documentclass[border=10pt]{standalone}
+
+\usepackage[usestackEOL]{stackengine}
+\usepackage{xcolor, graphicx}
+\newlength\sqsz
+\sqsz=1.4cm
+\newcommand\sq[1]{\protect\sqhelper{#1}}
+\newcommand\sqhelper[1]{\sffamily\bfseries\fboxsep=-\fboxrule%
+  \ifnum#1>7\def\sqcolor{red}\def\sqcat{High}\else%
+    \ifnum#1>2\def\sqcolor{orange}\def\sqcat{Med}\else%
+      \def\sqcolor{yellow}\def\sqcat{Low}\fi\fi%
+  \fcolorbox{black}{\sqcolor}{\makebox[\sqsz]{%
+  \rule[\dimexpr-.5\sqsz+.2\ht\strutbox]{0pt}{\sqsz}\stackanchor[2pt]{#1}{(\sqcat)}}}}
+\newcommand\hsq[1]{\protect\hsqhelper{#1}}
+\newcommand\hsqhelper[1]{\sffamily\bfseries%
+  \makebox[\sqsz]{\rule{0pt}{\dimexpr.5\sqsz+.2\ht\strutbox}#1}}
+\newcommand\vsq[1]{\protect\vsqhelper{#1}}
+\newcommand\vsqhelper[1]{\sffamily\bfseries%
+  \rule[\dimexpr-.5\sqsz+.2\ht\strutbox]{0pt}{\sqsz}#1}
+
+\begin{document}
+\raisebox{.5\sqsz}{\rotatebox{-90}{\sffamily\bfseries\makebox[4\sqsz]{Impact of Event}}}~
+\setstackgap{S}{0pt}
+\Shortunderstack{\vsq{4}\\ \vsq{3}\\ \vsq{2}\\ \vsq{1}}~~
+\stackunder[9pt]{%
+  \Shortunderstack{
+    \sq{4}\sq{8}\sq{12}\sq{16}\\
+    \sq{3}\sq{6}\sq{9}\sq{12}\\
+    \sq{2}\sq{4}\sq{6}\sq{8}\\
+    \sq{1}\sq{2}\sq{3}\sq{4}\\
+    \hsq{1}\hsq{2}\hsq{3}\hsq{4}
+  }
+}{\sffamily\bfseries Probability of event}
+\end{document}
