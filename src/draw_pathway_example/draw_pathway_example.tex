@@ -1,0 +1,79 @@
+\documentclass[12pt,border=10pt]{standalone}
+
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,automata}
+\begin{document}
+
+\tikzstyle{square}=[rectangle,thick,minimum size=0.5cm,draw=blue!80,fill=blue!20]
+\tikzstyle{vspecies}=[rectangle, minimum size=0.5cm,draw=blue!80,fill=blue!20]
+\tikzstyle{square}=[rectangle,thick,minimum size=0.5cm,draw=red!80,fill=blue!20]
+\tikzstyle{fspecies}=[rectangle, minimum size=0.5cm,draw=red!80,fill=red!20]
+
+\begin{tikzpicture}
+\begin{scope}[auto, outer sep=3pt, node distance=2cm,>=latex']
+\node [fspecies] (S) {S};
+\node [vspecies, right of = S] (X) {X};
+\node [fspecies, right of = X] (P) {P};
+\draw [<->,thick] (S) --  node {$V_1$} (X) ;
+\draw [<->,thick] (X) --  node {$V_2$}(P);
+\end{scope}
+
+\begin{scope}[auto, outer sep=3pt, node distance=2cm,>=latex',yshift=5cm]
+\node [fspecies] (S) {S};
+\node [vspecies, right of = S] (X1) {$X_{1}$};
+\node [vspecies, right of = X1] (X2) {$X_{2}$};
+\node [vspecies, above right of = X2] (X3) {$X_{3}$};
+\node [vspecies, below right of = X2] (X4) {$X_{4}$};
+\node [fspecies, right of = X3] (P1) {$P_{1}$};
+\node [fspecies, right of = X4] (P2) {$P_{2}$};
+\draw [<->,thick] (S) --  node {$V_1$} (X1) ;
+\draw [<->,thick] (X1) --  node {$V_2$}(X2);
+\draw [<->,thick] (X2) --  node {$V_3$}(X3);
+\draw [<->,thick] (X2) --  node {$V_4$}(X4);
+\draw [<->,thick] (X3) --  node {$V_5$}(P1) ;
+\draw [<->,thick] (X4) --  node {$V_6$}(P2);
+\end{scope}
+
+\begin{scope}[auto, outer sep=3pt, node distance=2cm,>=latex',yshift=10cm]
+\node [fspecies] (S) {S};
+\node [vspecies, right of = S] (X) {$X$};
+\node [fspecies,above right of = X] (P1) {$P_{1}$};
+\node [fspecies,below  right of = X] (P2) {$P_{2}$};
+\draw [<->,thick] (S) --  node {$V_1$} (X) ;
+\draw [<->,thick] (X) --  node {$V_2$}(P1) ;
+\draw [<->,thick] (X) --  node {$V_3$}(P2);
+\end{scope} 
+
+\begin{scope}[auto, outer sep=3pt, node distance=2cm,>=latex',yshift=15cm]
+\node [fspecies] (S) {S};
+\node [vspecies] at (0.25,1.2) (CD) {CD};
+\draw [<->,thick] (0.25,0.725)  arc (180:360:20pt);
+\node [vspecies, right of = S] (SC) {SC};
+\node [vspecies] at (1.75,1.2)(D) {D};
+\node [vspecies, right of = SC] (PC) {PC};
+\node [vspecies] at (4.35,1.2) (D) {D};
+\draw [<->,thick] (4.35,0.725)  arc (180:360:20pt);
+\node [fspecies, right of = PC] (P) {P};
+\node [vspecies] at (5.85,1.2) (CD) {CD};
+\draw [<->,thick] (S) --  node {$V_1$} (SC) ;
+\draw [<->,thick] (SC) --  node {$V_2$}(PC);
+\draw [<->,thick] (PC) --  node {$V_3$}(P);
+\end{scope}
+
+\begin{scope}[auto, outer sep=3pt, node distance=2cm,>=latex',yshift=20cm]
+\node [fspecies] (S) {S};
+\node [vspecies, right of = S] (X1) {$X_{1}$};
+\node [vspecies, right of = X1] (X2) {$X_{2}$};
+\node [vspecies, right of = X2] (X3) {$X_{3}$};
+\node [fspecies, right of = X3] (P) {P};
+\draw [<->,thick] (S) --  node {$V_1$} (X1);
+\draw [<->,thick] (X1) --  node {$V_2$} (X2);
+\draw [<->,thick] (X2) --  node {$V_3$} (X3);
+\draw [<->,thick] (X3) --  node {$V_4$}(P);
+\draw [line width = 1pt,dotted,red] (X3) |-  (1,-1);
+\draw [line width = 1pt,dotted,red] (1,-1) --  (1,-0.25);
+\draw [line width = 1pt,dotted,red] (0.75,-0.25) --  (1.30,-0.25);
+\end{scope}
+\end{tikzpicture}
+
+\end{document}
