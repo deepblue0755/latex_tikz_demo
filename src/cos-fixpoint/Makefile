@@ -5,9 +5,9 @@ ifeq ($(shell uname), Linux)
 	PDF_VIEWER := evince
 	FIND := find
 else 
-	LATEX := /cygdrive/d/texlive/2016/bin/win32/pdflatex
+	LATEX := $(shell which pdflatex)
 	MOVE := mv 
-	PDF_VIEWER := /cygdrive/d/SumatraPDF-Tex/SumatraPDF -reuse-instance -inverse-search "gvim --remote-silent +%l %f"
+	PDF_VIEWER := $(shell which SumatraPDF) -reuse-instance -inverse-search "gvim --remote-silent +%l %f"
 	FIND := d:\cygwin64\bin\find.exe
 endif
 
@@ -53,7 +53,7 @@ clear:
 	$(MAKE) clean
 
 view:
-	$(PDF_VIEWER) $(TARGET)
+	$(PDF_VIEWER) $(TARGET) &
 
 debug:
 	@echo "TARGET=$(TARGET)"

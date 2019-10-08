@@ -1,6 +1,13 @@
 #!/bin/bash
 
-files=`find ../ -name 'Makefile'`
+find_command=/d/cygwin64/bin/find
+
+files=`$find_command ../ -name 'Makefile'` 
+
+if [ $? != 0 ];then
+    echo "error,find Makefile fail"
+    exit -2;
+fi
 
 if [ ! -f ./Makefile ];then
     echo "error: sorry there's no Makefile in current directory!!"
