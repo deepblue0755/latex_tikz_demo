@@ -11,6 +11,7 @@ else
 	FIND := d:\cygwin64\bin\find.exe
 endif
 
+# for MacOSx
 ifeq ($(shell uname), Darwin)
 	LATEX := $(shell which pdflatex )
 	MOVE := mv 
