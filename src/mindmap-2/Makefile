@@ -11,6 +11,13 @@ else
 	FIND := d:\cygwin64\bin\find.exe
 endif
 
+ifeq ($(shell uname), Darwin)
+	LATEX := $(shell which pdflatex )
+	MOVE := mv 
+	PDF_VIEWER := @evince -s
+	FIND := find
+endif
+
 # set output directory
 OUTPUT_DIR=./intermediates/
 
