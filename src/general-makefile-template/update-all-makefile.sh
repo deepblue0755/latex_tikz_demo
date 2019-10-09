@@ -27,6 +27,10 @@ do
         continue;
     else
         cp -fv ./Makefile $file 
+        if [ $# -gt 0 ];then
+            echo "update $file in git repo"
+            git add $file
+        fi
         echo " "
     fi
 done
