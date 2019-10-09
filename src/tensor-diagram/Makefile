@@ -7,7 +7,7 @@ ifeq ($(shell uname), Linux)
 else 
 	LATEX := $(shell which pdflatex)
 	MOVE := mv 
-	PDF_VIEWER := $(shell which SumatraPDF) -reuse-instance -inverse-search "gvim --remote-silent +%l %f"
+	PDF_VIEWER := @$(shell which SumatraPDF) -reuse-instance -inverse-search "gvim --remote-silent +%l %f"
 	FIND := d:\cygwin64\bin\find.exe
 endif
 
@@ -53,7 +53,7 @@ clear:
 	$(MAKE) clean
 
 view:
-	$(PDF_VIEWER) $(TARGET) &
+	$(PDF_VIEWER) $(TARGET) &> /dev/null &
 
 debug:
 	@echo "TARGET=$(TARGET)"
