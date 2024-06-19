@@ -1,12 +1,15 @@
-\documentclass[a4paper, 12pt]{article}
+% \documentclass[a4paper, 12pt]{standalone}
+\documentclass[a4paper,12pt]{article}
 \usepackage{tikz}
-\usepackage[margin=0.5cm]{geometry}
+\usepackage{verbatim}
+% \usepackage[margin=0.5cm]{geometry}
+\usepackage[left=0.5cm,right=0.5cm,top=0.5cm,bottom=0.5cm]{geometry}
 
 % a4paper size: 21cm x 29.7cm
 
 \begin{document}
 \pagestyle{empty}
-\begin{tikzpicture}[scale=1.0]
+\begin{tikzpicture}[scale=1.0] %,shift={(-10,-20)}
     % Draw the grid
     \draw[step=1cm,gray,very thin] (-10,-14) grid (10, 14);
 
@@ -28,8 +31,14 @@
     % Draw a rectangle
     \draw (2,0) rectangle (4,2);
     
+    % Draw a triangle
+    \draw[line width=2pt,color=red] (-3,-6) -- (-3,-9) -- (-5,-8) -- cycle;
+    
+    % Draw a circle
+    \draw[line width=2pt,color=red] (-7,-3) circle (2cm);
+
     % Draw an ellipse
-    \draw (6,1) ellipse (2cm and 1cm);
+    \draw[line width=2pt,color=blue] (-5,5) ellipse (2cm and 1cm);
     
     % Draw a line with an arrowhead
     \draw[->] (0,3) -- (4,3);
