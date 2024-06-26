@@ -1,0 +1,74 @@
+\documentclass{standalone}
+\usepackage{tikz}
+\usetikzlibrary{positioning, shapes.geometric}
+\usetikzlibrary{calc}
+
+\begin{document}
+\begin{tikzpicture}[node distance=2cm]
+
+\tikzset{
+    % every node/.style={draw, minimum width=2cm, minimum height=1cm, align=center},
+    large-node-style/.style={draw, dashed, minimum width=2cm, minimum height=4cm, align=center},
+    medium-node-style/.style={draw, dashed, minimum width=2cm, minimum height=2cm, align=center},
+    small-node-style/.style={draw, dashed, minimum width=2cm, minimum height=1cm, align=center},
+    empty-large-style/.style={draw, dashed, minimum width=2cm, minimum height=4cm, align=center},
+    empty-medium-style/.style={draw, dashed, minimum width=2cm, minimum height=2cm, align=center},
+    empty-small-style/.style={draw, dashed,  minimum width=2cm, minimum height=1cm, align=center},
+}
+
+% Titles
+\node[draw=none, text width=1cm, minimum height=3cm, align=center] at (0,4) (title-A) {CPU\\Virtual\\Address\\Space};
+\node[draw=none, text width=1cm, minimum height=3cm, align=center] at (5,4) (title-B) {CPU\\Physical\\Address\\Space};
+\node[draw=none, text width=1cm, minimum height=3cm, align=center] at (10,4) (title-C) {Bus\\Address\\Space};
+
+% Draw a CPU Block
+\node[medium-node-style, below left=2cm and 2cm of title-A] (CPU) {CPU};
+
+% Define CPU Virtual Address Space nodes
+\node (empty-block-5) [empty-medium-style, below=0.5cm of title-A] {};
+\node (empty-block-6) [empty-large-style, below=0.0cm of empty-block-5] {};
+\node (empty-block-7) [empty-small-style, below=0.0cm of empty-block-6] {};
+\node (empty-block-8) [empty-large-style, below=0.0cm of empty-block-7] {};
+
+% Define CPU Physical Address Space nodes
+\node (MMIO) [medium-node-style, below=0.5cm of title-B] {MMIO\\Space};
+\node (empty-block-1) [medium-node-style, below=0.0cm of MMIO] {};
+\node (RAM1) [medium-node-style, below=0.0cm of empty-block-1] {RAM};
+\node (Buffer) [small-node-style, below=0.0cm of RAM1] {Buffer};
+\node (RAM2) [large-node-style, below=0.0cm of Buffer] {RAM};
+
+% Define Bus Address Space
+\node (empty-block-2) [empty-medium-style, below=0.5cm of title-C] {};
+\node (empty-block-3) [empty-large-style, below=0.0cm of empty-block-2] {};
+\node (empty-block-4) [empty-small-style, below=0.0cm of empty-block-3] {};
+
+% Draw a Device Block
+\node (Device) [medium-node-style, below right=2cm and 2cm of title-C , minimum height=2cm] {Device};
+
+% Labels
+\node[left=0.1cm of empty-block-5.south west] (label-C) {C};
+\node[left=0.1cm of empty-block-8.north west] (label-X) {X};
+
+\node[left=0.1cm of MMIO.south west] (label-B) {B};
+\node[left=0.1cm of RAM2.north west] (label-Y) {Y};
+
+\node[right=0.1cm of empty-block-2.south east] (label-A) {A};
+\node[right=0.1cm of empty-block-4.south east] (label-Z) {Z};
+
+% Draw arrows and labels
+\draw [dashed,thick, ->] ($(empty-block-5.south east) + (0.5, 0)$) -- ($(MMIO.south west) + (-0.5, 0)$)
+        node [midway, above]{Virtual}
+        node [midway, below]{Mapping};
+\draw [dashed,thick, ->] ($(empty-block-8.north east) + (0.5, 0)$) -- ($(RAM2.north west) + (-0.5, 0)$)
+        node [midway, above]{Virtual}
+        node [midway, below]{Mapping};
+
+\draw [dashed,thick, ->] ($(MMIO.south east) + (0.5, 0)$) -- ($(empty-block-2.south west) + (-0.5, 0)$)
+        node [midway, above]{}
+        node [midway, below]{};
+\draw [dashed,thick, ->] ($(empty-block-4.south west) + (-0.5, 0)$) -- ($(Buffer.south east) + (0.5, 0)$)
+        node [midway, above]{}
+        node [midway, below]{};
+
+\end{tikzpicture}
+\end{document}
