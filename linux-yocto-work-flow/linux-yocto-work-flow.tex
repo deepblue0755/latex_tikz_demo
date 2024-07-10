@@ -1,0 +1,72 @@
+\documentclass{standalone}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, shapes.arrows, fit}
+
+\tikzstyle{process} = [rectangle, minimum width=6cm, minimum height=1cm, text width=6cm, text centered, draw=black,very thick]
+\tikzstyle{arrow} = [thick,->,>=stealth]
+
+% Define custom colors
+\definecolor{cyanCustom}{RGB}{173, 216, 230}
+\definecolor{orangeCustom}{RGB}{255, 165, 0}
+\definecolor{greyCustom}{RGB}{128, 128, 128}
+\definecolor{purpleCustom}{RGB}{160, 32, 240}
+\definecolor{redCustom}{RGB}{255, 99, 71}
+\definecolor{lightblueCustom}{RGB}{135, 206, 250}
+\definecolor{lightgreenCustom}{RGB}{144, 238, 144}
+
+\begin{document}
+
+\begin{tikzpicture}[node distance=2cm]
+
+\node (start) [process, fill=cyanCustom] {Set Up Host system for Yocto Build System};
+\node (downloadyocto) [process, fill=orangeCustom, below of=start] {Download Yocto Release};
+\node (downloadvendor) [process, fill=greyCustom, below of=downloadyocto] {Download Vendor meta for BSP};
+\node (addvendor) [process, fill=purpleCustom, below of=downloadvendor] {Add Vendor meta to Yocto Build System};
+\node (buildconfig) [process, fill=redCustom, below of=addvendor] {Make Build Configuration changes};
+\node (initbuildenv) [process, fill=lightblueCustom, below of=buildconfig] {Initialise Build Environment};
+\node (buildimage) [process, fill=lightgreenCustom, below of=initbuildenv] {Build Image};
+
+% \draw [arrow] (start) -- (downloadyocto);
+% \draw [arrow] (downloadyocto) -- (downloadvendor);
+% \draw [arrow] (downloadvendor) -- (addvendor);
+% \draw [arrow] (addvendor) -- (buildconfig);
+% \draw [arrow] (buildconfig) -- (initbuildenv);
+% \draw [arrow] (initbuildenv) -- (buildimage);
+
+% Arrows as nodes
+\node[single arrow, draw=black, fill=orangeCustom,
+    minimum width=0.5cm, minimum height=1.0cm, single arrow head extend=0.2cm, 
+    anchor=tip, rotate=-90, xshift=1.0cm, yshift=0.0cm] 
+    at (start.south) {};
+
+\node[single arrow, draw=black, fill=greyCustom, 
+    minimum width=0.5cm, minimum height=1.0cm, single arrow head extend=0.2cm, 
+    anchor=tip, rotate=-90, xshift=1.0cm, yshift=0.0cm] 
+    at (downloadyocto.south) {};
+
+\node[single arrow, draw=black, fill=purpleCustom, 
+    minimum width=0.5cm, minimum height=1.0cm, single arrow head extend=0.2cm, 
+    anchor=tip, rotate=-90, xshift=1.0cm, yshift=0.0cm] 
+    at (downloadvendor.south) {};
+
+\node[single arrow, draw=black, fill=redCustom, 
+    minimum width=0.5cm, minimum height=1.0cm, single arrow head extend=0.2cm, 
+    anchor=tip, rotate=-90, xshift=1.0cm, yshift=0.0cm] 
+    at (addvendor.south) {};
+
+\node[single arrow, draw=black, fill=lightblueCustom, 
+    minimum width=0.5cm, minimum height=1.0cm, single arrow head extend=0.2cm, 
+    anchor=tip, rotate=-90, xshift=1.0cm, yshift=0.0cm] 
+    at (buildconfig.south) {};
+
+\node[single arrow, draw=black, fill=lightgreenCustom, 
+    minimum width=0.5cm, minimum height=1.0cm, single arrow head extend=0.2cm, 
+    anchor=tip, rotate=-90, xshift=1.0cm, yshift=0.0cm] 
+    at (initbuildenv.south) {};
+
+\end{tikzpicture}
+
+\end{document}
+
+
+
