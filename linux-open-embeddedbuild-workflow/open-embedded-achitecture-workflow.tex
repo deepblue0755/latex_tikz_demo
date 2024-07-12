@@ -1,0 +1,225 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{ifthen}
+\usepackage{etoolbox}
+\usetikzlibrary{shapes, arrows, positioning, fit, backgrounds,calc}
+
+% Define custom colors
+\definecolor{UpstreamSourceColor}{RGB}{122,122,121}
+\definecolor{ProcessStepsColor}{RGB}{230,230,230}
+\definecolor{MetaDataColor}{RGB}{74,74,48}
+\definecolor{BuildSystemColor}{RGB}{0,182,222}
+\definecolor{OutputImageColor}{RGB}{237,24,73}
+\definecolor{OutputPackageColor}{RGB}{193,216,47}
+
+
+\begin{document}
+
+% use the ifthen package
+\newboolean{debug}
+% \setboolean{debug}{true}
+\setboolean{debug}{false}
+
+\begin{tikzpicture}[node distance=1cm and 2cm, auto, align=center]
+
+    % Styles
+    \tikzstyle{UpstreamSource} = [rectangle, 
+    rounded corners, 
+    minimum height=4em,
+    minimum width=6em,
+    draw=black,
+    fill=UpstreamSourceColor,
+    text centered,
+    text width=6em]
+
+    \tikzstyle{MetaData} = [rectangle,
+    rounded corners,
+    minimum height=2em,
+    minimum width=8em,
+    draw=black,
+    very thick,
+    fill=MetaDataColor,
+    text centered,
+    text width=8em]
+
+    \tikzstyle{ProcessSteps} = [rectangle,
+    minimum height=2em,
+    minimum width=6em,
+    draw=black,
+    fill=ProcessStepsColor,
+    text centered,
+    text width=6em]
+
+    \tikzstyle{OutputPackage} = [rectangle,
+    rounded corners,
+    minimum height=6em,
+    minimum width=16em,
+    draw=black,
+    fill=OutputPackageColor,
+    text centered,
+    text width=16em]
+
+    \tikzstyle{OutputImage} = [rectangle,
+    rounded corners,
+    minimum width=6em,
+    minimum height=6em,
+    draw=black,
+    fill=OutputImageColor,
+    text centered,
+    text width=6em]
+
+    \tikzstyle{BuildSystem} = [rectangle,
+    rounded corners,
+    draw=none,
+    fill=BuildSystemColor,
+    text centered,
+    inner sep=0.3cm,
+    text width=4em]
+
+    \tikzstyle{ColorLabelStyle} = [rectangle,
+    minimum height = 1em,
+    minimum width = 1em
+    ]
+
+    \tikzstyle{arrow} = [thick,->,>=stealth]
+    
+    \coordinate (start) at (0,0);
+
+    % Draw Grid For Guide
+    \ifthenelse{\boolean{debug}}{
+    \draw[step=0.1,gray, very thin] (0,0) grid (30cm, -10cm);
+    }
+
+    
+    % Nodes
+    \node [UpstreamSource] (upstream) at (start) {Upstream\\ Project\\ Releases};
+    \node [UpstreamSource, right=of upstream] (local) {Local\\ Projects};
+    \node [UpstreamSource, right=of local] (scms) {SCMs\\ (optional)};
+
+    \node [MetaData, minimum width=9.5cm, text centered, below=1cm of $(upstream)!0.5!(scms)$] (mirror) {Source Mirror(s)};
+    
+    \node [MetaData, below=0.5cm of mirror, xshift=-3.5cm] (userconfig) {User\\ Configuration};
+    \node [MetaData, below=0.5cm of userconfig] (metadata) {Metadata\\ (.bb + patches)};
+    \node [MetaData, below=0.5cm of metadata] (machine) {Machine (BSP)\\ Configuration};
+    \node [MetaData, below=0.5cm of machine] (policy) {Policy\\ Configuration};
+
+    \node [ProcessSteps, below=1cm of mirror] (sourcefetch) {Source\\ Fetching};
+    \node [ProcessSteps, below=0.5cm of sourcefetch] (patchapp) {Patch\\ Application};
+    \node [ProcessSteps, below=0.5cm of patchapp] (compile) {Configuration /\\ Compile /\\ Autoreconf\\ as needed};
+    \node [ProcessSteps, right=1.0cm of patchapp,minimum height=6cm, xshift=0.0cm, yshift=-0.5cm] (analysis) {Output\\ Analysis for\\ package splitting\\ plus package\\ relationships};
+    
+    \node [ProcessSteps, right=1cm of analysis.east] (debgen) {.deb\\ Generation};
+    \node [ProcessSteps, right=1cm of analysis.north east, yshift=-0.8cm] (rpmgen) {.rpm\\ Generation};
+    \node [ProcessSteps, right=1cm of analysis.south east, yshift=+0.8cm] (ipkgen) {.ipk\\ Generation};
+
+    \node [ProcessSteps, minimum width=1cm, minimum height=6cm, text width=1cm, right=0.0cm of debgen, xshift=1.0cm] (qatest) {QA\\ Tests};
+    \node [ProcessSteps, right=1.0cm of qatest] (imagegen) {Image\\ Generation};
+    \node [ProcessSteps, right=1.0cm of imagegen] (sdkgen) {SDK\\ Generation};
+
+    
+    \node [OutputImage, below=0.5cm of imagegen] (images) {Images};
+    \node [OutputImage, below=0.5cm of sdkgen] (sdk) {Application\\ Development\\ SDK};
+
+    \node [OutputPackage, above=2cm of $ (imagegen) !0.5! (sdk) $] (pkgfeeds) {Package Feeds};
+
+
+    % \begin{scope}[on background layer]
+    % \node [BuildSystem, fit=(sourcefetch)(patchapp)(compile)(analysis)(debgen)(rpmgen)(ipkgen)(qatest) (imagegen) (sdkgen)] (BuildSystemGroup1) {};
+    % \node [BuildSystem, fit=(sourcefetch)(patchapp)(compile)(analysis)(debgen)(rpmgen)(ipkgen)(qatest)] (BuildSystemGroup1) {};
+    % \node [BuildSystem, fit=(imagegen)(sdkgen)] (BuildSystemGroup2) {};
+    % \end{scope}
+
+    \begin{pgfonlayer}{background}
+    \node [BuildSystem, fit=(sourcefetch)(patchapp)(compile)(analysis)(debgen)(rpmgen)(ipkgen)] (BuildSystemGroup1) {};
+    \node [BuildSystem, fit=(debgen)(qatest) (imagegen)(sdkgen)] (BuildSystemGroup2) {};
+    \end{pgfonlayer}
+
+    \begin{pgfonlayer}{background}
+        \node [draw=none, inner sep = 0.35cm,outer sep = 0.5cm, fill=white, fit=(pkgfeeds)] (ExcludeGround1) {};
+        \node [draw=none, inner sep = 0.35cm,outer sep = 0.5cm, fill=white, fit=(images)(sdk)] (ExcludeGround2) {};
+        \node [draw=none, fill=white, fit=(mirror)] (ExcludeGround3) {};
+    \end{pgfonlayer}
+    
+    % Paths
+    \draw [arrow] (upstream.south) -- ($(mirror.north west) + (0.45, 0)$);
+    \draw [arrow] (local.south) -- (mirror);
+    \draw [arrow] (scms.south) -- ($(mirror.north east) + (-0.45, 0) $);
+
+    \draw [arrow] (mirror) -- (sourcefetch);
+    \draw [arrow] (sourcefetch) -- (patchapp);
+    \draw [arrow] (patchapp) -- (compile);
+    \draw [arrow] (compile) -- (analysis);
+
+    \draw [arrow] (analysis) -- (rpmgen.west);
+    \draw [arrow] (analysis) -- (debgen.west);
+    \draw [arrow] (analysis) -- (ipkgen.west);
+
+    \draw [arrow] (rpmgen.east) -- ($(qatest.north west) - (0, 0.8)$);
+    \draw [arrow] (debgen.east) -- (qatest.west);
+    \draw [arrow] (ipkgen.east) -- ($(qatest.south west) + (0, 0.8)$);
+
+    \draw [arrow] ($(qatest.north east) - (0, 0.95)$) -- (pkgfeeds.west);
+    \draw [arrow] ($(pkgfeeds.south west) + (1.25, 0)$) --  (imagegen.north);
+    \draw [arrow] ($(pkgfeeds.south east) - (1.25, 0)$) --  (sdkgen.north);
+
+    \draw [arrow] (imagegen) -- (images);
+    \draw [arrow] (sdkgen) -- (sdk);
+    
+    \draw [arrow] (userconfig.east) -- ($(BuildSystemGroup1.north west) + (0, -0.85)$);
+    \draw [arrow] (metadata.east) -- ($(BuildSystemGroup1.west) + (0, +0.95)$);
+    \draw [arrow] (machine.east) -- ($(BuildSystemGroup1.west) + (0, -0.65)$);
+    \draw [arrow] (policy.east) -- ($(BuildSystemGroup1.south west) + (0, 0.85)$);
+    
+    % Labels
+    \node [right=2cm of scms, yshift=0.3cm ] (title) {Openembedded Architecture Workflow};
+
+    \begin{scope}[node distance=0.1cm]
+    \node [ColorLabelStyle, below=0cm of title.south west, fill=UpstreamSourceColor] (UpstreamSourceLabel) {};
+    \node [ColorLabelStyle, below=0cm of UpstreamSourceLabel, fill=MetaDataColor] (MetaDataLabel) {};
+    \node [ColorLabelStyle, below=0cm of MetaDataLabel, fill=BuildSystemColor] (BuildSystemLabel) {};
+
+    \node [right=0.0cm of UpstreamSourceLabel] (UpstreamSourceLabelText) {Upstream Source};
+    \node [right=0.0cm of MetaDataLabel] (MetaDataLabelText) {Metadata/Inputs};
+    \node [right=0.0cm of BuildSystemLabel] (BuildSystemLabelText) {Build system};
+
+    \node [ColorLabelStyle, below=0cm of title.south, xshift=1cm, fill=OutputPackageColor] (OutputPackageLabel) {};
+    \node [ColorLabelStyle, below=0cm of OutputPackageLabel, fill=ProcessStepsColor] (ProcessStepsLabel) {};
+    \node [ColorLabelStyle, below=0cm of ProcessStepsLabel, fill=OutputImageColor] (OutputImageLabel) {};
+
+    \node [right=0.0cm of OutputPackageLabel] (OutputPackageLabelText) {Output Packages};
+    \node [right=0.0cm of ProcessStepsLabel] (ProcessStepsLabelText) {Process steps (tasks)};
+    \node [right=0.0cm of OutputImageLabel] (OutputImageLabelText) {Output Image Data};
+    \end{scope}
+
+
+    \ifthenelse{\boolean{debug}}{
+        % Draw markers at the anchor points
+        \foreach \x in {upstream, 
+            local, 
+            scms, 
+            mirror, 
+            userconfig, 
+            metadata, 
+            machine,
+            policy,
+            sourcefetch,
+            patchapp,
+            compile,
+            rpmgen,
+            debgen,
+            ipkgen,
+            qatest,
+            images,
+            sdk,
+            analysis,
+            sdkgen, 
+            pkgfeeds,
+            imagegen} {
+            \foreach \anchor in {center, north, south, east, west, north east, north west, south east, south west} {
+                \fill[red] (\x.\anchor) circle[radius=1pt];
+                % \node[anchor=\anchor] at (\x.\anchor) {\scriptsize \anchor};
+            }
+        }
+    }
+
+\end{tikzpicture}
+\end{document}

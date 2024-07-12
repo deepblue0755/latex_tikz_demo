@@ -1,0 +1,52 @@
+\documentclass{standalone}
+\usepackage{ifthen}
+\usepackage{etoolbox}
+\usepackage{tikz}
+\usepackage{amsmath}
+\usetikzlibrary{positioning}
+
+\definecolor{OpenEmbeddedColor}{RGB}{192,235,245}
+\definecolor{PokyColor}{RGB}{243,215,112}
+\definecolor{YPColor}{RGB}{241,233,204}
+
+\begin{document}
+
+% use the ifthen package
+\newboolean{debug}
+% \setboolean{debug}{true}
+\setboolean{debug}{false}
+
+\begin{tikzpicture}
+
+    \node[anchor=south west, draw, very thick, fill=YPColor, minimum width=36cm, minimum height=11cm] (YP) at (0, 0) {};
+    \node[anchor=south west, draw, very thick, fill=PokyColor, minimum width=22cm, minimum height=09cm] (Poky) at (1.59, 1.43) {};
+    \node[anchor=south west, draw, very thick, fill=OpenEmbeddedColor, minimum width=11cm, minimum height=11cm] (OpenEmbedded) at (3.2, -4) {};
+
+    % Texts
+    % Outer Box Text
+    \node[align=left, font=\bfseries, right=1cm of Poky] (YP-Text) {YOCTO PROJECT (YP)};
+    \node[align=left, below=1cm of YP-Text] {Umbrella Open Source Project \\ 
+        that Builds and Maintains \\ 
+        Validated Open Source Tools and \\ 
+        Components Associated with \\ 
+        Embedded Linux};
+    
+    % Middle Box Text
+    \node[align=left, right=4cm of OpenEmbedded.east, font=\fontsize{20}{24}\bfseries, yshift=5cm] (Poky-Text) {Poky};
+    \node[align=left, below=1cm of Poky-Text, font=\fontsize{18}{12}, yshift=10] {Yocto Project Open \\ 
+        Source Reference \\ 
+        Embedded Distribution};
+
+    % Inner Box Text
+    \node[anchor=south west, align=left, right=4.0cm of OpenEmbedded.west, font=\bfseries] (OpenEmbedded-Text) {OpenEmbedded};
+    \node[anchor=south west, align=left, below=0.5cm of OpenEmbedded-Text] {Open Source Build Engine \\ 
+        and YP-Compatible Metadata \\ 
+        for Embedded Linux};
+
+    % Draw Grid For Guide
+    \ifthenelse{\boolean{debug}}{
+        \draw[step=0.1,gray, very thin] (0,0) grid (30cm, 10cm);
+    }
+
+\end{tikzpicture}
+\end{document}
