@@ -1,4 +1,4 @@
-\documentclass[tikz,border=10pt]{standalone}
+\documentclass[tikz,border=10pt,a4paper]{standalone}
 \usepackage{ifthen}
 \usepackage{etoolbox}
 \usetikzlibrary{shapes, arrows, positioning, fit, backgrounds,calc}
@@ -167,7 +167,7 @@
     \draw [arrow] (userconfig.east) -- ($(BuildSystemGroup1.north west) + (0, -0.85)$);
     \draw [arrow] (metadata.east) -- ($(BuildSystemGroup1.west) + (0, +0.95)$);
     \draw [arrow] (machine.east) -- ($(BuildSystemGroup1.west) + (0, -0.65)$);
-    \draw [arrow] (policy.east) -- ($(BuildSystemGroup1.south west) + (0, 0.85)$);
+    \draw [arrow] (policy.east) -- ($(BuildSystemGroup1.south west) + (0, 1.15)$);
     
     % Labels
     \node [right=2cm of scms, yshift=0.3cm ] (title) {Openembedded Architecture Workflow};
