@@ -1,0 +1,42 @@
+\documentclass{article}
+
+\usepackage{tikz}
+
+\newcommand{\randomcolor}{%
+    \pgfmathsetmacro{\R}{random(0,10000)/10000}%
+    \pgfmathsetmacro{\G}{random(0,10000)/10000}%
+    \pgfmathsetmacro{\B}{random(0,10000)/10000}%
+    \definecolor{randomcolor}{rgb}{\R,\G,\B}%
+}
+
+\newcommand{\tikzcircle}[3]{
+    \randomcolor\tikz[baseline=-0.5ex]{
+        \fill[randomcolor,radius=#1] (#2, #3)circle; 
+    }
+}%
+
+
+\pgfmathsetseed{\number\pdfrandomseed} % seed for random generator
+
+
+\begin{document}
+
+\begin{tikzpicture}
+    \foreach \j in {1,2,...,5} {
+        \foreach \i in {1,2,...,10} {
+            \tikzcircle{.05\textwidth}{\j}{\i}
+        }
+    }
+\end{tikzpicture}
+
+\newpage
+
+
+\begin{tikzpicture}
+        \foreach \i in {1,2,...,10} {
+            \tikzcircle{.05\textwidth}{\i}{0}
+            \tikzcircle{.05\textwidth}{\i}{2}
+        }
+\end{tikzpicture}
+
+\end{document}
