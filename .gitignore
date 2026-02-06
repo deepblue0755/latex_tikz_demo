@@ -16,5 +16,6 @@ intermediates
 *.svg
 tmp.txt
 tmp.sh
+build
 
 
