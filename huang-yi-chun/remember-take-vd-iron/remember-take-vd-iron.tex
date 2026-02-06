@@ -3,8 +3,6 @@
 \usepackage{graphicx}
 \usepackage[margin=0cm]{geometry}
 
-\pagestyle{empty}
-
 \begin{document}
 
 \begin{center}
@@ -15,6 +13,19 @@
             keepaspectratio
         ]{./pictures/remember-take-vd-and-iron-1.png} % ← 换成你的图片文件名
     };
+\end{tikzpicture}
+\end{center}
+
+\newpage
+
+\begin{center}
+\begin{tikzpicture}[remember picture,overlay]
+\node at (current page.center) {
+    \includegraphics[
+        width=1.0\textwidth,
+        keepaspectratio
+    ]{./pictures/practice.png}
+};
 \end{tikzpicture}
 \end{center}
 
