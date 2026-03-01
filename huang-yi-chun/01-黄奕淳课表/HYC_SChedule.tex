@@ -1,0 +1,94 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[a4paper, margin=1.5cm]{geometry}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage{CJKutf8}
+\usepackage{tabularx}
+\usepackage{pdflscape}
+% \usepackage{diagbox}
+
+% 定义一个新的列类型 C，用于自动换行且居中
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\pagestyle{empty}
+
+\renewcommand{\arraystretch}{3.5} % 适当增加行高，让表格更好看
+
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+
+\begin{landscape}
+\centering
+{\Huge \bfseries 四 5 班 课 程 表}
+
+\bfseries 
+\vspace{1em}
+
+% 移除 table 浮动环境，直接开始 tabularx
+\noindent
+\begin{tabularx}{\linewidth}{|c|c|c|*5{C|}}
+\hline
+\multicolumn{8}{|c|}{\textbf{周一 8:20--8:50 \quad 国旗下课程 \quad 吴伟桐}} \\ \hline
+
+% \multicolumn{3}{|c|}{\diagbox[width=12em, height=2.6em]{\textbf{节次}}{\textbf{星期}}}
+% & \textbf{星期一} & \textbf{星期二} & \textbf{星期三} & \textbf{星期四} & \textbf{星期五} \\ \hline
+
+\multicolumn{2}{|c|}{\textbf{节次}} & \textbf{时间} & \textbf{星期一} & \textbf{星期二} & \textbf{星期三} & \textbf{星期四} & \textbf{星期五} \\ \hline
+
+% 上午部分
+\multirow{4}{*}{\makecell{\Large 上\\ \Large 午}} 
+& 第一节 & 8:50--9:30 
+& \makecell{道法一（班会）\\谢文华} 
+& \makecell{英语\\赖月明} 
+& \makecell{英语\\赖月明} 
+& \makecell{语文\\谢文华} 
+& \makecell{英语\\赖月明} \\ \cline{2-8}
+
+& 第二节 & 9:40--10:20 
+& \makecell{数学\\袁潇宁} 
+& \makecell{数学\\袁潇宁} 
+& \makecell{语文\\谢文华} 
+& \makecell{数学\\袁潇宁} 
+& \makecell{数学\\袁潇宁} \\ \cline{2-8}
+
+& 第三节 & 10:30--11:10 
+& \makecell{语文\\谢文华} 
+& \makecell{语文\\谢文华} 
+& \makecell{数学\\袁潇宁} 
+& \makecell{综合实践\\赖月明} 
+& \makecell{语文\\谢文华} \\ \cline{2-8}
+
+& 第四节 & 11:20--12:00 
+& \makecell{科学\\邓怡萍} 
+& \makecell{语文\\谢文华} 
+& \makecell{单：道法二(谢文华) \\ 双：道法二(别晓涵)} 
+& \makecell{科学\\邓怡萍} 
+& \makecell{语文\\谢文华} \\ \hline
+
+% 下午部分
+\multirow{2}{*}{\makecell{\Large 下\\ \Large 午}} 
+& 第五节 & 14:00--14:40 
+& \makecell{美术\\王灏纯} 
+& \makecell{体育\\左文武} 
+& \makecell{艺术\\赖月明} 
+& \makecell{体育\\左文武} 
+& \makecell{体育\\梁家铭} \\ \cline{2-8}
+
+& 第六节 & 14:55--15:35 
+& \makecell{体育\\左文武} 
+& \makecell{劳动\\谢文华} 
+& \makecell{体育\\左文武} 
+& \makecell{信息（AI）\\ 潘宇炜} 
+& \makecell{音乐\\韩瑞} \\ \hline
+
+\end{tabularx}
+
+\vspace{1em}
+\flushleft
+\textbf{备注：} 隔周课左边显示单周课程，右边显示双周课程。
+
+\end{landscape}
+
+\end{CJK*}
+\end{document}
