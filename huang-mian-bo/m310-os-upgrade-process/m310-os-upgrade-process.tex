@@ -1,0 +1,197 @@
+\documentclass[a4paper, landscape, tikz, border=10pt]{standalone}
+\usepackage{CJKutf8}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, 
+                positioning,
+                calc,
+                shapes.geometric
+               }
+\pagestyle{empty}
+
+% ---- 定义颜色 ----
+
+\definecolor{stage1}{RGB}{210,230,255}
+\definecolor{stage2}{RGB}{210,255,250}
+\definecolor{stage3}{RGB}{255,245,200}
+\definecolor{stage4}{RGB}{255,225,190}
+\definecolor{stage5}{RGB}{220,255,210}
+
+% TikZ style Suggests using these names proc block stage task box flow nodebox
+% Avoid: step node path draw edge
+
+\tikzset{
+    box/.style={
+        rectangle,
+        draw,
+        rounded corners,
+        align=left,
+        text width=6cm,
+        minimum height=1.6cm,
+        font=\small
+    }
+}
+
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+
+% \begin{center}
+% \Large\bfseries M310 控制器系统镜像升级发布流程
+% \end{center}
+
+\vspace{1cm}
+
+\begin{tikzpicture}[
+    node distance=1.2cm and 1cm,
+    >=Stealth
+]
+
+% ---------- Row 1 (Stage 1) ----------
+
+\node[box,fill=stage1] (s1)
+{1. 准备U盘\\
+升级固件U盘 / KNOPPIX / 调试工具};
+
+\node[box,fill=stage1,right=of s1] (s2)
+{2. 烧录系统镜像};
+
+\node[box,fill=stage1,right=of s2] (s3)
+{3. 插入 KNOPPIX\\
+重启启动};
+
+\node[box,fill=stage1,right=of s3] (s4)
+{4. 挂载 rootfs\\
+mount /dev/mmcblk1p7 /mnt\\
+visudo -f /mnt/etc/sudoers};
+
+\node[box,fill=stage1,right=of s4] (s5)
+{5. 重启系统\\
+连接显示器与键盘};
+
+\draw[->] (s1) -- (s2);
+\draw[->] (s2) -- (s3);
+\draw[->] (s3) -- (s4);
+\draw[->] (s4) -- (s5);
+
+% ---------- Row 2 (Stage 2) ----------
+
+\node[box,fill=stage2,below=of s5] (s6)
+{6. Ctrl+Alt+F1\\
+进入命令行};
+
+\node[box,fill=stage2,left=of s6] (s7)
+{7. sudo -i\\
+获取 root 权限 \\
+密码: fu!R6ahx
+};
+
+\node[box,fill=stage2,left=of s7] (s8)
+{8. 根分区可写\\
+mount -o rw,remount /};
+
+\node[box,fill=stage2,left=of s8] (s9)
+{9. dhclient eth0\\
+获取外网IP};
+
+\node[box,fill=stage2,left=of s9] (s10)
+{10. 修复安全漏洞\\
+apt update\\
+apt upgrade\\
+apt autoremove};
+
+\draw[->] (s5) -- (s6);
+\draw[->] (s6) -- (s7);
+\draw[->] (s7) -- (s8);
+\draw[->] (s8) -- (s9);
+\draw[->] (s9) -- (s10);
+
+% ---------- Row 3 (Stage 3) ----------
+
+\node[box,fill=stage3,below=of s10] (s11)
+{11. 安装 SSH\\
+apt install openssh-server};
+
+\node[box,fill=stage3,right=of s11] (s12)
+{12. 关闭防火墙\\
+ufw disable 或\\
+disable codesyscontrol};
+
+\node[box,fill=stage3,right=of s12] (s13)
+{13. 拷贝 .git\\
+.gitignore};
+
+\node[box,fill=stage3,right=of s13] (s14)
+{14. 修改系统配置};
+
+\node[box,fill=stage3,right=of s14] (s15)
+{15. 撰写修改日志};
+
+\draw[->] (s10) -- (s11);
+\draw[->] (s11) -- (s12);
+\draw[->] (s12) -- (s13);
+\draw[->] (s13) -- (s14);
+\draw[->] (s14) -- (s15);
+
+% ---------- Row 4 (Stage 4) ----------
+
+\node[box,fill=stage4,below=of s15] (s16)
+{16. 修改 OS 版本\\
+/etc/os-release};
+
+\node[box,fill=stage4,left=of s16] (s17)
+{17. Git 备份\\
+git add / commit / push};
+
+\node[box,fill=stage4,left=of s17] (s18)
+{18. 恢复 sudoers};
+
+\node[box,fill=stage4,left=of s18] (s19)
+{19. 删除 .git\\
+.gitignore};
+
+\node[box,fill=stage4,left=of s19] (s20)
+{20. 删除 SSH};
+
+\draw[->] (s15) -- (s16);
+\draw[->] (s16) -- (s17);
+\draw[->] (s17) -- (s18);
+\draw[->] (s18) -- (s19);
+\draw[->] (s19) -- (s20);
+
+% ---------- Row 5 (Stage 5) ----------
+
+\node[box,fill=stage5,below=of s20] (s21)
+{21. 启用 codesyscontrol};
+
+\node[box,fill=stage5,right=of s21] (s22)
+{22. 运行发布检查\\
+googl\_release\_check.sh};
+
+\node[box,fill=stage5,right=of s22] (s23)
+{23. 进入 KNOPPIX\\
+制作镜像};
+
+\node[box,fill=stage5,right=of s23] (s24)
+{24. 更新 rootfs\\
+zip -r ../xxx.zip .};
+
+\node[box,fill=stage5,right=of s24] (s25)
+{25. 上传镜像\\
+共享网盘};
+
+\draw[->] (s20) -- (s21);
+\draw[->] (s21) -- (s22);
+\draw[->] (s22) -- (s23);
+\draw[->] (s23) -- (s24);
+\draw[->] (s24) -- (s25);
+
+\node[box,fill=stage5,below=of s25] (s26)
+{26. 生成 MD5SUM\\
+镜像校验};
+
+\draw[->] (s25) -- (s26);
+
+\end{tikzpicture}
+
+\end{CJK*}
+\end{document}
