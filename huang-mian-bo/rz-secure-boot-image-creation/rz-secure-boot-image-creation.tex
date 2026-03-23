@@ -1,0 +1,64 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, 
+                positioning,
+                calc,
+                shapes.geometric
+               }
+
+\tikzstyle{block} = [rectangle, draw, rounded corners, align=center, minimum width=3.2cm, minimum height=1cm]
+\tikzstyle{arrow} = [->, thick]
+
+\begin{document}
+
+\begin{tikzpicture}[node distance=2.8cm and 2.5cm]
+
+% --- Row 1: Key Generation ---
+\node (openssl) [block] {OpenSSL\\(ECC P-256)};
+\node (rootkey) [block, right=of openssl] {rootkey-pair.pem};
+\node (loaderkey) [block, below=of rootkey] {loaderkey-pair.pem};
+
+\draw[arrow] (openssl.east) -- (rootkey.west);
+\draw[arrow] (openssl.south) |- (loaderkey.west);
+
+% % --- Row 2: Root Key Hash ---
+% \node (hashgen) [block, below=of rootkey] {Extract Public Key\\+ SHA256};
+% \node (hash) [block, right=of hashgen] {Root Public Key Hash};
+% \node (otp) [block, right=of hash] {OTP (setboot)};
+
+% \draw[arrow] (rootkey) -- (hashgen);
+% \draw[arrow] (hashgen) -- (hash);
+% \draw[arrow] (hash) -- (otp);
+
+% --- Row 3: Parameter Generation ---
+\node (fw) [block, below=of loaderkey] {firmware.bin};
+\node (paramgen) [block, right=of fw] {parameter\_generator.py};
+\node (param) [block, right=of paramgen] {param.bin};
+
+\draw[arrow] (fw) -- (paramgen);
+\draw[arrow] (paramgen) -- (param);
+
+% --- Row 4: Image Synthesis ---
+\node (secutil) [block, below right=2.5cm and 8cm of paramgen] {secureboot\_utility.py};
+
+\draw[arrow] (rootkey.east) -| (secutil.north);
+\draw[arrow] (loaderkey.east) -| (secutil.north);
+\draw[arrow] (fw) |- (secutil);
+\draw[arrow] (param.east) -| (secutil.north);
+
+% --- Outputs ---
+\node (image) [block, right=of secutil] {secure\_boot\_image.bin\\(signed + param)};
+\node (pubkey) [block, below=of image] {rootkey\_hash.pubkey};
+
+\draw[arrow] (secutil.east) -- (image.west);
+\draw[arrow] (secutil.south) |- (pubkey.west);
+
+% % --- Trust Chain Note ---
+% \node (note) [align=left, below=of secutil, xshift=2cm] {
+% \small Boot Verification Chain:\\
+% \small OTP $\rightarrow$ Root Key $\rightarrow$ Loader Key $\rightarrow$ Firmware
+% };
+
+\end{tikzpicture}
+
+\end{document}
