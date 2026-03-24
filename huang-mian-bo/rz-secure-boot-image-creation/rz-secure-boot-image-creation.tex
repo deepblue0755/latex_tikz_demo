@@ -48,10 +48,10 @@
 
 % --- Outputs ---
 \node (image) [block, right=of secutil] {secure\_boot\_image.bin\\(signed + param)};
-\node (pubkey) [block, below=of image] {rootkey\_hash.pubkey};
+\node (pubkey) [block, above=of image] {rootkey\_hash.pubkey};
 
 \draw[arrow] (secutil.east) -- (image.west);
-\draw[arrow] (secutil.south) |- (pubkey.west);
+\draw[arrow] ( $ (secutil.east) ! 0.5 ! (image.west) $ ) -| (pubkey.west);
 
 % % --- Trust Chain Note ---
 % \node (note) [align=left, below=of secutil, xshift=2cm] {
