@@ -31,9 +31,9 @@
 % \draw[arrow] (hash) -- (otp);
 
 % --- Row 3: Parameter Generation ---
-\node (fw) [block, below=of loaderkey] {firmware.bin};
-\node (paramgen) [block, right=of fw] {parameter\_generator.py};
-\node (param) [block, right=of paramgen] {param.bin};
+\node (fw) [block, below=of loaderkey] {loader-firmware.bin};
+\node (paramgen) [block, right=of fw] {parameter\_generator.py \\ loader};
+\node (param) [block, right=of paramgen] {loader-param.bin};
 
 \draw[arrow] (fw) -- (paramgen);
 \draw[arrow] (paramgen) -- (param);
@@ -47,11 +47,11 @@
 \draw[arrow] (param.east) -| (secutil.north);
 
 % --- Outputs ---
-\node (image) [block, right=of secutil] {secure\_boot\_image.bin\\(signed + param)};
+\node (image) [block, right=of secutil] {secure\_boot\_image.bin\\(signed + param) for loader};
 \node (pubkey) [block, above=of image] {rootkey\_hash.pubkey};
 
 \draw[arrow] (secutil.east) -- (image.west);
-\draw[arrow] ( $ (secutil.east) ! 0.5 ! (image.west) $ ) -| (pubkey.west);
+\draw[arrow] ( $ (secutil.east) ! 0.5 ! (image.west) $ ) |- (pubkey.west);
 
 % % --- Trust Chain Note ---
 % \node (note) [align=left, below=of secutil, xshift=2cm] {
