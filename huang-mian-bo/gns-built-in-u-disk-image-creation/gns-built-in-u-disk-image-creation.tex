@@ -1,0 +1,87 @@
+\documentclass[a4paper]{article}
+
+\usepackage[margin=1cm]{geometry}
+\usepackage{CJKutf8}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, calc}
+\pagestyle{empty}
+
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+
+\begin{center}
+{\Large\bfseries GNS-J1900 内置 U 盘镜像 更新与打包 流程图}
+\end{center}
+\vspace{3mm}
+
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+  >=Stealth,
+  font=\scriptsize,
+  file/.style   = {rectangle, draw=blue!55!black, thick, rounded corners=2pt,
+                    fill=blue!8, text width=4.2cm, align=center,
+                    minimum height=1.3cm, inner sep=3pt},
+  proc/.style   = {rectangle, draw=orange!70!black, thick, rounded corners=2pt,
+                    fill=orange!12, text width=4.2cm, align=center,
+                    minimum height=1.3cm, inner sep=3pt},
+  cfg/.style    = {rectangle, draw=teal!60!black, thick, rounded corners=2pt,
+                    fill=teal!8, text width=4.2cm, align=center,
+                    minimum height=1.1cm, inner sep=3pt},
+  deliver/.style= {rectangle, draw=green!45!black, very thick, rounded corners=2pt,
+                    fill=green!12, text width=4.2cm, align=center,
+                    minimum height=1.4cm, inner sep=3pt, font=\scriptsize\bfseries},
+  merge/.style  = {circle, draw=black, thick, fill=yellow!35, minimum size=7mm,
+                    inner sep=0pt, font=\bfseries},
+  lbl/.style    = {font=\tiny, midway, above, text width=2.6cm, align=center},
+]
+
+% ---------- 列坐标: col1=0  col2=6.2  col3=12.4 ----------
+
+% ===== 子流程：配置自动生成（位于最上方） =====
+\node[file] (dir) at (6.2, 9.4) {扫描目录\\ \texttt{DIR}};
+\node[proc] (pygen) at (6.2, 7.1) {\texttt{gns\_iso\_to\_builtin\_}\\\texttt{u\_disk\_image.py}\\\texttt{-g DIR}\ 扫描生成};
+\node[cfg]  (toml) at (6.2, 4.8) {自动生成\\\texttt{gns\_iso\_to\_builtin\_}\\\texttt{u\_disk\_image.toml}};
+
+\draw[->, thick] (dir) -- (pygen);
+\draw[->, thick] (pygen) -- (toml);
+
+% ===== 输入：旧镜像 / 新 ISO（第一行左端，纵向堆叠） =====
+\node[file] (old) at (0, 7.1) {旧的\\\texttt{gns-j1900-internal-}\\\texttt{u-disk-YYYYYYYY.img.gz}};
+\node[file] (newiso) at (0, 4.8) {新的\\\texttt{GNS-X-X32-X-}\\\texttt{Debian12(64)-Oto35V20-}\\\texttt{STD001-XXXXXXXX.iso}};
+
+% ===== 第一行（从左到右）：合并 -> 主处理 -> 输出镜像 =====
+\node[merge] (m1) at (0, 2.0) {+};
+\draw[->, thick] (old.west) -- ($(old.west)+(-1.2,0)$) |- ($(m1.west)+(-1.2,0)$) -- (m1.west);
+\draw[->, thick] (newiso) -- (m1);
+
+\node[proc] (p1) at (6.2, 2.0) {\texttt{gns\_iso\_to\_builtin\_}\\\texttt{u\_disk\_image.py}\\(主处理)};
+\draw[->, very thick] (m1) -- (p1);
+\draw[->, thick] (toml) -- (p1) node[lbl] {提供配置};
+
+\node[deliver] (newimg) at (12.4, 2.0) {(a) 交付\\\texttt{gns-j1900-internal-}\\\texttt{u-disk-XXXXXXXX.img.gz}};
+\draw[->, very thick] (p1) -- (newimg);
+
+% ===== 蛇形转向：第一行末端(col3) 向下折到第二行(col3)，再向左 =====
+\node[merge] (m3) at (12.4, -2.6) {+};
+\draw[->, very thick] (newimg) -- (m3);
+
+\node[file] (empty) at (12.4, -5.4) {空白 ISO 模板\\\texttt{GNS-J1900-Internal-}\\\texttt{U-Disk-Empty.iso}};
+\draw[->, very thick] (empty) -- (m3);
+
+\node[deliver] (finaliso) at (6.2, -2.6) {最终交付\\\texttt{GNS-J1900-Internal-}\\\texttt{U-Disk-XXXXXX.iso}};
+\draw[->, very thick] (m3) -- (finaliso);
+
+\end{tikzpicture}%
+}
+
+\vspace{4mm}
+\begin{flushleft}
+\footnotesize
+\textbf{说明：}\quad \par
+(a) 更新内置 U 盘镜像：旧镜像 + 新 ISO 经 \texttt{gns\_iso\_to\_builtin\_u\_disk\_image.py} 处理（配置文件 \texttt{.toml} 由同一脚本以 \texttt{-g DIR} 扫描指定路径自动生成）得到新镜像；   \par
+(b) 打包为 ISO：新镜像与空白 ISO 模板合并，最终生成 \texttt{GNS-J1900-Internal-U-Disk-XXXXXX.iso} 交付。
+\end{flushleft}
+
+\end{CJK*}
+\end{document}
