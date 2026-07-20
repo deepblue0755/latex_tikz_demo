@@ -1,0 +1,90 @@
+\documentclass[border=12pt]{standalone}
+\usepackage{CJKutf8}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds, calc}
+
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+
+\tikzset{
+  startstop/.style = {rectangle, rounded corners, minimum width=3.4cm, minimum height=0.95cm,
+                       text centered, draw=black, thick, fill=green!15, font=\small},
+  process/.style   = {rectangle, minimum width=6.6cm, minimum height=1.05cm, text width=6.2cm,
+                       text centered, draw=black, thick, fill=blue!8, font=\small, align=center},
+  decision/.style  = {diamond, aspect=2.6, text width=3.0cm, minimum height=1.6cm,
+                       text centered, draw=black, thick, fill=orange!15, font=\small, inner sep=1pt, align=center},
+  io/.style        = {trapezium, trapezium left angle=68, trapezium right angle=112,
+                       minimum width=4.6cm, minimum height=1cm, text width=4.0cm,
+                       text centered, draw=black, thick, fill=yellow!20, font=\small, align=center},
+  note/.style      = {rectangle, draw=gray, dashed, text width=4.4cm, font=\scriptsize,
+                       fill=gray!5, inner sep=6pt, align=left},
+  arr/.style       = {-{Latex[length=2.8mm]}, thick},
+  lbl/.style       = {font=\scriptsize},
+}
+
+\begin{tikzpicture}[node distance=0.85cm and 2.6cm]
+
+% ---- 主链路（居中竖排） ----
+\node[startstop] (start) {开始};
+
+\node[process, below=of start] (step1)
+  {\textcircled{1} 使用 Universal-USB-Installer\\将 ISO 镜像写入外置 U 盘};
+
+\node[process, below=of step1] (step2)
+  {\textcircled{2} 将烧好镜像的 U 盘插入 GNS\\（确保其余外接 USB 口未插入任何其他 U 盘）};
+
+\node[process, below=of step2] (step3)
+  {\textcircled{3} 为 GNS 接入外部显示器 + USB 键盘};
+
+\node[process, below=of step3] (step4)
+  {\textcircled{4} 重新给 GNS 上下电，\\开机时按住 Delete 键进入 BIOS 设置界面};
+
+\node[process, below=of step4] (step5)
+  {\textcircled{5} 在 BIOS 设置界面中选择从外置 U 盘启动};
+
+\node[decision, below=1.3cm of step5] (dec1)
+  {内置 U 盘\\是否为空？};
+
+% ---- 左分支：空盘，自动烧录 ----
+\node[process, below left=1.6cm and -0.0cm of dec1, text width=5.0cm, minimum width=5.4cm] (auto)
+  {系统自动开始烧录内置 U 盘};
+
+\node[startstop, below=1.1cm of auto] (done)
+  {内置 U 盘烧录完成};
+
+% ---- 右分支：非空盘，需擦除 ----
+\node[io, below right=1.6cm and 2.6cm of dec1] (popup)
+  {弹出选择框，\\提示需要擦除内置 U 盘};
+
+\node[process, below=1.1cm of popup, text width=5.2cm, minimum width=5.6cm] (magic)
+  {输入魔数命令\\\texttt{C6C83B36}\\执行擦除内置 U 盘};
+
+% ---- 主链路连线 ----
+\draw[arr] (start) -- (step1);
+\draw[arr] (step1) -- (step2);
+\draw[arr] (step2) -- (step3);
+\draw[arr] (step3) -- (step4);
+\draw[arr] (step4) -- (step5);
+\draw[arr] (step5) -- (dec1);
+
+\draw[arr] (dec1.west) -| node[lbl, pos=0.22, above]{是（空盘）} (auto.north);
+\draw[arr] (auto) -- (done);
+
+\draw[arr] (dec1.east) -| node[lbl, pos=0.22, above]{否（已有镜像）} (popup.north);
+\draw[arr] (popup) -- (magic);
+
+% 擦除后返回步骤④，重新上下电进入 BIOS
+\coordinate (backpoint) at ($(magic.east) + (2.0,0)$);
+\draw[arr] (magic.east) -- (backpoint) |- node[lbl, pos=0.75, above, text width=3.6cm, align=center]
+      {擦除完成后\\返回 \textcircled{4}：重新上下电\\进入 BIOS 重试} (step4.east);
+
+% ---- 说明框 ----
+\node[note, below right=1.0cm and 1.3cm of magic] (remark)
+  {\textbf{注：} 之所以用魔数\texttt{C6C83B36}来触发擦除命令，是为了防止误触导致内置 U 盘被意外擦除。};
+% \draw[gray, dashed, -{Latex[length=2mm]}] (remark.west) -- (magic.east);
+
+\end{tikzpicture}
+
+\end{CJK*}
+\end{document}
