@@ -1,0 +1,119 @@
+\documentclass[a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{CJKutf8}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper,left=1.4cm,right=1.4cm,top=1.3cm,bottom=1.2cm]{geometry}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,arrows.meta,positioning,calc}
+\pagestyle{empty}
+
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+
+\begin{center}
+{\Large\bfseries CODESYS / MotionStudio 组件更新至 ISO 流程图}\\[2pt]
+{\scriptsize (对应 \texttt{update\_components\_to\_rootfs\_mbr.py -c} 流水线执行模式，蛇形布局)}
+\end{center}
+\vspace{2mm}
+
+\begin{tikzpicture}[
+  node distance=1.0cm,
+  process/.style   = {rectangle, draw, thick, fill=cyan!8, rounded corners=1pt,
+                       minimum width=4.4cm, minimum height=1.7cm, text width=4.0cm,
+                       align=center, font=\scriptsize, inner sep=2pt},
+  optproc/.style   = {rectangle, draw, thick, dashed, fill=orange!12, rounded corners=1pt,
+                       minimum width=4.4cm, minimum height=1.7cm, text width=4.0cm,
+                       align=center, font=\scriptsize, inner sep=2pt},
+  decision/.style  = {diamond, draw, thick, fill=yellow!22,
+                       minimum width=4.2cm, minimum height=2.3cm, text width=2.3cm,
+                       align=center, font=\scriptsize, inner sep=1pt},
+  startstop/.style = {rectangle, draw, thick, rounded corners=8pt, fill=green!12,
+                       minimum width=3.6cm, minimum height=1.3cm, text width=3.2cm,
+                       align=center, font=\scriptsize\bfseries, inner sep=2pt},
+  exitstyle/.style = {rectangle, draw, thick, rounded corners=8pt, fill=red!10,
+                       minimum width=3.4cm, minimum height=1.3cm, text width=3.0cm,
+                       align=center, font=\scriptsize\bfseries, inner sep=2pt},
+  lbl/.style       = {font=\tiny, align=center},
+  arr/.style       = {-{Latex[length=2mm,width=1.4mm]}, very thick},
+]
+
+% ---- Row 1 (L -> R) ----
+\node[startstop] (S1) {开始\\以 \texttt{-c config.toml} 运行};
+\node[process,  right=of S1] (S2) {\textbf{Step 2} 读取并解析 TOML 配置\\(\texttt{load\_config})};
+\node[decision, right=of S2] (S3) {配置解析\\成功？};
+
+% ---- Row 2 (R -> L)，转折点：below=of S3 ----
+\node[process, below=of S3] (S4) {\textbf{Step 1} 检查必需工具\\(缺失即报错终止)};
+\node[process, left=of S4]  (S5) {\textbf{Step 3} 校验参数\\版本格式$\cdot$防冲突\\源 ISO 与组件包校验};
+\node[process, left=of S5]  (S6) {\textbf{Step 3.5} 获取 workdir 锁\\(\texttt{LockFile})};
+
+% ---- Row 3 (L -> R)，转折点：below=of S6 ----
+\node[process, below=of S6] (S7) {\textbf{Step 4} 解压组件包\\至 workdir 下对应子目录};
+\node[process, right=of S7] (S8) {\textbf{Step 5} 校验 MD5\\设置权限与属主};
+\node[process, right=of S8] (S9) {挂载源 ISO 并 rsync\\同步到暂存目录};
+
+% ---- Row 4 (R -> L)，转折点：below=of S9 ----
+\node[process, below=of S9] (S10) {\textbf{Step 6} 注入组件到分区归档\\6a codesyscontrol$\rightarrow$\texttt{part7.tar.gz}\\6b MotionStudio$\rightarrow$\texttt{part10.tar.gz}};
+\node[process, left=of S10] (S11) {\textbf{Step 7} 追加更新日志(MD5)\\写入 os\_release 文件\\(part8.tar.gz 内)};
+\node[process, left=of S11] (S12) {\textbf{Step 8} 重新计算\\partX.tar.gz 校验和\\(MD5 + SHA256)};
+
+% ---- Row 5 (L -> R)，转折点：below=of S12 ----
+\node[process,  below=of S12] (S13) {\textbf{Step 9} 重新打包生成新 ISO\\写出 \texttt{.sha256} 校验文件\\(Step 9.5 释放 workdir 锁)};
+\node[process,  right=of S13] (S14) {\textbf{Step 9.6} 清理已解压的\\组件暂存目录\\(仅成功时执行)};
+\node[decision, right=of S14] (S15) {Step 10：\\已配置 [remote]\\且 ping 可用？};
+
+% ---- Row 6 (R -> L)，转折点：below=of S15 ----
+\node[optproc,  below=of S15] (S16) {远程复制：ping 检测\\$\rightarrow$挂载共享$\rightarrow$\texttt{pv}+\texttt{dd} 复制\\$\rightarrow$校验 SHA256$\rightarrow$卸载\\（失败不致命）};
+\node[decision, left=of S16]  (S17) {Step 1$\sim$10\\是否抛出\\异常？};
+\node[process,  left=of S17]  (S18) {\textbf{Step 11} 发送 msmtp 邮件通知\\(\texttt{finally}：成功\\失败都会执行)};
+
+% ---- Row 7 (L -> R)，转折点：below=of S18 ----
+\node[decision,  below=of S18]  (S19)   {pipeline\_\\success？};
+\node[exitstyle, right=of S19]  (EXIT0) {结束\\退出码 0};
+\node[exitstyle, right=of EXIT0](EXIT1) {结束\\退出码 1};
+
+% ================= 主流程箭头 (Main flow) =================
+\draw[arr] (S1) -- (S2);
+\draw[arr] (S2) -- (S3);
+\draw[arr] (S3) -- node[lbl,right]{是} (S4);
+
+\draw[arr] (S4) -- (S5);
+\draw[arr] (S5) -- (S6);
+\draw[arr] (S6) -- (S7);
+
+\draw[arr] (S7) -- (S8);
+\draw[arr] (S8) -- (S9);
+\draw[arr] (S9) -- (S10);
+
+\draw[arr] (S10) -- (S11);
+\draw[arr] (S11) -- (S12);
+\draw[arr] (S12) -- (S13);
+
+\draw[arr] (S13) -- (S14);
+\draw[arr] (S14) -- (S15);
+\draw[arr] (S15) -- node[lbl,right]{是} (S16);
+
+\draw[arr] (S16) -- (S17);
+\draw[arr] (S17) -- node[lbl,pos=0.5,above]{否} (S18);
+\draw[arr] (S18) -- (S19);
+
+\draw[arr] (S19) -- node[lbl,above]{是} (EXIT0);
+
+\draw[arr] (S19.south) -| node[lbl,pos=0.5, above]{否} (EXIT1.south);
+
+% ---- 跳过远程复制: S15 否 -> S17 (bypass S16) ----
+\draw[arr] (S15.east) -- ++(1.3,0) |- node[lbl,pos=0.75,above]{否：跳过远程复制} (S17.south);
+
+% ---- 配置解析失败: S3 否 -> EXIT1 (long dashed jump, no notification) ----
+\draw[arr,dashed,red!55!black] (S3.east) -- ++(1.5,0) |- (EXIT1.east);
+\node[lbl,red!55!black,align=right,text width=2.1cm,anchor=east] at ($(S3.east)+(1.3,-0.9)$) {否：打印错误\\直接退出(1)\\\textbf{不发通知}};
+
+\end{tikzpicture}
+
+\vspace{2mm}
+\noindent{\tiny 图例：圆角方框 = 起止节点 　方框 = 处理步骤 　虚线边框 = 可选步骤 　菱形 = 判断节点\par
+脚本另支持 \texttt{-g} 模式：仅扫描目录生成 TOML 配置，不执行更新流程（图中未展示）。}
+
+\end{CJK*}
+\end{document}
