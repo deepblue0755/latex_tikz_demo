@@ -1,0 +1,113 @@
+\documentclass[a4paper]{article}
+\usepackage[a4paper,margin=1cm]{geometry}
+\usepackage{CJKutf8}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric}
+
+\pagestyle{empty}
+
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+
+\begin{center}
+{\Large \textbf{PN 板卡出厂烧录签名固件流程}}
+\end{center}
+\vspace{4mm}
+
+\begin{tikzpicture}[
+  font=\footnotesize,
+  >=Stealth,
+  every node/.style={align=center},
+  box/.style={
+    draw, rounded corners=2pt, thick,
+    minimum width=3.9cm, minimum height=1.5cm,
+    text width=3.6cm, align=center, inner sep=2pt
+  },
+  mode/.style={box, fill=blue!12, draw=blue!60!black},
+  power/.style={box, fill=green!12, draw=green!50!black},
+  poweroff/.style={box, fill=gray!18, draw=gray!60!black},
+  op/.style={box, fill=orange!15, draw=orange!70!black},
+  arr/.style={-{Stealth[length=2.5mm]}, thick}
+]
+
+% ---------- 坐标定义 (4列 x 4行, 蛇形) ----------
+% 列坐标
+\def\cA{0}
+\def\cB{4.6}
+\def\cC{9.2}
+\def\cD{13.8}
+% 行坐标
+\def\rOne{0}
+\def\rTwo{-3.6}
+\def\rThree{-7.2}
+\def\rFour{-10.8}
+
+% ---------- 第一行：1 -> 2 -> 3 -> 4 (从左到右) ----------
+\node[mode]  (n1) at (\cA,\rOne) {\textbf{1.} 工装切换启动模式为 SCI 模式};
+\node[power] (n2) at (\cB,\rOne) {\textbf{2.} 板卡上电};
+\node[op]    (n3) at (\cC,\rOne) {\textbf{3.} 通过串口烧录 OTP RPKH\footnotemark};
+\node[poweroff] (n4) at (\cD,\rOne) {\textbf{4.} 板卡断电};
+
+% ---------- 第二行：5 -> 6 -> 7 -> 8 (从右到左) ----------
+\node[mode]  (n5) at (\cD,\rTwo) {\textbf{5.} 工装切换启动模式为 xSPI0 模式};
+\node[power] (n6) at (\cC,\rTwo) {\textbf{6.} 板卡上电};
+\node[op]    (n7) at (\cB,\rTwo) {\textbf{7.} 通过 JTAG 烧录签名固件};
+\node[poweroff] (n8) at (\cA,\rTwo) {\textbf{8.} 板卡断电};
+
+% ---------- 第三行：9 -> 10 -> 11 -> 12 (从左到右) ----------
+\node[mode]  (n9)  at (\cA,\rThree) {\textbf{9.} 工装切换启动模式为 SCI 模式};
+\node[power] (n10) at (\cB,\rThree) {\textbf{10.} 板卡上电};
+\node[op]    (n11) at (\cC,\rThree) {\textbf{11.} 运行李湛的系统生成 JTAG 密码相关文件};
+\node[op]    (n12) at (\cD,\rThree) {\textbf{12.} 通过串口加密 JTAG口};
+
+% ---------- 第四行：13 -> 14 -> 15 -> 16 (从右到左) ----------
+\node[poweroff] (n13) at (\cD,\rFour) {\textbf{13.} 板卡断电};
+\node[mode]      (n14) at (\cC,\rFour) {\textbf{14.} 工装切换启动模式为 SCI 模式};
+\node[power]     (n15) at (\cB,\rFour) {\textbf{15.} 板卡上电};
+\node[op]        (n16) at (\cA,\rFour) {\textbf{16.} 通过串口永久封锁 SCI 启动模式};
+
+% ---------- 箭头连接 ----------
+% 第一行 (向右)
+\draw[arr, very thick] (n1) -- (n2);
+\draw[arr, very thick] (n2) -- (n3);
+\draw[arr, very thick] (n3) -- (n4);
+% 行间转折 (右侧向下)
+\draw[arr, very thick] (n4) -- (n5);
+% 第二行 (向左)
+\draw[arr, very thick] (n5) -- (n6);
+\draw[arr, very thick] (n6) -- (n7);
+\draw[arr, very thick] (n7) -- (n8);
+% 行间转折 (左侧向下)
+\draw[arr, very thick] (n8) -- (n9);
+% 第三行 (向右)
+\draw[arr, very thick] (n9)  -- (n10);
+\draw[arr, very thick] (n10) -- (n11);
+\draw[arr, very thick] (n11) -- (n12);
+% 行间转折 (右侧向下)
+\draw[arr, very thick] (n12) -- (n13);
+% 第四行 (向左)
+\draw[arr, very thick] (n13) -- (n14);
+\draw[arr, very thick] (n14) -- (n15);
+\draw[arr,very thick] (n15) -- (n16);
+
+\end{tikzpicture}
+
+\vspace{6mm}
+\begin{center}
+\begin{tikzpicture}[font=\footnotesize, every node/.style={align=left}]
+  \node[draw, rounded corners=2pt, fill=blue!12, draw=blue!60!black, minimum width=0.5cm, minimum height=0.4cm] (l1) at (0,0) {};
+  \node[right=1mm of l1] {启动模式切换};
+  \node[draw, rounded corners=2pt, fill=green!12, draw=green!50!black, minimum width=0.5cm, minimum height=0.4cm] (l2) at (4.2,0) {};
+  \node[right=1mm of l2] {板卡上电};
+  \node[draw, rounded corners=2pt, fill=gray!18, draw=gray!60!black, minimum width=0.5cm, minimum height=0.4cm] (l3) at (7.6,0) {};
+  \node[right=1mm of l3] {板卡断电};
+  \node[draw, rounded corners=2pt, fill=orange!15, draw=orange!70!black, minimum width=0.5cm, minimum height=0.4cm] (l4) at (11.0,0) {};
+  \node[right=1mm of l4] {烧录 / 操作步骤};
+\end{tikzpicture}
+\end{center}
+
+\footnotetext{RPKH：Root Public Key Hash，芯片安全启动信任根公钥哈希，烧录后不可更改，请务必核对密钥哈希值后再执行。}
+
+\end{CJK*}
+\end{document}
