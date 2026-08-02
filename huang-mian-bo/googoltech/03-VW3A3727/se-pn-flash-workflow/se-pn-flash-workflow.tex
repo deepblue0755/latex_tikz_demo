@@ -31,7 +31,7 @@
   arr/.style={-{Stealth[length=2.5mm]}, thick}
 ]
 
-% ---------- 坐标定义 (4列 x 4行, 蛇形) ----------
+% ---------- 坐标定义 (4列 x 5行, 蛇形) ----------
 % 列坐标
 \def\cA{0}
 \def\cB{4.6}
@@ -42,6 +42,7 @@
 \def\rTwo{-3.6}
 \def\rThree{-7.2}
 \def\rFour{-10.8}
+\def\rFive{-14.4}
 
 % ---------- 第一行：1 -> 2 -> 3 -> 4 (从左到右) ----------
 \node[mode]  (n1) at (\cA,\rOne) {\textbf{1.} 工装切换启动模式为 SCI 模式};
@@ -56,16 +57,21 @@
 \node[poweroff] (n8) at (\cA,\rTwo) {\textbf{8.} 板卡断电};
 
 % ---------- 第三行：9 -> 10 -> 11 -> 12 (从左到右) ----------
-\node[mode]  (n9)  at (\cA,\rThree) {\textbf{9.} 工装切换启动模式为 SCI 模式};
-\node[power] (n10) at (\cB,\rThree) {\textbf{10.} 板卡上电};
-\node[op]    (n11) at (\cC,\rThree) {\textbf{11.} 运行李湛的系统生成 JTAG 密码相关文件};
-\node[op]    (n12) at (\cD,\rThree) {\textbf{12.} 通过串口加密 JTAG口};
+\node[power] (n9)  at (\cA,\rThree) {\textbf{9.} 板卡上电\\(保持 xSPI0 启动模式)};
+\node[op]    (n10) at (\cB,\rThree) {\textbf{10.} 通过固件烧录加密芯片};
+\node[poweroff] (n11) at (\cC,\rThree) {\textbf{11.} 板卡断电};
+\node[mode]  (n12) at (\cD,\rThree) {\textbf{12.} 工装切换启动模式为 SCI 模式};
 
 % ---------- 第四行：13 -> 14 -> 15 -> 16 (从右到左) ----------
-\node[poweroff] (n13) at (\cD,\rFour) {\textbf{13.} 板卡断电};
-\node[mode]      (n14) at (\cC,\rFour) {\textbf{14.} 工装切换启动模式为 SCI 模式};
-\node[power]     (n15) at (\cB,\rFour) {\textbf{15.} 板卡上电};
-\node[op]        (n16) at (\cA,\rFour) {\textbf{16.} 通过串口永久封锁 SCI 启动模式};
+\node[power] (n13) at (\cD,\rFour) {\textbf{13.} 板卡上电};
+\node[op]    (n14) at (\cC,\rFour) {\textbf{14.} 运行李湛的系统生成 JTAG 密码相关文件};
+\node[op]    (n15) at (\cB,\rFour) {\textbf{15.} 通过串口加密 JTAG 口};
+\node[poweroff] (n16) at (\cA,\rFour) {\textbf{16.} 板卡断电};
+
+% ---------- 第五行：17 -> 18 -> 19 (从左到右) ----------
+\node[mode]  (n17) at (\cA,\rFive) {\textbf{17.} 工装切换启动模式为 SCI 模式};
+\node[power] (n18) at (\cB,\rFive) {\textbf{18.} 板卡上电};
+\node[op]    (n19) at (\cC,\rFive) {\textbf{19.} 通过串口永久封锁 SCI 启动模式};
 
 % ---------- 箭头连接 ----------
 % 第一行 (向右)
@@ -89,7 +95,12 @@
 % 第四行 (向左)
 \draw[arr, very thick] (n13) -- (n14);
 \draw[arr, very thick] (n14) -- (n15);
-\draw[arr,very thick] (n15) -- (n16);
+\draw[arr, very thick] (n15) -- (n16);
+% 行间转折 (左侧向下)
+\draw[arr, very thick] (n16) -- (n17);
+% 第五行 (向右)
+\draw[arr, very thick] (n17) -- (n18);
+\draw[arr, very thick] (n18) -- (n19);
 
 \end{tikzpicture}
 
