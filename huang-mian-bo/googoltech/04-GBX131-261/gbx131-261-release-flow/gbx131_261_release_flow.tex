@@ -1,0 +1,124 @@
+% ============================================================
+% M310 GBX131-261 测试包发布流程图 (M310 GBX131-261 test-package
+% release workflow flowchart)
+% Compile with: pdflatex m310_release_flow.tex
+% Chinese text uses CJKutf8 + gbsn (NOT xelatex/ctex), per house style.
+% ============================================================
+\documentclass[a4paper, landscape, tikz, border=10pt]{standalone}
+\usepackage{xeCJK}
+\usepackage{CJKutf8}
+\usepackage[utf8]{inputenc}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc}
+
+% Shorthand for a literal backslash inside node text (Windows UNC paths)
+\newcommand{\bs}{\textbackslash}
+
+% \setCJKmainfont{FZJingLeiS-R-GB}
+% \setCJKmainfont{zihunbaigetianxingti}
+\setmainfont{TeX Gyre Pagella}
+\setCJKmainfont{LXGWWenKaiMono-Regular}
+
+
+\begin{document}
+% \begin{CJK*}{UTF8}{gbsn}
+
+\begin{tikzpicture}[
+    font=\small,
+    every node/.style={align=center},
+    >={Stealth[length=2.6mm]},
+    node distance=10mm and 16mm,
+    % ---- shape styles ----
+    startend/.style={ellipse, draw, thick, fill=blue!12,
+        minimum width=30mm, minimum height=10mm},
+    process/.style={rectangle, draw, thick, rounded corners=2pt,
+        fill=orange!10, text width=32mm, minimum height=11mm,
+        inner sep=2mm},
+    decision/.style={diamond, draw, thick, fill=yellow!18,
+        aspect=2, text width=22mm, inner sep=1mm},
+    auto/.style={rectangle, draw, thick, dashed, rounded corners=2pt,
+        fill=green!12, text width=36mm, minimum height=11mm,
+        inner sep=2mm},
+    side/.style={rectangle, draw, thick, fill=red!10,
+        text width=28mm, minimum height=10mm, inner sep=2mm},
+    arrow/.style={thick, ->},
+    retry/.style={thick, ->, dashed, gray!70!black},
+    elabel/.style={font=\scriptsize, fill=white, inner sep=1pt}
+]
+
+% ---------------------------------------------------------------
+% Row 1 (left -> right): 开始 -> ping测试 -> 判断 -> 登录共享目录
+% ---------------------------------------------------------------
+\node[startend]               (start) {开始};
+\node[process, right=of start] (n1)   {1. Ping 测试\\\texttt{192.168.201.73}};
+\node[decision, right=of n1]   (n1d)  {能否\\ping 通?};
+\node[process, right=of n1d]   (n2)   {2. 登录共享目录\\\texttt{\bs\bs192.168.201.73}\\\texttt{\bs share\_mbr}};
+
+% side branch above row 1: ping 失败 -> 联系 IT
+\node[side, above=14mm of n1d] (n1it) {联系 IT 解决};
+
+% ---------------------------------------------------------------
+% Row 2 (right -> left, serpentine): 拷贝安装包 -> 创建标志文件
+%                                     -> 等待完成 -> 判断
+% ---------------------------------------------------------------
+\node[process, below=of n2]   (n3)  {3. 拷贝 M310 安装包到共享目录\\\texttt{\bs\bs192.168.201.73}\\\texttt{\bs share\_mbr}};
+\node[process, left=of n3]    (n4)  {4. 创建空标志文件\\\texttt{I\_WANT\_GBX131\_261}};
+\node[process, left=of n4]    (n5)  {5. 等待处理完成};
+\node[decision, left=of n5]   (n5d) {处理\\是否失败?};
+
+% side branch further left of row 2: 失败 -> 检查日志
+\node[side, left=16mm of n5d] (n5log) {检查日志目录\\\texttt{log/}};
+
+% ---------------------------------------------------------------
+% Row 3 (left -> right): 自动上传 -> 拷贝测试 -> 结束
+% ---------------------------------------------------------------
+\node[auto,  below=of n5d]    (n6)  {6. 安装包自动上传至\\\texttt{//192.168.201.13/}\\\texttt{m310固高版本(gbx131-261)}\\\texttt{项目资料/2-临时测试}\\（系统自动执行）};
+\node[process, right=of n6]   (n7)  {7. 拷贝测试};
+\node[startend, right=of n7]  (nend) {结束};
+
+% ---------------------------------------------------------------
+% Title
+% ---------------------------------------------------------------
+\node[font=\bfseries\Large, above=10mm of n1it] (title)
+    {M310 转换 GBX131-261 测试包发布流程};
+
+% =================================================================
+% Arrows — main flow
+% =================================================================
+\draw[arrow] (start) -- (n1);
+\draw[arrow] (n1)    -- (n1d);
+\draw[arrow] (n1d)   -- node[elabel, above]{是} (n2);
+\draw[arrow] (n2)    -- (n3);
+\draw[arrow] (n3)    -- (n4);
+\draw[arrow] (n4)    -- (n5);
+\draw[arrow] (n5)    -- (n5d);
+\draw[arrow] (n5d)   -- node[elabel, below]{否 (成功)} (n6);
+\draw[arrow] (n6)    -- (n7);
+\draw[arrow] (n7)    -- (nend);
+
+% Arrows — decision side branches
+\draw[arrow] (n1d)  -- node[elabel, right]{否} (n1it);
+\draw[arrow] (n5d)  -- node[elabel, above]{是 (失败)} (n5log);
+
+% Arrows — retry loops (dashed, gray), routed with tight right-angle
+% detours so they stay local to their own row and never cross other nodes.
+\draw[retry] (n1it.south) -- ++(0,-4mm)
+    -| node[elabel, pos=0.25]{处理后重试} (n1.north);
+\draw[retry] (n5log.north) -- ++(0,6mm)
+    -| node[elabel, pos=0.25]{重新等待} (n5.north);
+
+% =================================================================
+% Legend
+% =================================================================
+\begin{scope}[shift={($(nend.east)+(18mm,-2mm)$)}, scale=0.85]
+    \node[startend, minimum width=16mm, minimum height=7mm, font=\tiny] at (0,0) {开始/结束};
+    \node[process, text width=16mm, minimum height=7mm, font=\tiny, inner sep=1mm] at (0,-11mm) {人工操作};
+    \node[decision, text width=12mm, minimum height=7mm, font=\tiny, inner sep=0.5mm] at (0,-22mm) {判断};
+    \node[auto, text width=16mm, minimum height=7mm, font=\tiny, inner sep=1mm] at (0,-33mm) {系统自动};
+    \node[side, text width=16mm, minimum height=7mm, font=\tiny, inner sep=1mm] at (0,-44mm) {异常处理};
+    \node[font=\bfseries\tiny] at (0,7mm) {图例};
+\end{scope}
+
+\end{tikzpicture}
+
+% \end{CJK*}
+\end{document}
