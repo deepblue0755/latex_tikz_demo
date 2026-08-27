@@ -1,0 +1,246 @@
+% Flowchart: what the .run installer does on the target machine.
+% Compile with: xelatex run_installer_flowchart.tex
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[margin=18mm]{geometry}
+\usepackage{xeCJK}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning}
+
+% CJK fonts -- adjust to whatever is installed on the build machine.
+% Common alternatives: "Source Han Sans SC", "WenQuanYi Micro Hei", "SimSun".
+\setCJKmainfont{Noto Sans CJK SC}
+\setCJKsansfont{Noto Sans CJK SC}
+\setCJKmonofont{Noto Sans Mono CJK SC}
+
+\pagestyle{empty}
+
+% Palette: normal steps, steps that touch the system, exits, completion.
+\definecolor{stepfill}{HTML}{F1EFE8}
+\definecolor{stepline}{HTML}{5F5E5A}
+\definecolor{syscallfill}{HTML}{EEEDFE}
+\definecolor{syscallline}{HTML}{534AB7}
+\definecolor{errfill}{HTML}{FCEBEB}
+\definecolor{errline}{HTML}{A32D2D}
+\definecolor{donefill}{HTML}{E1F5EE}
+\definecolor{doneline}{HTML}{0F6E56}
+\definecolor{checkfill}{HTML}{E6F1FB}
+\definecolor{checkline}{HTML}{185FA5}
+
+\tikzset{
+  % Vertical gap between steps / horizontal gap to the exit branches.
+  node distance=9mm and 14mm,
+  boxbase/.style={
+    rectangle, rounded corners=2pt,
+    draw, line width=0.4pt,
+    text width=54mm, align=center,
+    inner sep=2.6mm, minimum height=15mm
+  },
+  flowstep/.style={boxbase, fill=stepfill, draw=stepline},
+  flowsys/.style={boxbase, fill=syscallfill, draw=syscallline},
+  flowdone/.style={boxbase, fill=donefill, draw=doneline},
+  flowexit/.style={
+    boxbase, fill=errfill, draw=errline,
+    text width=42mm, minimum height=11mm
+  },
+  flow/.style={-{Stealth[length=2.2mm,width=1.8mm]}, line width=0.5pt, draw=stepline},
+  exitflow/.style={flow, draw=errline, dashed},
+  title/.style={font=\bfseries},
+  sub/.style={font=\small},
+  % --- compact variants for the 16-step serpentine on page 2 ---
+  sboxbase/.style={
+    rectangle, rounded corners=2pt,
+    draw, line width=0.4pt,
+    text width=42mm, align=center,
+    inner sep=2mm, minimum height=17mm
+  },
+  sstep/.style={sboxbase, fill=stepfill, draw=stepline},
+  ssys/.style={sboxbase, fill=syscallfill, draw=syscallline},
+  scheck/.style={sboxbase, fill=checkfill, draw=checkline},
+  sroll/.style={sboxbase, fill=errfill, draw=errline},
+  sdone/.style={sboxbase, fill=donefill, draw=doneline},
+  soptional/.style={dash pattern=on 1.6pt off 1.2pt},
+  rollflow/.style={flow, draw=errline, dashed}
+}
+
+% Two-line box content: bold title on top, small subtitle underneath.
+\newcommand{\boxtext}[2]{{\bfseries #1}\\[1.4mm]{\small #2}}
+
+% Numbered three-line box content for the serpentine chart.
+\newcommand{\sboxtext}[3]{{\bfseries #1.\,#2}\\[1mm]{\footnotesize #3}}
+
+\begin{document}
+\begin{center}
+
+{\Large\bfseries 驱动安装包 (.run) 在目标机上的执行流程}
+
+\vspace{6mm}
+
+\begin{tikzpicture}
+
+  % --- main path, top to bottom ---
+  \node[flowstep] (env) {\boxtext{环境自检}{工具链、内核头文件}};
+
+  \node[flowstep, below=of env] (work)
+    {\boxtext{建立工作目录}{\texttt{/tmp} 下随机命名}};
+
+  \node[flowstep, below=of work] (extract)
+    {\boxtext{自解压源码}{跳过脚本段取压缩包}};
+
+  \node[flowstep, below=of extract] (build)
+    {\boxtext{编译驱动}{默认 Release 版}};
+
+  \node[flowsys, below=of build] (install)
+    {\boxtext{安装模块}{清旧 \texttt{.ko} 后拷入}};
+
+  \node[flowsys, below=of install] (depmod)
+    {\boxtext{更新模块索引}{建立硬件到模块的对应}};
+
+  \node[flowdone, below=of depmod] (finish)
+    {\boxtext{清理并退出}{删除工作目录}};
+
+  % --- exit branches, placed relative to the step they leave from ---
+  \node[flowexit, right=of env] (exitdep) {缺依赖则退出};
+
+  \node[flowexit, right=of build] (exitbuild) {编译失败退出\\[0.8mm]{\small 源码残留}};
+
+  % --- connections ---
+  \draw[flow] (env)     -- (work);
+  \draw[flow] (work)    -- (extract);
+  \draw[flow] (extract) -- (build);
+  \draw[flow] (build)   -- (install);
+  \draw[flow] (install) -- (depmod);
+  \draw[flow] (depmod)  -- (finish);
+
+  \draw[exitflow] (env)   -- (exitdep);
+  \draw[exitflow] (build) -- (exitbuild);
+
+\end{tikzpicture}
+
+\vspace{4mm}
+
+{\small 紫色为改动系统状态的步骤；虚线为异常退出路径。}
+
+\end{center}
+
+\newpage
+\begin{center}
+
+{\Large\bfseries 改进后的 \texttt{.run} 执行流程}
+
+\vspace{5mm}
+
+% Serpentine (boustrophedon) layout: three columns, alternating direction,
+% so all 16 steps fit on one A4 page. Every node is placed relative to the
+% previous one -- no absolute coordinates.
+\begin{tikzpicture}[node distance=10mm and 10mm]
+
+  % --- row 1: left to right ---
+  \node[sstep] (s0) {\sboxtext{0}{入口分派}{参数与 \texttt{-{}-version}}};
+  \node[sstep, right=of s0] (s1) {\sboxtext{1}{权限自检}{统一检查 root}};
+  \node[sstep, right=of s1] (s2) {\sboxtext{2}{环境自检}{工具链、内核树、余量}};
+
+  % --- row 2: right to left ---
+  \node[sstep, below=of s2] (s3) {\sboxtext{3}{安装包自校验}{校验源码包完整性}};
+  \node[sstep, left=of s3] (s4) {\sboxtext{4}{建立工作目录}{内存盘优先、限额}};
+  \node[sstep, left=of s4] (s5) {\sboxtext{5}{解压源码}{展开到工作目录}};
+
+  % --- row 3: left to right ---
+  \node[sstep, soptional, below=of s5] (s6) {\sboxtext{6}{预编译匹配}{命中则跳过编译}};
+  \node[sstep, right=of s6] (s7) {\sboxtext{7}{编译驱动}{默认 Release 版}};
+  \node[ssys, right=of s7] (s8) {\sboxtext{8}{备份现有模块}{供回滚使用}};
+
+  % --- row 4: right to left ---
+  \node[ssys, below=of s8] (s9) {\sboxtext{9}{安装模块}{清旧后拷入}};
+  \node[ssys, left=of s9] (s10) {\sboxtext{10}{更新模块索引}{建立硬件对应}};
+  \node[scheck, left=of s10] (s11) {\sboxtext{11}{安装后验证}{试加载并确认绑定}};
+
+  % --- row 5: left to right ---
+  \node[ssys, soptional, below=of s11] (s12) {\sboxtext{12}{配置节点权限}{可选}};
+  \node[sroll, right=of s12] (s13) {\sboxtext{13}{失败回滚}{恢复备份模块}};
+  \node[sdone, right=of s13] (s14) {\sboxtext{14}{统一清理}{覆盖所有退出路径}};
+
+  % --- row 6 ---
+  \node[sdone, below=of s14] (s15) {\sboxtext{15}{结果汇报}{日志落至 \texttt{/tmp}}};
+
+  % --- serpentine connections ---
+  \draw[flow] (s0)  -- (s1);
+  \draw[flow] (s1)  -- (s2);
+  \draw[flow] (s2)  -- (s3);
+  \draw[flow] (s3)  -- (s4);
+  \draw[flow] (s4)  -- (s5);
+  \draw[flow] (s5)  -- (s6);
+  \draw[flow] (s6)  -- (s7);
+  \draw[flow] (s7)  -- (s8);
+  \draw[flow] (s8)  -- (s9);
+  \draw[flow] (s9)  -- (s10);
+  \draw[flow] (s10) -- (s11);
+  \draw[flow] (s11) -- (s12);
+  % Normal path skips the rollback node: detour below row 5 so the line
+  % never crosses node 13, and enter node 14 left of its exit to node 15.
+  \draw[flow] (s12.south) -- ++(0,-7mm) -| ([xshift=-13mm]s14.south);
+  \draw[flow] ([xshift=13mm]s14.south) -- ([xshift=13mm]s15.north);
+
+  % Rollback is not part of the normal order: any failing step enters it,
+  % and it merges back into the common cleanup.
+  \draw[rollflow] (s12) -- (s13);
+  \draw[rollflow] (s13) -- (s14);
+
+\end{tikzpicture}
+
+\vspace{4mm}
+
+{\small 灰色为准备与构建；紫色为改动系统状态；蓝色为安装后验证；\\
+虚线边框为可选步骤；红色虚线为异常回滚路径，任一步失败后进入 13，再汇入 14。}
+
+\end{center}
+
+\newpage
+\begin{center}
+
+{\Large\bfseries 现有打包流程（构建机侧）}
+
+\vspace{5mm}
+
+% Same serpentine layout as page 2: three columns, alternating direction.
+\begin{tikzpicture}[node distance=10mm and 10mm]
+
+  % --- row 1: left to right ---
+  \node[sstep] (p1) {\sboxtext{1}{准备工作区}{临时目录与产物路径}};
+  \node[sstep, right=of p1] (p2) {\sboxtext{2}{校验入参}{检查源码目录存在}};
+  \node[sstep, right=of p2] (p3) {\sboxtext{3}{清理源码目录}{执行 make clean}};
+
+  % --- row 2: right to left ---
+  \node[sstep, below=of p3] (p4) {\sboxtext{4}{采集版本信息}{四项，含回退值}};
+  \node[sstep, left=of p4] (p5) {\sboxtext{5}{收集源文件清单}{递归查找 \texttt{.c} 与 \texttt{.h}}};
+  \node[ssys, left=of p5] (p6) {\sboxtext{6}{生成 Makefile}{版本改读固化值}};
+
+  % --- row 3: left to right ---
+  \node[ssys, below=of p6] (p7) {\sboxtext{7}{打包源码}{扁平化压缩}};
+  \node[ssys, right=of p7] (p8) {\sboxtext{8}{生成安装脚本段}{末尾写分隔标记}};
+  \node[ssys, right=of p8] (p9) {\sboxtext{9}{拼接与赋权}{脚本段 + 压缩包}};
+
+  % --- row 4 ---
+  \node[sdone, below=of p9] (p10) {\sboxtext{10}{输出产物}{打印 \texttt{.run} 路径}};
+
+  % --- serpentine connections ---
+  \draw[flow] (p1) -- (p2);
+  \draw[flow] (p2) -- (p3);
+  \draw[flow] (p3) -- (p4);
+  \draw[flow] (p4) -- (p5);
+  \draw[flow] (p5) -- (p6);
+  \draw[flow] (p6) -- (p7);
+  \draw[flow] (p7) -- (p8);
+  \draw[flow] (p8) -- (p9);
+  \draw[flow] (p9) -- (p10);
+
+\end{tikzpicture}
+
+\vspace{4mm}
+
+{\small 灰色为准备与采集；紫色为产出中间件；绿色为交付产物。\\
+注：步骤 3 在驱动源码目录内执行，会改动被打包的工作区；\\
+步骤 5 为递归收集，子目录下的同名文件在步骤 7 扁平化后会互相覆盖。}
+
+\end{center}
+\end{document}
