@@ -1,4 +1,4 @@
-% Flowchart: what the .run installer does on the target machine.
+% Flowchart set: packaging and installation, current state and improved.
 % Compile with: xelatex run_installer_flowchart.tex
 \documentclass[a4paper,11pt]{article}
 
@@ -70,9 +70,125 @@
 \newcommand{\sboxtext}[3]{{\bfseries #1.\,#2}\\[1mm]{\footnotesize #3}}
 
 \begin{document}
+
 \begin{center}
 
-{\Large\bfseries 驱动安装包 (.run) 在目标机上的执行流程}
+{\Large\bfseries 现有打包流程（构建机侧）}
+
+\vspace{5mm}
+
+% Same serpentine layout as page 2: three columns, alternating direction.
+\begin{tikzpicture}[node distance=10mm and 10mm]
+
+  % --- row 1: left to right ---
+  \node[sstep] (p1) {\sboxtext{1}{准备工作区}{临时目录与产物路径}};
+  \node[sstep, right=of p1] (p2) {\sboxtext{2}{校验入参}{检查源码目录存在}};
+  \node[sstep, right=of p2] (p3) {\sboxtext{3}{清理源码目录}{执行 make clean}};
+
+  % --- row 2: right to left ---
+  \node[sstep, below=of p3] (p4) {\sboxtext{4}{采集版本信息}{四项，含回退值}};
+  \node[sstep, left=of p4] (p5) {\sboxtext{5}{收集源文件清单}{递归查找 \texttt{.c} 与 \texttt{.h}}};
+  \node[ssys, left=of p5] (p6) {\sboxtext{6}{生成 Makefile}{版本改读固化值}};
+
+  % --- row 3: left to right ---
+  \node[ssys, below=of p6] (p7) {\sboxtext{7}{打包源码}{扁平化压缩}};
+  \node[ssys, right=of p7] (p8) {\sboxtext{8}{生成安装脚本段}{末尾写分隔标记}};
+  \node[ssys, right=of p8] (p9) {\sboxtext{9}{拼接与赋权}{脚本段 + 压缩包}};
+
+  % --- row 4 ---
+  \node[sdone, below=of p9] (p10) {\sboxtext{10}{输出产物}{打印 \texttt{.run} 路径}};
+
+  % --- serpentine connections ---
+  \draw[flow] (p1) -- (p2);
+  \draw[flow] (p2) -- (p3);
+  \draw[flow] (p3) -- (p4);
+  \draw[flow] (p4) -- (p5);
+  \draw[flow] (p5) -- (p6);
+  \draw[flow] (p6) -- (p7);
+  \draw[flow] (p7) -- (p8);
+  \draw[flow] (p8) -- (p9);
+  \draw[flow] (p9) -- (p10);
+
+\end{tikzpicture}
+
+\vspace{4mm}
+
+{\small 灰色为准备与采集；紫色为产出中间件；绿色为交付产物。\\
+注：步骤 3 在驱动源码目录内执行，会改动被打包的工作区；\\
+步骤 5 为递归收集，子目录下的同名文件在步骤 7 扁平化后会互相覆盖。}
+
+\end{center}
+\newpage
+\begin{center}
+
+{\Large\bfseries 改进后的打包流程（构建机侧）}
+
+\vspace{5mm}
+
+% Same serpentine layout as the installer pages: three columns, alternating
+% direction, every node placed relative to the previous one.
+\begin{tikzpicture}[node distance=10mm and 10mm]
+
+  % --- row 1: left to right ---
+  \node[sstep] (q0) {\sboxtext{0}{入口分派}{参数解析与 \texttt{-{}-help}}};
+  \node[sstep, right=of q0] (q1) {\sboxtext{1}{校验入参}{目录、仓库、必需文件}};
+  \node[sstep, right=of q1] (q2) {\sboxtext{2}{准备工作区}{退出时自动清理}};
+
+  % --- row 2: right to left ---
+  \node[sstep, below=of q2] (q3) {\sboxtext{3}{采集版本信息}{四项 + 打包时间}};
+  \node[scheck, left=of q3] (q4) {\sboxtext{4}{工作区状态检查}{未提交改动告警}};
+  \node[sstep, left=of q4] (q5) {\sboxtext{5}{收集源文件清单}{白名单、拒绝重名}};
+
+  % --- row 3: left to right ---
+  \node[sstep, below=of q5] (q6) {\sboxtext{6}{导出源码副本}{不改动源码目录}};
+  \node[ssys, right=of q6] (q7) {\sboxtext{7}{生成 Makefile}{版本改读固化值}};
+  \node[scheck, right=of q7] (q8) {\sboxtext{8}{构建配置比对}{与原始 Makefile 核对}};
+
+  % --- row 4: right to left ---
+  \node[ssys, below=of q8] (q9) {\sboxtext{9}{打包源码}{生成 \texttt{.tar.gz}}};
+  \node[ssys, soptional, left=of q9] (q10) {\sboxtext{10}{预编译模块矩阵}{可选，生成清单}};
+  \node[sstep, left=of q10] (q11) {\sboxtext{11}{计算压缩包校验和}{拼接前先算好}};
+
+  % --- row 5: left to right ---
+  \node[ssys, below=of q11] (q12) {\sboxtext{12}{注入脚本模板}{一次替换全部占位符}};
+  \node[scheck, right=of q12] (q13) {\sboxtext{13}{脚本段自检}{语法与占位符残留}};
+  \node[ssys, line width=0.9pt, right=of q13] (q14) {\sboxtext{14}{拼接与赋权}{最后一个写操作}};
+
+  % --- row 6 ---
+  \node[sdone, below=of q14] (q15) {\sboxtext{15}{只读自验证与报告}{不再修改产物}};
+
+  % --- serpentine connections ---
+  \draw[flow] (q0)  -- (q1);
+  \draw[flow] (q1)  -- (q2);
+  \draw[flow] (q2)  -- (q3);
+  \draw[flow] (q3)  -- (q4);
+  \draw[flow] (q4)  -- (q5);
+  \draw[flow] (q5)  -- (q6);
+  \draw[flow] (q6)  -- (q7);
+  \draw[flow] (q7)  -- (q8);
+  \draw[flow] (q8)  -- (q9);
+  \draw[flow] (q9)  -- (q10);
+  \draw[flow] (q10) -- (q11);
+  \draw[flow] (q11) -- (q12);
+  \draw[flow] (q12) -- (q13);
+  \draw[flow] (q13) -- (q14);
+  \draw[flow] (q14) -- (q15);
+
+\end{tikzpicture}
+
+\vspace{4mm}
+
+{\small 灰色为准备与采集；紫色为产出文件；蓝色为校验类步骤；\\
+虚线边框为可选步骤；绿色为交付产物；粗框的步骤 14 是最后一个写操作。\\
+步骤 6 起全部操作在副本上进行，打包对驱动源码目录只读；\\
+步骤 14 之后成品不再被修改，步骤 15 只做只读校验。}
+
+\end{center}
+\newpage
+
+\begin{center}
+
+{\Large\bfseries 现有安装流程（目标机侧）}
 
 \vspace{6mm}
 
@@ -126,7 +242,7 @@
 \newpage
 \begin{center}
 
-{\Large\bfseries 改进后的 \texttt{.run} 执行流程}
+{\Large\bfseries 改进后的安装流程（目标机侧）}
 
 \vspace{5mm}
 
@@ -195,52 +311,4 @@
 
 \end{center}
 
-\newpage
-\begin{center}
-
-{\Large\bfseries 现有打包流程（构建机侧）}
-
-\vspace{5mm}
-
-% Same serpentine layout as page 2: three columns, alternating direction.
-\begin{tikzpicture}[node distance=10mm and 10mm]
-
-  % --- row 1: left to right ---
-  \node[sstep] (p1) {\sboxtext{1}{准备工作区}{临时目录与产物路径}};
-  \node[sstep, right=of p1] (p2) {\sboxtext{2}{校验入参}{检查源码目录存在}};
-  \node[sstep, right=of p2] (p3) {\sboxtext{3}{清理源码目录}{执行 make clean}};
-
-  % --- row 2: right to left ---
-  \node[sstep, below=of p3] (p4) {\sboxtext{4}{采集版本信息}{四项，含回退值}};
-  \node[sstep, left=of p4] (p5) {\sboxtext{5}{收集源文件清单}{递归查找 \texttt{.c} 与 \texttt{.h}}};
-  \node[ssys, left=of p5] (p6) {\sboxtext{6}{生成 Makefile}{版本改读固化值}};
-
-  % --- row 3: left to right ---
-  \node[ssys, below=of p6] (p7) {\sboxtext{7}{打包源码}{扁平化压缩}};
-  \node[ssys, right=of p7] (p8) {\sboxtext{8}{生成安装脚本段}{末尾写分隔标记}};
-  \node[ssys, right=of p8] (p9) {\sboxtext{9}{拼接与赋权}{脚本段 + 压缩包}};
-
-  % --- row 4 ---
-  \node[sdone, below=of p9] (p10) {\sboxtext{10}{输出产物}{打印 \texttt{.run} 路径}};
-
-  % --- serpentine connections ---
-  \draw[flow] (p1) -- (p2);
-  \draw[flow] (p2) -- (p3);
-  \draw[flow] (p3) -- (p4);
-  \draw[flow] (p4) -- (p5);
-  \draw[flow] (p5) -- (p6);
-  \draw[flow] (p6) -- (p7);
-  \draw[flow] (p7) -- (p8);
-  \draw[flow] (p8) -- (p9);
-  \draw[flow] (p9) -- (p10);
-
-\end{tikzpicture}
-
-\vspace{4mm}
-
-{\small 灰色为准备与采集；紫色为产出中间件；绿色为交付产物。\\
-注：步骤 3 在驱动源码目录内执行，会改动被打包的工作区；\\
-步骤 5 为递归收集，子目录下的同名文件在步骤 7 扁平化后会互相覆盖。}
-
-\end{center}
 \end{document}
