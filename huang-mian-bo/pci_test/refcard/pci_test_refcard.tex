@@ -4,10 +4,12 @@
 %  Engine : XeLaTeX  (xeCJK + TikZ + tcolorbox)
 %  Build  : xelatex pci_test_refcard.tex   (run twice)
 % =====================================================================
-\documentclass[10pt,a4paper,landscape]{article}
+\documentclass[10pt]{article}
 
 \usepackage{geometry}
-\geometry{a4paper,landscape,left=8mm,right=8mm,top=8mm,bottom=11mm}
+% single continuous poster page: A4 landscape width, height cut to fit the
+% whole card in one piece (440mm is the break-even point, 445mm leaves slack)
+\geometry{paperwidth=297mm,paperheight=445mm,left=8mm,right=8mm,top=8mm,bottom=11mm}
 
 \usepackage{fontspec}
 \usepackage{xeCJK}
