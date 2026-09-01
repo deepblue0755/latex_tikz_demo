@@ -4,10 +4,10 @@
 %  Engine : XeLaTeX  (xeCJK + TikZ + tcolorbox)
 %  Build  : xelatex pci_test_refcard.tex   (run twice)
 % =====================================================================
-\documentclass[10pt,a3paper,landscape]{article}
+\documentclass[10pt,a4paper,landscape]{article}
 
 \usepackage{geometry}
-\geometry{a3paper,landscape,left=8mm,right=8mm,top=8mm,bottom=15mm}
+\geometry{a4paper,landscape,left=8mm,right=8mm,top=8mm,bottom=11mm}
 
 \usepackage{fontspec}
 \usepackage{xeCJK}
@@ -108,6 +108,13 @@
 \newcommand{\lit}{\begingroup\catcode`\_=12\relax\litaux}
 \newcommand{\litaux}[1]{{\ttfamily #1}\endgroup}
 
+% one row of the DMA address map: fixed column widths keep every bar the same
+% size, so the bars can simply be stacked with below=of and need no coordinates
+\newcommand{\dmarow}[2]{%
+  \begin{tabular}{@{}p{10mm}@{}p{34mm}@{}p{11mm}@{}}
+    \bfseries #1 & \ttfamily #2 & \raggedleft 4 GiB
+  \end{tabular}}
+
 % small caption line inside a panel
 \newcommand{\note}[1]{\par\vspace{1.6pt}{\scriptsize\color{cGrey}#1}\par}
 \newcommand{\sep}{\par\vspace{2pt}\noindent\textcolor{cGrey!40}{\rule{\linewidth}{0.3pt}}\par\vspace{1pt}}
@@ -131,16 +138,24 @@
 % =====================================================================
 %  TITLE BANNER
 % =====================================================================
-\begin{tikzpicture}
-  \node[rectangle, rounded corners=3pt, inner sep=0pt] (bg) {};
-  \fill[cInk, rounded corners=3pt] (0,0) rectangle (28.1,1.55);
-  \fill[cBar, rounded corners=3pt] (0,0) rectangle (0.5,1.55);
-  \fill[cInk] (0.3,0) rectangle (0.6,1.55);
-  \node[anchor=west, text=white, font=\bfseries\Large] at (0.85,1.06) {pci\_test 命令行速查卡};
-  \node[anchor=west, text=white!65, font=\scriptsize] at (0.9,0.45)
+\begin{tikzpicture}[node distance=1.5mm and 4mm]
+  % the plate is the only sized element; everything else hangs off its anchors
+  \node[rectangle, fill=cInk, rounded corners=3pt, inner sep=0pt,
+        minimum width=\linewidth, minimum height=15.5mm] (plate) {};
+
+  % accent stripe along the left edge of the plate
+  \draw[cBar, line width=1.6mm, line cap=butt]
+        ([xshift=0.8mm]plate.north west) -- ([xshift=0.8mm]plate.south west);
+
+  \node[below right=2.2mm and 5mm of plate.north west, anchor=north west,
+        text=white, font=\bfseries\Large] (title) {pci\_test 命令行速查卡};
+  \node[below=of title.south west, anchor=north west, text=white!65, font=\scriptsize]
        {Googoltech PCIe 驱动（GOOGOL\_PCIe）用户态测试工具\ \ ·\ \ pci\_test\_amd64 / \_i386 / \_aarch64\ \ ·\ \ /opt/googoltech/bin/};
-  \node[anchor=east, text=white, font=\ttfamily\small] at (27.8,1.05) {43 个选项};
-  \node[anchor=east, text=white!65, font=\ttfamily\scriptsize] at (27.8,0.48) {17 个测试编号};
+
+  \node[below left=3mm and 5mm of plate.north east, anchor=north east,
+        text=white, font=\ttfamily\small] (cnt) {43 个选项};
+  \node[below=of cnt.south east, anchor=north east, text=white!65, font=\ttfamily\scriptsize]
+       {17 个测试编号};
 \end{tikzpicture}
 
 \vspace{2mm}
@@ -148,33 +163,38 @@
 % =====================================================================
 %  TWO INVOCATION MODES  (full width TikZ diagram)
 % =====================================================================
-\begin{tikzpicture}[x=1mm,y=1mm,font=\scriptsize,
+\begin{tikzpicture}[font=\scriptsize, node distance=3mm and 6mm,
     box/.style={rectangle,rounded corners=2.5pt,draw=#1,fill=#1!7,
                 text=cInk,inner xsep=4pt,inner ysep=3.5pt,align=left}]
 
-  \node[rectangle,rounded corners=2.5pt,fill=cMisc,text=white,align=center,
-        inner xsep=5pt,inner ysep=4pt,font=\bfseries\scriptsize,
-        anchor=west] (start) at (0,12) {main()\\检查 argv[1]};
-
-  \node[box=cNum,text width=126mm,anchor=north west] (num) at (32,25)
+  % anchor of the whole diagram: the upper branch box
+  \node[box=cNum,text width=0.44\linewidth] (num)
        {\textcolor{cNum}{\bfseries 编号模式}\quad\textit{argv[1] 是纯数字，或完全不带参数}\\[1pt]
         \ttfamily pci\_test <IO\_DEV\_ID> <DMA\_DEV\_ID> <TEST\_ID> [位置参数...]\\[1pt]
         设备用\textbf{扫描序号}（非路径）\ \ ·\ \ 参数缺失时交互提问\ \ ·\ \ 详见「编号模式」区块};
 
-  \node[box=cBar,text width=126mm,anchor=north west] (opt) at (32,11)
+  \node[box=cBar,text width=0.44\linewidth,
+        below=of num.south west, anchor=north west] (opt)
        {\textcolor{cBar}{\bfseries 选项模式}\quad\textit{其余情况（以 - 开头）}\\[1pt]
         \ttfamily pci\_test [设备选项] [任务] [任务参数]\\[1pt]
         \lit{-d} / \lit{-D} \textbf{至少给一个}（完整设备路径）\ \ ·\ \ 可一次指定多个任务};
 
-  \node[box=cWarn,text width=82mm,anchor=north west] (rem) at (172,25)
+  % branch point sits halfway between the two boxes, then steps left
+  \coordinate (fork) at ($(num.west)!0.5!(opt.west)$);
+  \node[rectangle,rounded corners=2.5pt,fill=cMisc,text=white,align=center,
+        inner xsep=5pt,inner ysep=4pt,font=\bfseries\scriptsize,
+        left=of fork] (start) {main()\\检查 argv[1]};
+
+  \node[box=cWarn,text width=0.28\linewidth,
+        right=of num.north east, anchor=north west] (rem)
        {\textcolor{cWarn}{\bfseries 两种模式互斥}，不能混用。\lit{--help} 与 \lit{--version}
         在 getopt 之前扫描，出现在\textbf{任意位置}都立即生效并退出。\\[1pt]
         帮助与测试列表的语言由环境变量 \lit{LANG} 决定：以 \lit{zh} 开头输出中文，否则英文。};
 
   \draw[-{Stealth[length=4pt]},cNum,line width=0.7pt]
-        (start.east) -- (29,12) |- (num.west);
+        (start.east) -- ++(3mm,0) |- (num.west);
   \draw[-{Stealth[length=4pt]},cBar,line width=0.7pt]
-        (start.east) -- (29,12) |- (opt.west);
+        (start.east) -- ++(3mm,0) |- (opt.west);
 \end{tikzpicture}
 
 \vspace{2mm}
@@ -273,20 +293,17 @@
 % ------------------------------------------------------------ DMA ADDR MAP
 \begin{panel}{cDmaP}{DMA 地址空间（24 GiB，不用 BAR 索引）}
 \begin{center}
-\begin{tikzpicture}[font=\scriptsize,x=1mm,y=1mm]
-  \foreach \i/\name/\off/\col in {
-      0/BAR5/0x500000000 (20 GiB)/{cDmaP!30},
-      1/BAR4/0x400000000 (16 GiB)/{cDmaP!42},
-      2/BAR3/0x300000000 (12 GiB)/{cDmaP!54},
-      3/BAR2/0x200000000 (8 GiB)/{cDmaP!66},
-      4/BAR1/0x100000000 (4 GiB)/{cDmaP!78},
-      5/BAR0/0x000000000 (0)/{cDmaP!92}} {
-    \fill[\col,draw=cDmaP!70,line width=0.25pt,rounded corners=0.6pt]
-        (0,\i*6) rectangle (72,\i*6+5.4);
-    \node[anchor=west,font=\bfseries\scriptsize,text=cInk] at (2,\i*6+2.7) {\name};
-    \node[anchor=west,font=\ttfamily\scriptsize,text=cInk] at (16,\i*6+2.7) {\off};
-    \node[anchor=east,font=\scriptsize,text=cInk] at (70,\i*6+2.7) {4 GiB};
-  }
+\begin{tikzpicture}[font=\scriptsize, node distance=0.9mm,
+    dmabar/.style={rectangle, draw=cDmaP!70, line width=0.25pt,
+                   rounded corners=0.8pt, inner xsep=2mm, inner ysep=1.2mm,
+                   text=cInk}]
+  % highest region first; each row hangs below the previous one
+  \node[dmabar, fill=cDmaP!30]                    (bar5) {\dmarow{BAR5}{0x500000000 (20 GiB)}};
+  \node[dmabar, fill=cDmaP!42, below=of bar5]     (bar4) {\dmarow{BAR4}{0x400000000 (16 GiB)}};
+  \node[dmabar, fill=cDmaP!54, below=of bar4]     (bar3) {\dmarow{BAR3}{0x300000000 (12 GiB)}};
+  \node[dmabar, fill=cDmaP!66, below=of bar3]     (bar2) {\dmarow{BAR2}{0x200000000 (8 GiB)}};
+  \node[dmabar, fill=cDmaP!78, below=of bar2]     (bar1) {\dmarow{BAR1}{0x100000000 (4 GiB)}};
+  \node[dmabar, fill=cDmaP!92, below=of bar1]     (bar0) {\dmarow{BAR0}{0x000000000 (0)}};
 \end{tikzpicture}
 \end{center}
 \note{DMA 用 64 位偏移访问，配合 \lit{-A} 使用；BAR 侧的 \lit{-i} 只在单个 BAR 内计算偏移。}
@@ -295,24 +312,33 @@
 % ------------------------------------------------------------ THREAD MAP
 \begin{panel}{cDma}{\lit{-Y} / \lit{-Z} 线程与 BAR0 区域分配}
 \begin{center}
-\begin{tikzpicture}[font=\scriptsize,x=1mm,y=1mm]
-  \foreach \i/\th/\val/\col in {
-      0/{\#1}/0x77/{cDma!85},
-      1/{\#2}/0x88/{cDma!73},
-      2/{\#5}/0xBB/{cDma!61},
-      3/{\#3}/0x99/{cDma!49},
-      4/{\#4}/0xAA/{cDma!37},
-      5/{\#6}/0xCC/{cDma!27},
-      6/{\#7}/0xDD/{cDma!18}} {
-    \fill[\col,draw=cDma!70,line width=0.25pt] (\i*10.2,0) rectangle (\i*10.2+10,11);
-    \node[font=\bfseries\scriptsize,text=cInk] at (\i*10.2+5,8) {\th};
-    \node[font=\ttfamily\scriptsize,text=cInk] at (\i*10.2+5,3.4) {\val};
-  }
-  \foreach \i/\addr in {0/0,1/1024,2/2048,3/3072,4/4096,5/5120,6/6144} {
-    \node[font=\ttfamily\tiny,text=cGrey,anchor=north] at (\i*10.2+5,-0.8) {\addr};
-  }
-  \draw[cGrey,line width=0.3pt] (0,-5.6) -- (71.2,-5.6);
-  \node[anchor=north,font=\tiny,text=cGrey] at (35.6,-5.9) {BAR0 偏移（每格 1 KiB）};
+\begin{tikzpicture}[font=\scriptsize, node distance=0.45mm,
+    tblk/.style={rectangle, draw=cDma!70, line width=0.25pt, align=center,
+                 minimum width=9.4mm, minimum height=10mm, inner sep=0.6mm,
+                 text=cInk},
+    addr/.style={font=\ttfamily\tiny, text=cGrey}]
+  % cells run left to right, each hooked onto the previous one
+  \node[tblk, fill=cDma!85]                  (t1) {\bfseries\#1\\\ttfamily 0x77};
+  \node[tblk, fill=cDma!73, right=of t1]     (t2) {\bfseries\#2\\\ttfamily 0x88};
+  \node[tblk, fill=cDma!61, right=of t2]     (t3) {\bfseries\#5\\\ttfamily 0xBB};
+  \node[tblk, fill=cDma!49, right=of t3]     (t4) {\bfseries\#3\\\ttfamily 0x99};
+  \node[tblk, fill=cDma!37, right=of t4]     (t5) {\bfseries\#4\\\ttfamily 0xAA};
+  \node[tblk, fill=cDma!27, right=of t5]     (t6) {\bfseries\#6\\\ttfamily 0xCC};
+  \node[tblk, fill=cDma!18, right=of t6]     (t7) {\bfseries\#7\\\ttfamily 0xDD};
+
+  % offset labels hang under their own cell
+  \node[addr, below=1.2mm of t1] (a1) {0};
+  \node[addr, below=1.2mm of t2] (a2) {1024};
+  \node[addr, below=1.2mm of t3] (a3) {2048};
+  \node[addr, below=1.2mm of t4] (a4) {3072};
+  \node[addr, below=1.2mm of t5] (a5) {4096};
+  \node[addr, below=1.2mm of t6] (a6) {5120};
+  \node[addr, below=1.2mm of t7] (a7) {6144};
+
+  % the ruler spans from the left edge of the first cell to the right edge of the last
+  \draw[cGrey, line width=0.3pt]
+        (a1.south -| t1.west) -- (a7.south -| t7.east);
+  \node[below=1mm of a4, font=\tiny, text=cGrey] {BAR0 偏移（每格 1 KiB）};
 \end{tikzpicture}
 \end{center}
 \note{注意 \#5 落在 2048、\#3 落在 3072，线程号与地址顺序\textbf{并不一致}。}
