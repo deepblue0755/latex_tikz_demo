@@ -1,0 +1,120 @@
+\documentclass[12p]{ctexart}
+
+\usepackage[a4paper,margin=0.8cm]{geometry}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, fit, backgrounds}
+
+\begin{document}
+
+\pagestyle{empty}
+
+\begin{center}
+    {\LARGE \bfseries Cortex-A V.S. x86 架构的中断路径示意图}
+\end{center}
+
+\vspace{1em}
+
+\begin{tikzpicture}[
+    node distance=6mm and 18mm,
+    >=Latex,
+    block/.style={
+        draw,
+        rounded corners,
+        align=center,
+        minimum width=4.2cm,
+        minimum height=9mm,
+        font=\small
+    },
+    titlebox/.style={
+        draw,
+        rounded corners,
+        fill=gray!10,
+        minimum width=4.6cm,
+        minimum height=10mm,
+        font=\bfseries
+    },
+    groupbox/.style={
+        draw,
+        rounded corners,
+        inner sep=8pt
+    },
+    note/.style={
+        font=\small,
+        align=left
+    }
+]
+
+%--------------------------------
+% Left column: Cortex-A
+%--------------------------------
+\node[titlebox] (armtitle) {Cortex-A / ARM 路径};
+
+\node[block, below=of armtitle] (armdev) {外设 / 中断源\\Peripheral / IRQ Source};
+\node[block, below=of armdev] (gicd) {GIC Distributor};
+\node[block, below=of gicd] (gicc) {GIC CPU Interface\\或 Redistributor};
+\node[block, below=of gicc] (armcore) {ARM Core};
+\node[block, below=of armcore] (armentry) {异常入口\\Exception Entry};
+\node[block, below=of armentry] (armirq) {Linux IRQ Handler};
+\node[block, below=of armirq] (armthread) {IRQ Thread / RT Task\\（PREEMPT\_RT 可选）};
+
+\draw[->, thick] (armdev) -- (gicd);
+\draw[->, thick] (gicd) -- (gicc);
+\draw[->, thick] (gicc) -- (armcore);
+\draw[->, thick] (armcore) -- (armentry);
+\draw[->, thick] (armentry) -- (armirq);
+\draw[->, thick] (armirq) -- (armthread);
+
+\node[note, left=8mm of armirq, anchor=east] (armnote) {
+特点：\\
+1. 路径相对简洁\\
+2. GIC 负责中断分发\\
+3. 实时性通常更稳定
+};
+
+\node[groupbox, fit=(armtitle)(armdev)(gicd)(gicc)(armcore)(armentry)(armirq)(armthread)] (armgroup) {};
+
+%--------------------------------
+% Right column: x86
+%--------------------------------
+\node[titlebox, right=1.5cm of armtitle] (x86title) {x86 路径};
+
+\node[block, below=of x86title] (x86dev) {外设 / 中断源\\Peripheral / IRQ Source};
+\node[block, below=of x86dev] (ioapic) {IO-APIC\\或 MSI / MSI-X};
+\node[block, below=of ioapic] (lapic) {Local APIC};
+\node[block, below=of lapic] (x86core) {x86 Core};
+\node[block, below=of x86core] (idtentry) {IDT / Interrupt Gate\\中断入口};
+\node[block, below=of idtentry] (x86irq) {Linux IRQ Handler};
+\node[block, below=of x86irq] (x86thread) {IRQ Thread / RT Task\\（PREEMPT\_RT 可选）};
+
+\draw[->, thick] (x86dev) -- (ioapic);
+\draw[->, thick] (ioapic) -- (lapic);
+\draw[->, thick] (lapic) -- (x86core);
+\draw[->, thick] (x86core) -- (idtentry);
+\draw[->, thick] (idtentry) -- (x86irq);
+\draw[->, thick] (x86irq) -- (x86thread);
+
+\node[note, right=8mm of x86irq, anchor=west] (x86note) {
+特点：\\
+1. APIC / MSI 体系成熟\\
+2. 平均延迟可很低\\
+3. 平台噪声因素更多\\
+   （如 SMI / 电源管理）
+};
+
+\node[groupbox, fit=(x86title)(x86dev)(ioapic)(lapic)(x86core)(idtentry)(x86irq)(x86thread)] (x86group) {};
+
+%--------------------------------
+% Bottom summary
+%--------------------------------
+\node[note, below=16mm of armthread] (summary) {
+% , anchor=north west
+\textbf{说明：}\\
+该图强调的是“中断从外设产生到 Linux 中断处理路径”的结构差异。\\
+若使用 PREEMPT\_RT，Linux IRQ Handler 后面往往还会进入 IRQ 线程或唤醒实时任务。\\
+Cortex-A 通常更强调确定性；x86 往往平均性能很强，但最坏延迟更需平台调优。
+};
+
+\end{tikzpicture}
+
+\end{document}

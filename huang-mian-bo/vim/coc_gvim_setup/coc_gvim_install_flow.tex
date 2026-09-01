@@ -1,0 +1,205 @@
+\documentclass[UTF-8, a4paper,landscape]{ctexart}
+\usepackage[margin=10mm]{geometry}
+\usepackage{comment}
+
+% ---------------------------------------------------------------------------
+% Engine: XeLaTeX (UTF-8 native, no inputenc / CJKutf8 / CJK* environment).
+% Fonts are configured in one place below; change only these lines to reskin.
+% Fandol ships with TeX Live, so this compiles on any box without installing
+% system fonts. Alternatives are listed in the comments.
+% ---------------------------------------------------------------------------
+\usepackage{fontspec}
+\usepackage{xeCJK}
+
+% Latin faces (fontspec defaults to Latin Modern; stated explicitly on purpose).
+\setmainfont{Latin Modern Roman}
+\setsansfont{Latin Modern Sans}
+\setmonofont{Latin Modern Mono}
+
+% CJK faces. Fandol has no true italic, so Kai stands in for it.
+%   Linux alternative : \setCJKmainfont{Noto Serif CJK SC}[BoldFont=Noto Sans CJK SC Bold]
+%   Windows alternative: \setCJKmainfont{SimSun}[BoldFont=SimHei, ItalicFont=KaiTi]
+
+\begin{comment}
+\setCJKmainfont{FandolSong-Regular.otf}[
+  BoldFont   = FandolHei-Regular.otf,
+  ItalicFont = FandolKai-Regular.otf,
+]
+\end{comment}
+\setCJKmainfont{LXGWWenKai-Regular}
+% \setCJKmainfont{HYSunShangXiang-F}
+% \setCJKmainfont{FZJLJW--GB1-0}
+
+\setCJKsansfont{FandolHei-Regular.otf}
+\setCJKmonofont{FandolSong-Regular.otf}
+
+% Route the arrow block to the CJK font, which covers U+2190..U+21FF.
+\xeCJKDeclareCharClass{CJK}{"2190 -> "21FF}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,shapes.geometric,backgrounds}
+\usepackage{microtype}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+
+% ---------------------------------------------------------------------------
+% Horizontal budget (A4 landscape, 10mm margins => 277mm of text width):
+%   node width = 36mm text width + 2 x 2mm inner xsep = 40mm
+%   row width  = 6 x 40mm + 5 x 7mm gap             = 275mm
+% All nodes are placed with the "positioning" library, i.e. relative to their
+% predecessor, so the gaps are controlled by a single "node distance" value.
+% ---------------------------------------------------------------------------
+\tikzset{
+  flowstep/.style={
+    rounded corners=3pt,
+    draw=blue!55!black,
+    line width=0.9pt,
+    fill=blue!5,
+    align=left,
+    text width=36mm,
+    minimum height=38mm,
+    inner xsep=2mm,
+    inner ysep=2.5mm,
+    font=\small,
+  },
+  verify/.style={
+    flowstep,
+    draw=green!50!black,
+    fill=green!6,
+  },
+  caution/.style={
+    flowstep,
+    draw=orange!65!black,
+    fill=orange!8,
+  },
+  final/.style={
+    flowstep,
+    draw=violet!55!black,
+    fill=violet!7,
+  },
+  basebox/.style={
+    draw=red!50!black,
+    fill=red!3,
+    rounded corners=3pt,
+    align=left,
+    text width=268mm,
+    minimum height=16mm,
+    inner xsep=3mm,
+    inner ysep=2.5mm,
+    font=\scriptsize,
+  },
+  flow/.style={-{Stealth[length=3mm]}, line width=1.2pt, draw=gray!65!black},
+  smallnote/.style={font=\scriptsize\itshape, text=gray!55!black, align=left},
+}
+\begin{document}
+
+\begin{center}
+{\LARGE\bfseries Windows GVim + coc.nvim 安装与验证流程}\par
+\end{center}
+
+\vspace{2mm}
+
+\begin{center}
+% node distance = <vertical> and <horizontal>
+\begin{tikzpicture}[node distance=16mm and 7mm]
+
+% Row 1: left -> right. Only s1 is placed freely; the rest follow relatively.
+\node[flowstep] (s1) {\textbf{1  准备目录与 Git}\par
+  确认 GVim 已安装；准备 \texttt{vimfiles/\allowbreak bundle}\par
+  \texttt{git clone https://github.com/\allowbreak neoclide/\allowbreak coc.nvim.git coc.nvim}\par
+  \texttt{git remote -v}};
+
+\node[flowstep, right=of s1] (s2) {\textbf{2  固定 release 分支}\par
+  \texttt{cd vimfiles/\allowbreak bundle/\allowbreak coc.nvim}\par
+  \texttt{git checkout -b release origin/release}\par
+  不要直接使用未构建的 \texttt{master}};
+
+\node[verify, right=of s2] (s3) {\textbf{3  检查 GVim 基线}\par
+  Vim \textgreater{}= 9.0.0438\par
+  \texttt{:version}\par
+  确认 \texttt{encoding=utf-8}};
+
+\node[flowstep, right=of s3] (s4) {\textbf{4  安装 Node.js}\par
+  官方安装包；生产环境优先 LTS\par
+  当前建议：Node.js 24 LTS\par
+  coc.nvim 要求 \textgreater{}= 20.19.0};
+
+\node[verify, right=of s4] (s5) {\textbf{5  CMD 验证 Node / npm}\par
+  \texttt{node --version}\par
+  \texttt{npm --version}\par
+  \texttt{where node}\par
+  确认 PATH 生效};
+
+\node[verify, right=of s5] (s6) {\textbf{6  启动 GVim，检查 Coc}\par
+  重启 GVim 后执行\par
+  \texttt{:CocInfo}\par
+  不应出现 \texttt{javascript bundle not found}};
+
+% Row 2: right -> left, hanging below the last node of row 1.
+\node[flowstep, below=of s6] (s7) {\textbf{7  安装 Python LSP}\par
+  \texttt{:CocInstall coc-pyright}\par
+  \texttt{:CocList extensions}\par
+  确认扩展处于 active 状态};
+
+\node[verify, left=of s7] (s8) {\textbf{8  确认 Python 解释器}\par
+  CMD：\texttt{python --version}\par
+  CMD：\texttt{where python}\par
+  工程建议使用项目虚拟环境};
+
+\node[verify, left=of s8] (s9) {\textbf{9  实测自动补全}\par
+  打开 \texttt{*.py}\par
+  输入 \texttt{import os; os.}\par
+  验证补全、诊断、跳转定义};
+
+\node[final, left=of s9] (s10) {\textbf{10  配置 vimrc}\par
+  设置 Tab / Enter 补全\par
+  \texttt{updatetime=300}\par
+  \texttt{nowritebackup / nobackup}\par
+  按团队规范管理配置};
+
+\node[caution, left=of s10] (s11) {\textbf{11  检查插件冲突}\par
+  已有 deoplete 等自动补全时，避免重复接管 Tab\par
+  可用 \texttt{:verbose imap <Tab>} 排查映射};
+
+\node[final, left=of s11] (s12) {\textbf{12  团队可复制 / 固化}\par
+  记录 Vim、Node、\par coc.nvim commit\par
+  记录扩展版本 / Python 环境\par
+  更新前保留 \texttt{vimrc} 与插件状态};
+
+% Snake connectors
+\draw[flow] (s1.east) -- (s2.west);
+\draw[flow] (s2.east) -- (s3.west);
+\draw[flow] (s3.east) -- (s4.west);
+\draw[flow] (s4.east) -- (s5.west);
+\draw[flow] (s5.east) -- (s6.west);
+% s7 sits exactly below s6, so the turn is a straight vertical arrow.
+\draw[flow] (s6.south) -- node[smallnote, midway, anchor=east, xshift=-3mm] {右侧掉头 ↓} (s7.north);
+\draw[flow] (s7.west) -- (s8.east);
+\draw[flow] (s8.west) -- (s9.east);
+\draw[flow] (s9.west) -- (s10.east);
+\draw[flow] (s10.west) -- (s11.east);
+\draw[flow] (s11.west) -- (s12.east);
+
+% Direction label for the second row, parked in the gap between the two rows.
+\node[smallnote, above=2mm of s12] {第二排继续 ←};
+
+% Security / reproducibility footer, aligned with the left edge of the grid.
+\node[basebox, below=10mm of s12.south west, anchor=north west] (base)
+  {\textbf{安全与可维护性基线：}
+  通过 HTTPS 从官方 GitHub 获取 coc.nvim；普通环境使用 \texttt{release} 分支，只有源码开发才从 \texttt{master} 构建。\quad
+  Node.js 优先使用受支持的 LTS；Coc 扩展使用 \texttt{:CocInstall}，避免不必要的全局 npm 安装。\quad
+  团队环境建议额外记录 commit / 扩展版本，并在变更前备份 \texttt{vimrc}。};
+
+% Source notes, anchored to the two bottom corners of the footer box.
+\node[smallnote, below=5mm of base.south west, anchor=north west, text width=110mm]
+  {依据：coc.nvim 官方文档 / GitHub；Pyright 官方安装说明；Node.js 官方版本表。\par
+   2026-08-21：Vim \textgreater{}= 9.0.0438；Node.js \textgreater{}= 20.19.0；Node.js 24 为 LTS。};
+
+\node[smallnote, below=5mm of base.south east, anchor=north east, text width=95mm, align=right]
+  {Git remote：\texttt{https://github.com/\allowbreak neoclide/\allowbreak coc.nvim.git}\par
+   Python 扩展：\texttt{coc-pyright}};
+
+\end{tikzpicture}
+\end{center}
+
+\end{document}
