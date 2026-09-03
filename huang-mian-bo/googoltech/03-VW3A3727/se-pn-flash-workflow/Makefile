@@ -1,5 +1,5 @@
 # define command
-LATEX := pdflatex 
+LATEX := xelatex 
 MOVE := mv 
 PDF_VIEWER := evince
 FIND := find
