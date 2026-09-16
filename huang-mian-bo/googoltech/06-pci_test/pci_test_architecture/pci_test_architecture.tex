@@ -3,6 +3,11 @@
 %  pci_test target architecture (north star)
 %  Engine : XeLaTeX  (xeCJK + TikZ)
 %  Build  : xelatex pci_test_architecture.tex   (run twice)
+%
+%  Two pages, same content: page 1 Chinese, page 2 English.
+%  The diagram is written once, as \archdiagram, and drawn on both pages with
+%  three labels swapped. Only the prose panels exist twice, because they differ
+%  in wording rather than in words.
 % =====================================================================
 \documentclass[10pt]{article}
 
@@ -53,26 +58,24 @@
   toptitle=1.2pt, bottomtitle=1.2pt,
   fonttitle=\bfseries\small, before upper=\raggedright, title={#2}}
 
-\begin{document}
-\footnotesize
-
-% ---------------------------------------------------------------------
-\begin{center}
-{\bfseries\Large pci\_test 目标架构}\\[1.2mm]
-{\color{cGrey}\small
-四个名词 · 五个阶段 · 职责不再互相渗透}
-\end{center}
-\vspace{2mm}
+% ------------------------------------------------- language slots
+% The three labels inside the diagram that are not already language neutral.
+\newcommand{\dPrompt}{}
+\newcommand{\dRouteOnly}{}
+\newcommand{\dCleanupNote}{}
 
 % =====================================================================
+%  The diagram, written once and drawn on both pages
+% =====================================================================
+\newcommand{\archdiagram}{%
 \begin{center}
 \begin{tikzpicture}[
     font=\scriptsize,
     node distance=5mm and 6mm,
-    box/.style={rectangle, rounded corners=2.5pt, draw=#1, fill=#1!8,
+    box/.style={rectangle, rounded corners=2.5pt, draw=##1, fill=##1!8,
                 text=cInk, align=center, inner xsep=4pt, inner ysep=3.5pt,
                 minimum height=7mm},
-    obj/.style={rectangle, rounded corners=3pt, draw=#1, fill=#1!12,
+    obj/.style={rectangle, rounded corners=3pt, draw=##1, fill=##1!12,
                 line width=0.8pt, text=cInk, align=left,
                 inner xsep=6pt, inner ysep=5pt},
     flow/.style={-{Stealth[length=4pt]}, cGrey, line width=0.7pt},
@@ -82,7 +85,7 @@
   % ---------------- frontends ----------------
   \node[box=cFront, text width=34mm] (fe2) {legacy CLI\\[0.5mm]{\ttfamily\tiny -d \$IO -r 0}};
   \node[box=cFront, text width=34mm, left=of fe2] (fe1)
-       {numbered CLI\\[0.5mm]{\ttfamily\tiny 0 0 14}\\[0.5mm]{\tiny\color{cWarn}含交互提问}};
+       {numbered CLI\\[0.5mm]{\ttfamily\tiny 0 0 14}\\[0.5mm]{\tiny\color{cWarn}\dPrompt}};
   \node[box=cFront, text width=34mm, right=of fe2] (fe3)
        {subcommand\\[0.5mm]{\ttfamily\tiny bar read}};
 
@@ -123,7 +126,7 @@
   \draw[flow] (acq) -- (ctx);
 
   \node[box=cHand, below=5mm of ctx, text width=38mm] (disp)
-       {dispatcher\\[0.3mm]{\tiny 只路由，不做业务}};
+       {dispatcher\\[0.3mm]{\tiny \dRouteOnly}};
   \draw[flow] (ctx) -- (disp);
 
   % handlers
@@ -148,7 +151,7 @@
   \draw[flow] (drv) -- (res);
 
   \node[box=cCtx, below=5mm of res, text width=44mm] (cln)
-       {cleanup resources\\[0.3mm]{\tiny 成功、失败、取消都到这里}};
+       {cleanup resources\\[0.3mm]{\tiny \dCleanupNote}};
   \draw[flow] (res) -- (cln);
 
   % scope frame
@@ -166,7 +169,23 @@
   \draw[flow] (scope.south) -- (rep);
 
 \end{tikzpicture}
+\end{center}%
+}
+
+\begin{document}
+\footnotesize
+
+% ---------------------------------------------------------------------
+\begin{center}
+{\bfseries\Large pci\_test 目标架构}\\[1.2mm]
+{\color{cGrey}\small
+四个名词 · 五个阶段 · 职责不再互相渗透}
 \end{center}
+\vspace{2mm}
+
+% =====================================================================
+\archdiagram
+
 
 \vspace{3mm}
 
@@ -238,6 +257,95 @@ D   & 编号后端合并；\lit{pt\_result} & 远程 GUI / CI / JSON / golden �
 \note{\textbf{B 和 C 是交织的，不是先后。}依赖内存池与 mmap 的那批 case，
       资源该归谁在 \lit{pt\_context} 存在之前没有答案 —— 按「B 全做完再做 C」排，
       会在第 20 个 case 左右卡住。\textbf{C1 要往前提。}}
+\end{panel}
+
+\clearpage
+
+% =====================================================================
+%  PAGE 2  ·  English
+% =====================================================================
+\renewcommand{\dPrompt}{with interactive prompts}
+\renewcommand{\dRouteOnly}{routes only, no business logic}
+\renewcommand{\dCleanupNote}{success, failure and cancel all pass here}
+
+\begin{center}
+{\bfseries\Large pci\_test target architecture}\\[1.2mm]
+{\color{cGrey}\small Four nouns, five stages, responsibilities that stop leaking into each other}
+\end{center}
+\vspace{2mm}
+
+\archdiagram
+
+\vspace{3mm}
+
+\begin{panel}{cInk}{The four nouns}
+\begin{tabular}{@{}p{34mm}@{}p{30mm}@{}p{40mm}@{}p{56mm}@{}}
+{\bfseries\color{cCmd}\lit{const pt\_command}} & what to do    & immutable & no execution code past the validator may change it\\[1mm]
+{\bfseries\color{cCtx}\lit{pt\_context}}       & what we own   & mutable, scope bound & holds only what is owned; a fact read from the driver, such as its version, does not belong here\\[1mm]
+{\bfseries\color{cRes}\lit{pt\_result}}        & what happened & structured & every field machine readable; prose for a human is produced by a renderer, so there is no free text field\\[1mm]
+{\bfseries\color{cHand}handler}                & how           & function shaped & \lit{(const cmd, ctx, result)}, touching no global state\\
+\end{tabular}
+\end{panel}
+
+\vspace{2mm}
+
+\begin{panel}{cScope}{The five stages}
+\begin{center}
+\begin{tikzpicture}[font=\scriptsize, node distance=2.5mm,
+    st/.style={rectangle, rounded corners=2pt, draw=cScope!60, fill=cScope!10,
+               inner xsep=5pt, inner ysep=3pt, text=cInk}]
+  \node[st] (t1) {construct};
+  \node[st, right=of t1] (t2) {validate};
+  \node[st, right=of t2] (t3) {acquire};
+  \node[st, right=of t3] (t4) {execute};
+  \node[st, right=of t4] (t5) {cleanup};
+  \node[st, right=of t5] (t6) {report};
+  \foreach \a/\b in {t1/t2,t2/t3,t3/t4,t4/t5,t5/t6}
+    \draw[-{Stealth[length=3pt]}, cGrey] (\a) -- (\b);
+\end{tikzpicture}
+\end{center}
+\vspace{0.5mm}
+{\scriptsize What matters is not whether it is called \lit{pt\_command} or \lit{pt\_request},
+but that these five stages \textbf{stop leaking responsibilities into each other}.
+\lit{cleanup} is not the next stage of a pipeline, it is the exit of a resource scope:
+success, failure and cancellation all pass through it.\par}
+\end{panel}
+
+\vspace{2mm}
+
+\begin{panel}{cWarn}{This is the target, not the present}
+\begin{tabular}{@{}p{46mm}@{}p{30mm}@{}p{84mm}@{}}
+\thead{On the diagram} & \thead{Today} & \thead{Gap}\\[1pt]
+\hline\\[-6pt]
+the three frontends        & \yes all present & but the numbered one has \textbf{its own backend} and has not joined yet\\
+\lit{pt\_command}          & \no      & today it is \lit{pt\_user\_options}, 37 fields plus an action bitmap\\
+validator / \lit{--dry-run}& \no      & parsing calls \lit{open()}, so there is nowhere to stop\\
+\lit{pt\_context}          & \no      & the descriptors live in \lit{usr\_opts}; there is no notion of ownership\\
+dispatcher routes only     & \partly 4/34 & only the four stress cases are typed calls; the rest carry their logic inline\\
+\lit{pt\_result}           & \no      & results exist only as \lit{PINFO} text, so CI can only grep\\
+cleanup as a scope exit    & \partly  & the \lit{end:} label in \lit{main()} is the seed, but resources are released in several places\\
+\end{tabular}
+\end{panel}
+
+\vspace{2mm}
+
+\begin{panel}{cOK}{The route: every stop along it is already an improvement}
+\begin{tabular}{@{}p{10mm}@{}p{52mm}@{}p{98mm}@{}}
+\thead{Stage} & \thead{What it does} & \thead{What stopping here has bought}\\[1pt]
+\hline\\[-6pt]
+A   & \lit{PT\_ACTION\_BIT()} + \lit{ACT\_COUNT} + \lit{\_Static\_assert}; one spelling for the 30 \lit{1 <<} & removes a class of undefined behaviour (\lit{ACT\_STRESS\_DMA} is already bit 31)\\
+A   & the 28 \lit{|=} become single task, conflicts refused & the action model is stated; compound actions become named constants\\
+B1  & 12 mechanical cases become typed handlers & that part of the dispatcher turns from logic into routing\\
+C1  & split parsing from \lit{open()}; a \lit{pt\_context} skeleton holding descriptors & \textbf{\lit{--dry-run} works and a golden baseline becomes possible} --- the watershed\\
+B2  & the 10 cases that allocate buffers & ownership is stated and the leak surface shrinks\\
+C2  & extend \lit{pt\_context}; retire \lit{usr\_opts} & the bitmap retires and parameters bind to their command\\
+B3  & the remaining 8 cases & the dispatcher routes and nothing else\\
+D   & merge the numbered backend; add \lit{pt\_result} & remote GUI, CI, JSON and golden all open at once\\
+\end{tabular}
+\note{\textbf{B and C interleave rather than follow one another.} For the cases that
+      depend on the memory pool and on \lit{mmap}, the question of who owns what has no
+      answer before \lit{pt\_context} exists; ordering them as "finish B, then start C"
+      stalls around the twentieth case. \textbf{C1 has to come early.}}
 \end{panel}
 
 \end{document}
