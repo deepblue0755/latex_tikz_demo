@@ -1,0 +1,243 @@
+% !TeX program = xelatex
+% =====================================================================
+%  pci_test target architecture (north star)
+%  Engine : XeLaTeX  (xeCJK + TikZ)
+%  Build  : xelatex pci_test_architecture.tex   (run twice)
+% =====================================================================
+\documentclass[10pt]{article}
+
+\usepackage{geometry}
+\geometry{paperwidth=210mm,paperheight=450mm,left=10mm,right=10mm,top=10mm,bottom=12mm}
+
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning,calc,arrows.meta,fit,backgrounds,shapes.geometric}
+\usepackage[most]{tcolorbox}
+\usepackage{array}
+
+% ---------------------------------------------------------------- fonts
+\setmainfont{DejaVu Sans Condensed}
+\setsansfont{DejaVu Sans Condensed}
+\setmonofont{Liberation Mono}[Scale=0.88]
+\setCJKmainfont{Noto Sans CJK SC}
+\setCJKsansfont{Noto Sans CJK SC}
+
+% --------------------------------------------------------------- colors
+\definecolor{cCmd}  {HTML}{4338CA}   % command  - immutable intent
+\definecolor{cCtx}  {HTML}{C2410C}   % context  - mutable resources
+\definecolor{cRes}  {HTML}{15803D}   % result   - outcome
+\definecolor{cFront}{HTML}{1D4ED8}
+\definecolor{cHand} {HTML}{7E22CE}
+\definecolor{cWarn} {HTML}{B91C1C}
+\definecolor{cInk}  {HTML}{1E293B}
+\definecolor{cGrey} {HTML}{64748B}
+\definecolor{cScope}{HTML}{0F766E}
+\definecolor{cOK}  {HTML}{15803D}
+
+\setlength{\parindent}{0pt}
+
+\newcommand{\yes}{\textcolor{cOK}{\bfseries ✓}}
+\newcommand{\no}{\textcolor{cWarn}{\bfseries ✗}}
+\newcommand{\partly}{\textcolor{cWarn}{\bfseries \textasciitilde}}
+\newcommand{\thead}[1]{{\bfseries\scriptsize\color{cInk}#1}}
+\newcommand{\note}[1]{\par\vspace{1.6pt}{\scriptsize\color{cGrey}#1}\par}
+\newcommand{\lit}{\begingroup\catcode`\_=12\relax\litaux}
+\newcommand{\litaux}[1]{{\ttfamily #1}\endgroup}
+
+\newtcolorbox{panel}[2]{%
+  enhanced, colback=#1!4!white, colframe=#1!88!black,
+  coltitle=white, colbacktitle=#1,
+  boxrule=0.5pt, arc=2.5pt, left=4pt, right=4pt, top=3pt, bottom=3pt,
+  toptitle=1.2pt, bottomtitle=1.2pt,
+  fonttitle=\bfseries\small, before upper=\raggedright, title={#2}}
+
+\begin{document}
+\footnotesize
+
+% ---------------------------------------------------------------------
+\begin{center}
+{\bfseries\Large pci\_test 目标架构}\\[1.2mm]
+{\color{cGrey}\small
+四个名词 · 五个阶段 · 职责不再互相渗透}
+\end{center}
+\vspace{2mm}
+
+% =====================================================================
+\begin{center}
+\begin{tikzpicture}[
+    font=\scriptsize,
+    node distance=5mm and 6mm,
+    box/.style={rectangle, rounded corners=2.5pt, draw=#1, fill=#1!8,
+                text=cInk, align=center, inner xsep=4pt, inner ysep=3.5pt,
+                minimum height=7mm},
+    obj/.style={rectangle, rounded corners=3pt, draw=#1, fill=#1!12,
+                line width=0.8pt, text=cInk, align=left,
+                inner xsep=6pt, inner ysep=5pt},
+    flow/.style={-{Stealth[length=4pt]}, cGrey, line width=0.7pt},
+    side/.style={-{Stealth[length=4pt]}, cWarn, line width=0.7pt, dashed},
+  ]
+
+  % ---------------- frontends ----------------
+  \node[box=cFront, text width=34mm] (fe2) {legacy CLI\\[0.5mm]{\ttfamily\tiny -d \$IO -r 0}};
+  \node[box=cFront, text width=34mm, left=of fe2] (fe1)
+       {numbered CLI\\[0.5mm]{\ttfamily\tiny 0 0 14}\\[0.5mm]{\tiny\color{cWarn}含交互提问}};
+  \node[box=cFront, text width=34mm, right=of fe2] (fe3)
+       {subcommand\\[0.5mm]{\ttfamily\tiny bar read}};
+
+  \node[above=3mm of fe2, font=\bfseries\scriptsize, text=cGrey] (cli) {CLI};
+  \draw[flow] (cli) -- (fe1.north);
+  \draw[flow] (cli) -- (fe2.north);
+  \draw[flow] (cli) -- (fe3.north);
+
+  % ---------------- command ----------------
+  \node[obj=cCmd, below=9mm of fe2, text width=62mm] (cmd)
+       {{\bfseries\color{cCmd} const struct pt\_command}\hfill{\tiny\color{cGrey}what to do}\\[1mm]
+        {\ttfamily\tiny command type}\\
+        {\ttfamily\tiny typed arguments}\\
+        {\ttfamily\tiny device paths}};
+
+  \coordinate (join) at ($(fe2.south)+(0,-4mm)$);
+  \draw[flow] (fe1.south) |- (join);
+  \draw[flow] (fe3.south) |- (join);
+  \draw[flow] (fe2.south) -- (join);
+  \draw[flow] (join) -- (cmd.north);
+
+  % ---------------- validator ----------------
+  \node[box=cCmd, below=6mm of cmd, text width=34mm] (val) {validator};
+  \draw[flow] (cmd) -- (val);
+
+  \node[box=cWarn, right=14mm of val, text width=32mm] (dry)
+       {\lit{--dry-run}\\[0.5mm]{\tiny render \& exit}};
+  \draw[side] (val) -- (dry);
+
+  % ---------------- resource scope ----------------
+  \node[box=cCtx, below=9mm of val, text width=38mm] (acq) {acquire resources};
+  \draw[flow] (val) -- node[right, font=\tiny, text=cGrey] {ok} (acq);
+
+  \node[obj=cCtx, below=5mm of acq, text width=56mm] (ctx)
+       {{\bfseries\color{cCtx} struct pt\_context}\hfill{\tiny\color{cGrey}what we own}\\[1mm]
+        {\ttfamily\tiny io\_fd \ dma\_fd \ bar\_map}\\
+        {\ttfamily\tiny acquired\_resources}};
+  \draw[flow] (acq) -- (ctx);
+
+  \node[box=cHand, below=5mm of ctx, text width=38mm] (disp)
+       {dispatcher\\[0.3mm]{\tiny 只路由，不做业务}};
+  \draw[flow] (ctx) -- (disp);
+
+  % handlers
+  \node[box=cHand, below=7mm of disp, text width=17mm] (h3) {FIFO};
+  \node[box=cHand, left=3mm of h3,  text width=17mm] (h2) {DMA};
+  \node[box=cHand, left=3mm of h2,  text width=17mm] (h1) {BAR};
+  \node[box=cHand, right=3mm of h3, text width=17mm] (h4) {Stress};
+  \node[box=cHand, right=3mm of h4, text width=17mm] (h5) {Device};
+  \foreach \h in {h1,h2,h3,h4,h5} \draw[flow] (disp) -- (\h.north);
+
+  \node[below=1mm of h4, font=\tiny, text=cOK] (done) {};
+
+  % driver
+  \node[box=cGrey, below=7mm of h3, text width=46mm] (drv) {Driver / Hardware};
+  \foreach \h in {h1,h2,h3,h4,h5} \draw[flow] (\h.south) -- (drv.north);
+
+  % result
+  \node[obj=cRes, below=5mm of drv, text width=56mm] (res)
+       {{\bfseries\color{cRes} struct pt\_result}\hfill{\tiny\color{cGrey}what happened}\\[1mm]
+        {\ttfamily\tiny status \ bytes\_completed \ elapsed\_ns}\\
+        {\ttfamily\tiny mismatch\_count \ failure\_offset}};
+  \draw[flow] (drv) -- (res);
+
+  \node[box=cCtx, below=5mm of res, text width=44mm] (cln)
+       {cleanup resources\\[0.3mm]{\tiny 成功、失败、取消都到这里}};
+  \draw[flow] (res) -- (cln);
+
+  % scope frame
+  \begin{scope}[on background layer]
+    \node[draw=cScope, dashed, line width=0.8pt, rounded corners=4pt,
+          inner sep=4mm, fill=cScope!3,
+          fit=(acq)(ctx)(disp)(h1)(h5)(drv)(res)(cln)] (scope) {};
+  \end{scope}
+  \node[anchor=north west, font=\tiny\bfseries, text=cScope,
+        inner sep=2pt] at (scope.north west) {resource scope};
+
+  % ---------------- report ----------------
+  \node[box=cRes, below=6mm of scope.south, text width=44mm] (rep)
+       {render / report / return};
+  \draw[flow] (scope.south) -- (rep);
+
+\end{tikzpicture}
+\end{center}
+
+\vspace{3mm}
+
+% =====================================================================
+\begin{panel}{cInk}{四个名词}
+\begin{tabular}{@{}p{34mm}@{}p{30mm}@{}p{40mm}@{}p{56mm}@{}}
+{\bfseries\color{cCmd}\lit{const pt\_command}} & what to do    & 不可变 & validator 之后任何执行层代码都不得修改它\\[1mm]
+{\bfseries\color{cCtx}\lit{pt\_context}}       & what we own   & 可变，作用域绑定 & 只装有所有权的东西；驱动版本这类「读出来的事实」不在其中\\[1mm]
+{\bfseries\color{cRes}\lit{pt\_result}}        & what happened & 结构化 & 全部字段机器可读；给人看的描述由 renderer 生成，不设自由文本字段\\[1mm]
+{\bfseries\color{cHand}handler}                & how           & 纯函数式签名 & \lit{(const cmd, ctx, result)}，不碰全局状态\\
+\end{tabular}
+\end{panel}
+
+\vspace{2mm}
+
+\begin{panel}{cScope}{五个阶段}
+\begin{center}
+\begin{tikzpicture}[font=\scriptsize, node distance=2.5mm,
+    st/.style={rectangle, rounded corners=2pt, draw=cScope!60, fill=cScope!10,
+               inner xsep=5pt, inner ysep=3pt, text=cInk}]
+  \node[st] (s1) {construct};
+  \node[st, right=of s1] (s2) {validate};
+  \node[st, right=of s2] (s3) {acquire};
+  \node[st, right=of s3] (s4) {execute};
+  \node[st, right=of s4] (s5) {cleanup};
+  \node[st, right=of s5] (s6) {report};
+  \foreach \a/\b in {s1/s2,s2/s3,s3/s4,s4/s5,s5/s6}
+    \draw[-{Stealth[length=3pt]}, cGrey] (\a) -- (\b);
+\end{tikzpicture}
+\end{center}
+\vspace{0.5mm}
+{\scriptsize 真正重要的不是叫 \lit{pt\_command} 还是 \lit{pt\_request}，
+而是这五个阶段以后\textbf{不要再互相渗透职责}。
+\lit{cleanup} 不是流水线的下一站，是资源作用域的出口 —— 成功、失败、取消都经过它。\par}
+\end{panel}
+
+\vspace{2mm}
+
+\begin{panel}{cWarn}{这是目标态，不是现状}
+\begin{tabular}{@{}p{46mm}@{}p{30mm}@{}p{84mm}@{}}
+\thead{图上的东西} & \thead{现状} & \thead{差距}\\[1pt]
+\hline\\[-6pt]
+三条前端                   & \yes 都在 & 但编号前端有\textbf{自己的后端}，尚未汇流\\
+\lit{pt\_command}          & \no      & 现为 \lit{pt\_user\_options} 37 字段 + action 位图\\
+validator / \lit{--dry-run}& \no      & 解析阶段直接 \lit{open()}，停不下来\\
+\lit{pt\_context}          & \no      & fd 存在 \lit{usr\_opts} 里，无所有权概念\\
+dispatcher 只路由          & \partly 4/34 & 只有 stress 四个 case 是类型化调用，其余在 case 体里展开业务\\
+\lit{pt\_result}           & \no      & 结果只以 \lit{PINFO} 文本存在，CI 只能 grep\\
+cleanup 作为作用域出口      & \partly      & \lit{main()} 的 \lit{end:} 标签是雏形，但资源分散在多处\\
+\end{tabular}
+\note{}
+\end{panel}
+
+\vspace{2mm}
+
+\begin{panel}{cOK}{到达路径：每一步停下来都已经变好}
+\begin{tabular}{@{}p{10mm}@{}p{52mm}@{}p{98mm}@{}}
+\thead{阶段} & \thead{做什么} & \thead{停在这里得到了什么}\\[1pt]
+\hline\\[-6pt]
+A   & \lit{PT\_ACTION\_BIT()} + \lit{ACT\_COUNT} + \lit{\_Static\_assert}，统一 30 处 \lit{1 <<} & 消掉一类 UB（\lit{ACT\_STRESS\_DMA} 已在 bit 31）\\
+A   & 28 处 \lit{|=} 改单任务语义，冲突报错 & action 语义明确；复合动作用具名常量声明\\
+B1  & 12 个机械 case 提成类型化 handler & dispatcher 里这部分从业务变成路由\\
+C1  & 解析与 \lit{open()} 分离，\lit{pt\_context} 骨架（只管 fd） & \textbf{\lit{--dry-run} 可用，golden 基线能建} —— 分水岭\\
+B2  & 带缓冲区的 10 个 case & 资源所有权明确，泄漏面收敛\\
+C2  & \lit{pt\_context} 扩展；\lit{usr\_opts} 退役 & 位图退役，命令与参数绑定\\
+B3  & 剩余 8 个 case & dispatcher 全部只路由\\
+D   & 编号后端合并；\lit{pt\_result} & 远程 GUI / CI / JSON / golden 同时打开\\
+\end{tabular}
+\note{\textbf{B 和 C 是交织的，不是先后。}依赖内存池与 mmap 的那批 case，
+      资源该归谁在 \lit{pt\_context} 存在之前没有答案 —— 按「B 全做完再做 C」排，
+      会在第 20 个 case 左右卡住。\textbf{C1 要往前提。}}
+\end{panel}
+
+\end{document}
