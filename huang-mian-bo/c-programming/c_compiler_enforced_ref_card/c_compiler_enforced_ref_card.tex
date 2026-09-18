@@ -1,5 +1,4 @@
-\documentclass[a4paper,10pt]{article}
-\usepackage[margin=7mm]{geometry}
+\documentclass[tikz,border=0pt]{standalone}
 \usepackage{fontspec}
 \usepackage{xeCJK}
 \usepackage{xcolor}
@@ -11,7 +10,6 @@
 \usepackage{listings}
 \usepackage{microtype}
 \usepackage[strings]{underscore}
-\pagestyle{empty}
 \setlength{\parindent}{0pt}
 
 % ============================================================
@@ -122,10 +120,12 @@
 }
 
 \begin{document}
-\begin{tikzpicture}[remember picture,overlay]
-  % page coordinates in cm, origin at top-left-ish
-  \coordinate (TL) at ($(current page.north west)+(7mm,-7mm)$);
-  \begin{scope}[shift={(TL)}]
+% Robust page-sized TikZ canvas.  No overlay/current-page dependency:
+% the TikZ bounding box itself is exactly A4 (210 mm x 297 mm).
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \path[use as bounding box] (0,0) rectangle (21,-29.7);
+  % 7 mm visual margin, matching the original design.
+  \begin{scope}[shift={(0.7,-0.7)}]
 
   % ============================================================
   % Header
@@ -352,5 +352,4 @@
 
   \end{scope}
 \end{tikzpicture}
-\mbox{}
 \end{document}
