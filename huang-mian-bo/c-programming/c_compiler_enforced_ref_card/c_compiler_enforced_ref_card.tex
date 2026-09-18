@@ -1,0 +1,356 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[margin=7mm]{geometry}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning,calc,shadows.blur,arrows.meta,fit,backgrounds}
+\usepackage[most]{tcolorbox}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{microtype}
+\usepackage[strings]{underscore}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+
+% ============================================================
+% Fonts: prefer common Windows/macOS fonts, fallback to TeX Live
+% ============================================================
+\IfFontExistsTF{Microsoft YaHei}{
+  \setCJKmainfont{Microsoft YaHei}
+  \setCJKsansfont{Microsoft YaHei}
+}{
+  \setCJKmainfont{Noto Sans CJK SC}
+  \setCJKsansfont{Noto Sans CJK SC}
+  \setCJKmonofont{Noto Sans Mono CJK SC}
+}
+\setmonofont{DejaVu Sans Mono}
+\setsansfont{DejaVu Sans}
+\renewcommand\familydefault{\sfdefault}
+
+% ============================================================
+% Colors
+% ============================================================
+\definecolor{Navy}{HTML}{173B7A}
+\definecolor{Blue}{HTML}{2878D4}
+\definecolor{BlueSoft}{HTML}{EEF6FF}
+\definecolor{Teal}{HTML}{0F9D87}
+\definecolor{TealSoft}{HTML}{EEFDF9}
+\definecolor{Orange}{HTML}{F28C18}
+\definecolor{OrangeSoft}{HTML}{FFF7EC}
+\definecolor{Rose}{HTML}{E84A64}
+\definecolor{RoseSoft}{HTML}{FFF0F3}
+\definecolor{Purple}{HTML}{6C55C9}
+\definecolor{PurpleSoft}{HTML}{F4F1FF}
+\definecolor{Green}{HTML}{28A65A}
+\definecolor{GreenSoft}{HTML}{EEF9F1}
+\definecolor{Text}{HTML}{24364B}
+\definecolor{Muted}{HTML}{6E7B8E}
+\definecolor{CodeBg}{HTML}{F5F7FA}
+\definecolor{CodeBorder}{HTML}{D8E0EA}
+\definecolor{Line}{HTML}{D8E2ED}
+\definecolor{Gold}{HTML}{F3B63A}
+
+% ============================================================
+% Global TikZ styles
+% ============================================================
+\tikzset{
+  panel/.style={
+    rounded corners=3.2mm,
+    line width=0.7pt,
+    fill=white,
+    blur shadow={shadow blur steps=5,shadow xshift=0.6mm,shadow yshift=-0.6mm,shadow opacity=10}
+  },
+  header/.style={
+    rounded corners=2.6mm,
+    minimum height=9mm,
+    text=white,
+    font=\bfseries\large,
+    inner xsep=3.2mm,
+    align=left
+  },
+  itemcard/.style={
+    rounded corners=2.2mm,
+    draw=Line,
+    fill=white,
+    line width=0.45pt,
+    inner sep=2.1mm,
+    align=left
+  },
+  num/.style={
+    circle,
+    minimum size=5.8mm,
+    inner sep=0pt,
+    text=white,
+    font=\bfseries\scriptsize
+  },
+  code/.style={
+    rounded corners=1.5mm,
+    draw=CodeBorder,
+    fill=CodeBg,
+    line width=0.35pt,
+    inner sep=1.5mm,
+    align=left,
+    font=\ttfamily\fontsize{6.0}{7.0}\selectfont,
+    text=Text
+  },
+  arrow/.style={-{Latex[length=2.1mm,width=1.7mm]},line width=0.8pt}
+}
+
+% ============================================================
+% Helper macros
+% ============================================================
+\newcommand{\SectionPanel}[6]{%
+% #1 x #2 y #3 width #4 height #5 color #6 title
+\begin{scope}[shift={(#1,#2)}]
+  \node[panel, draw=#5!85, minimum width=#3, minimum height=#4, anchor=north west] (P) at (0,0) {};
+  \node[header, fill=#5, minimum width=#3-2mm, anchor=north west] at (1mm,-1mm) {#6};
+\end{scope}}
+
+\newcommand{\ItemCard}[8]{%
+% x y w h num color title body code
+\node[itemcard, minimum width=#3, minimum height=#4, anchor=north west] (I#5) at (#1,#2) {};
+\node[num, fill=#6, anchor=north west] at ($(I#5.north west)+(1.8mm,-1.8mm)$) {#5};
+\node[anchor=north west, text=#6!85!black, font=\bfseries\fontsize{8.1}{9.0}\selectfont, text width=#3-12mm] at ($(I#5.north west)+(9mm,-1.8mm)$) {#7};
+\node[anchor=north west, text=Text, font=\fontsize{6.9}{8.3}\selectfont, text width=#3-4.4mm] at ($(I#5.north west)+(2.2mm,-8.6mm)$) {#8};
+}
+
+\newcommand{\CodeBox}[5]{%
+% x y w text node-name
+\node[code, minimum width=#3, text width=#3-3mm, anchor=north west] (#5) at (#1,#2) {#4};
+}
+
+\begin{document}
+\begin{tikzpicture}[remember picture,overlay]
+  % page coordinates in cm, origin at top-left-ish
+  \coordinate (TL) at ($(current page.north west)+(7mm,-7mm)$);
+  \begin{scope}[shift={(TL)}]
+
+  % ============================================================
+  % Header
+  % ============================================================
+  \node[anchor=north, text=Navy, font=\bfseries\fontsize{20}{22}\selectfont, align=center, text width=18.7cm]
+    at (9.45cm,0) {C 语言：把“靠人不出错”变成“靠编译器不出错”};
+  \node[anchor=north, text=Muted, font=\bfseries\fontsize{10.8}{12}\selectfont]
+    at (9.45cm,-0.88cm) {20 条可落地实践 · Reference Card};
+
+  \node[rounded corners=2.2mm, draw=Gold!85!black, fill=Gold!8, line width=0.55pt,
+        anchor=north west, minimum width=17.1cm, minimum height=0.95cm] (principle) at (0.9cm,-1.45cm) {};
+  \node[anchor=west, text=Gold!65!black, font=\bfseries\large] at ($(principle.west)+(2.8mm,0)$) {\Large\textbf{!}};
+  \node[anchor=west, text=Navy, font=\bfseries\fontsize{7.2}{8.6}\selectfont, text width=15.6cm]
+    at ($(principle.west)+(8mm,0)$) {原则：能让类型系统检查的，不靠代码评审；能让编译器报错的，不靠运行测试；能在编译期失败的，不留到运行期。};
+
+  % ============================================================
+  % Section A
+  % ============================================================
+  \node[panel, draw=Blue!85, minimum width=9.15cm, minimum height=6.22cm, anchor=north west] (A) at (0,-2.65cm) {};
+  \node[header, fill=Blue, minimum width=9.0cm, anchor=north west] at (0.08cm,-2.73cm) {A. 编译期断言与 API 契约};
+  \node[anchor=east, text=Blue!85!black, font=\fontsize{6.6}{7.5}\selectfont] at (8.78cm,-3.17cm) {让约束前置到编译期};
+
+  \node[itemcard, minimum width=4.34cm, minimum height=2.52cm, anchor=north west] (A1) at (0.18cm,-3.48cm) {};
+  \node[num,fill=Blue,anchor=north west] at ($(A1.north west)+(1.7mm,-1.7mm)$) {1};
+  \node[anchor=north west,text=Blue!85!black,font=\bfseries\fontsize{8}{8.7}\selectfont] at ($(A1.north west)+(8.7mm,-1.8mm)$) {_Static_assert()};
+  \node[anchor=north west,text=Text,font=\fontsize{6.75}{7.9}\selectfont,text width=3.93cm] at ($(A1.north west)+(2mm,-8.0mm)$) {把结构大小、偏移、位图容量等假设写成编译期断言。};
+  \node[code,anchor=north west,text width=3.87cm] at ($(A1.north west)+(2mm,-15.3mm)$) {_Static_assert(sizeof(struct\\packet)==8, "layout changed");};
+
+  \node[itemcard, minimum width=4.34cm, minimum height=2.52cm, anchor=north west] (A2) at (4.63cm,-3.48cm) {};
+  \node[num,fill=Blue,anchor=north west] at ($(A2.north west)+(1.7mm,-1.7mm)$) {2};
+  \node[anchor=north west,text=Blue!85!black,font=\bfseries\fontsize{7.3}{8.0}\selectfont,text width=3.4cm] at ($(A2.north west)+(8.7mm,-1.8mm)$) {warning / error};
+  \node[anchor=north west,text=Text,font=\fontsize{6.75}{7.9}\selectfont,text width=3.93cm] at ($(A2.north west)+(2mm,-8mm)$) {旧接口可 warning；绝对禁止的接口直接 error。};
+  \node[code,anchor=north west,text width=3.87cm] at ($(A2.north west)+(2mm,-15.3mm)$) {__attribute__((warning("...")))\\__attribute__((error("...")))};
+
+  \node[itemcard, minimum width=4.34cm, minimum height=2.52cm, anchor=north west] (A3) at (0.18cm,-6.08cm) {};
+  \node[num,fill=Blue,anchor=north west] at ($(A3.north west)+(1.7mm,-1.7mm)$) {3};
+  \node[anchor=north west,text=Blue!85!black,font=\bfseries\fontsize{8}{8.7}\selectfont] at ($(A3.north west)+(8.7mm,-1.8mm)$) {deprecated};
+  \node[anchor=north west,text=Text,font=\fontsize{6.75}{7.9}\selectfont,text width=3.93cm] at ($(A3.north west)+(2mm,-8mm)$) {渐进式重构：先 deprecated，再 error，最后删除。};
+  \node[code,anchor=north west,text width=3.87cm] at ($(A3.north west)+(2mm,-15.3mm)$) {__attribute__((deprecated(\\"use new_api")))};
+
+  \node[itemcard, minimum width=4.34cm, minimum height=2.52cm, anchor=north west] (A4) at (4.63cm,-6.08cm) {};
+  \node[num,fill=Blue,anchor=north west] at ($(A4.north west)+(1.7mm,-1.7mm)$) {4};
+  \node[anchor=north west,text=Blue!85!black,font=\bfseries\fontsize{7.1}{7.8}\selectfont,text width=3.42cm] at ($(A4.north west)+(8.7mm,-1.8mm)$) {warn_unused_result / [[nodiscard]]};
+  \node[anchor=north west,text=Text,font=\fontsize{6.75}{7.9}\selectfont,text width=3.93cm] at ($(A4.north west)+(2mm,-8mm)$) {错误码不允许被静默忽略。};
+  \node[code,anchor=north west,text width=3.87cm] at ($(A4.north west)+(2mm,-15.3mm)$) {int flash_program(...)\\__attribute__((warn_unused_result));};
+
+  % ============================================================
+  % Section B
+  % ============================================================
+  \node[panel, draw=Teal!85, minimum width=9.15cm, minimum height=6.22cm, anchor=north west] (B) at (9.45cm,-2.65cm) {};
+  \node[header, fill=Teal, minimum width=9.0cm, anchor=north west] at (9.53cm,-2.73cm) {B. 类型系统约束};
+  \node[anchor=east, text=Teal!75!black, font=\fontsize{6.6}{7.5}\selectfont] at (18.23cm,-3.17cm) {用类型表达意图，让错误无处遁形};
+
+  \node[itemcard, minimum width=4.34cm, minimum height=2.52cm, anchor=north west] (B5) at (9.63cm,-3.48cm) {};
+  \node[num,fill=Teal,anchor=north west] at ($(B5.north west)+(1.7mm,-1.7mm)$) {5};
+  \node[anchor=north west,text=Teal!75!black,font=\bfseries\fontsize{7.7}{8.4}\selectfont] at ($(B5.north west)+(8.7mm,-1.8mm)$) {format(printf, ...)};
+  \node[anchor=north west,text=Text,font=\fontsize{6.75}{7.9}\selectfont,text width=3.93cm] at ($(B5.north west)+(2mm,-8mm)$) {让自定义日志函数获得 printf 格式检查。};
+  \node[code,anchor=north west,text width=3.87cm] at ($(B5.north west)+(2mm,-15.3mm)$) {void log_msg(const char *fmt, ...)\\__attribute__((format(printf,1,2)));};
+
+  \node[itemcard, minimum width=4.34cm, minimum height=2.52cm, anchor=north west] (B6) at (14.08cm,-3.48cm) {};
+  \node[num,fill=Teal,anchor=north west] at ($(B6.north west)+(1.7mm,-1.7mm)$) {6};
+  \node[anchor=north west,text=Teal!75!black,font=\bfseries\fontsize{8}{8.7}\selectfont] at ($(B6.north west)+(8.7mm,-1.8mm)$) {nonnull};
+  \node[anchor=north west,text=Text,font=\fontsize{6.75}{7.9}\selectfont,text width=3.93cm] at ($(B6.north west)+(2mm,-8mm)$) {把“参数不可为 NULL”写成编译器可理解的契约。};
+  \node[code,anchor=north west,text width=3.87cm] at ($(B6.north west)+(2mm,-15.3mm)$) {int pt_execute(...)\\__attribute__((nonnull(1,2)));};
+
+  \node[itemcard, minimum width=4.34cm, minimum height=2.52cm, anchor=north west] (B7) at (9.63cm,-6.08cm) {};
+  \node[num,fill=Teal,anchor=north west] at ($(B7.north west)+(1.7mm,-1.7mm)$) {7};
+  \node[anchor=north west,text=Teal!75!black,font=\bfseries\fontsize{8}{8.7}\selectfont] at ($(B7.north west)+(8.7mm,-1.8mm)$) {const};
+  \node[anchor=north west,text=Text,font=\fontsize{6.75}{7.9}\selectfont,text width=3.93cm] at ($(B7.north west)+(2mm,-8mm)$) {不是风格问题，而是“此函数没有资格修改它”。};
+  \node[code,anchor=north west,text width=3.87cm] at ($(B7.north west)+(2mm,-15.3mm)$) {int pt_execute(const struct\\pt_command *cmd, struct pt_context *ctx);};
+
+  \node[itemcard, minimum width=4.34cm, minimum height=2.52cm, anchor=north west] (B8) at (14.08cm,-6.08cm) {};
+  \node[num,fill=Teal,anchor=north west] at ($(B8.north west)+(1.7mm,-1.7mm)$) {8};
+  \node[anchor=north west,text=Teal!75!black,font=\bfseries\fontsize{7.5}{8.2}\selectfont,text width=3.35cm] at ($(B8.north west)+(8.7mm,-1.8mm)$) {不同类型表达不同概念};
+  \node[anchor=north west,text=Text,font=\fontsize{6.75}{7.9}\selectfont,text width=3.93cm] at ($(B8.north west)+(2mm,-8mm)$) {不要所有东西都用 int；必要时用 enum / typedef struct 封装强类型。};
+  \node[code,anchor=north west,text width=3.87cm] at ($(B8.north west)+(2mm,-15.3mm)$) {typedef struct { unsigned value; }\\pt_port_t;};
+
+  % ============================================================
+  % Section C
+  % ============================================================
+  \node[panel, draw=Orange!90, minimum width=9.15cm, minimum height=6.22cm, anchor=north west] (C) at (0,-9.05cm) {};
+  \node[header, fill=Orange, minimum width=9.0cm, anchor=north west] at (0.08cm,-9.13cm) {C. 封装与可见性};
+  \node[anchor=east, text=Orange!80!black, font=\fontsize{6.6}{7.5}\selectfont] at (8.78cm,-9.57cm) {隐藏实现，暴露契约};
+
+  \node[itemcard, minimum width=4.34cm, minimum height=2.52cm, anchor=north west] (C9) at (0.18cm,-9.88cm) {};
+  \node[num,fill=Orange,anchor=north west] at ($(C9.north west)+(1.7mm,-1.7mm)$) {9};
+  \node[anchor=north west,text=Orange!85!black,font=\bfseries\fontsize{8}{8.7}\selectfont] at ($(C9.north west)+(8.7mm,-1.8mm)$) {opaque type};
+  \node[anchor=north west,text=Text,font=\fontsize{6.75}{7.9}\selectfont,text width=3.93cm] at ($(C9.north west)+(2mm,-8mm)$) {公共头文件只暴露 struct 声明，不暴露内部字段。};
+  \node[code,anchor=north west,text width=3.87cm] at ($(C9.north west)+(2mm,-15.3mm)$) {struct pt_device;};
+
+  \node[itemcard, minimum width=4.34cm, minimum height=2.52cm, anchor=north west] (C10) at (4.63cm,-9.88cm) {};
+  \node[num,fill=Orange,anchor=north west] at ($(C10.north west)+(1.7mm,-1.7mm)$) {10};
+  \node[anchor=north west,text=Orange!85!black,font=\bfseries\fontsize{7.6}{8.3}\selectfont] at ($(C10.north west)+(8.7mm,-1.8mm)$) {static 限定作用域};
+  \node[anchor=north west,text=Text,font=\fontsize{6.75}{7.9}\selectfont,text width=3.93cm] at ($(C10.north west)+(2mm,-8mm)$) {不需要导出的函数，一律 static，缩小可访问面。};
+  \node[code,anchor=north west,text width=3.87cm] at ($(C10.north west)+(2mm,-15.3mm)$) {static int helper_do_work(void);\\/* only this translation unit */};
+
+  \node[itemcard, minimum width=4.34cm, minimum height=2.52cm, anchor=north west] (C11) at (0.18cm,-12.48cm) {};
+  \node[num,fill=Orange,anchor=north west] at ($(C11.north west)+(1.7mm,-1.7mm)$) {11};
+  \node[anchor=north west,text=Orange!85!black,font=\bfseries\fontsize{7.0}{7.7}\selectfont,text width=3.35cm] at ($(C11.north west)+(8.7mm,-1.8mm)$) {switch(enum) + -Wswitch-enum};
+  \node[anchor=north west,text=Text,font=\fontsize{6.75}{7.9}\selectfont,text width=3.93cm] at ($(C11.north west)+(2mm,-8mm)$) {新增状态后，遗漏分支处理时让编译器报警/报错。};
+  \node[code,anchor=north west,text width=3.87cm] at ($(C11.north west)+(2mm,-15.3mm)$) {switch (state) {\\case PT_IDLE: ...; break;\\case PT_BUSY: ...; break;\\}};
+
+  \node[itemcard, minimum width=4.34cm, minimum height=2.52cm, anchor=north west] (C12) at (4.63cm,-12.48cm) {};
+  \node[num,fill=Orange,anchor=north west] at ($(C12.north west)+(1.7mm,-1.7mm)$) {12};
+  \node[anchor=north west,text=Orange!85!black,font=\bfseries\fontsize{7.3}{8.0}\selectfont,text width=3.35cm] at ($(C12.north west)+(8.7mm,-1.8mm)$) {函数指针类型约束回调};
+  \node[anchor=north west,text=Text,font=\fontsize{6.75}{7.9}\selectfont,text width=3.93cm] at ($(C12.north west)+(2mm,-8mm)$) {用 typedef 的函数签名约束表驱动回调接口。};
+  \node[code,anchor=north west,text width=3.87cm] at ($(C12.north west)+(2mm,-15.3mm)$) {typedef int (*pt_handler_t)(\\const struct pt_command *,\\struct pt_context *);};
+
+  % ============================================================
+  % Section D
+  % ============================================================
+  \node[panel, draw=Rose!88, minimum width=9.15cm, minimum height=6.22cm, anchor=north west] (D) at (9.45cm,-9.05cm) {};
+  \node[header, fill=Rose, minimum width=9.0cm, anchor=north west] at (9.53cm,-9.13cm) {D. 泛型、表驱动与初始化};
+  \node[anchor=east, text=Rose!80!black, font=\fontsize{6.6}{7.5}\selectfont] at (18.23cm,-9.57cm) {让数据描述变化，让编译器检查一致性};
+
+  \node[itemcard, minimum width=4.34cm, minimum height=2.52cm, anchor=north west] (D13) at (9.63cm,-9.88cm) {};
+  \node[num,fill=Rose,anchor=north west] at ($(D13.north west)+(1.7mm,-1.7mm)$) {13};
+  \node[anchor=north west,text=Rose!80!black,font=\bfseries\fontsize{8}{8.7}\selectfont] at ($(D13.north west)+(8.7mm,-1.8mm)$) {_Generic};
+  \node[anchor=north west,text=Text,font=\fontsize{6.75}{7.9}\selectfont,text width=3.93cm] at ($(D13.north west)+(2mm,-8mm)$) {做有限的编译期类型分派，限制可接受的参数类型。};
+  \node[code,anchor=north west,text width=3.87cm] at ($(D13.north west)+(2mm,-15.3mm)$) {\#define pt_abs(x) _Generic((x),\\int: pt_abs_int, long: pt_abs_long)(x)};
+
+  \node[itemcard, minimum width=4.34cm, minimum height=2.52cm, anchor=north west] (D14) at (14.08cm,-9.88cm) {};
+  \node[num,fill=Rose,anchor=north west] at ($(D14.north west)+(1.7mm,-1.7mm)$) {14};
+  \node[anchor=north west,text=Rose!80!black,font=\bfseries\fontsize{7.0}{7.7}\selectfont,text width=3.35cm] at ($(D14.north west)+(8.7mm,-1.8mm)$) {ARRAY_SIZE + _Static_assert};
+  \node[anchor=north west,text=Text,font=\fontsize{6.75}{7.9}\selectfont,text width=3.93cm] at ($(D14.north west)+(2mm,-8mm)$) {检查 handler table / opcode table 的完整性。};
+  \node[code,anchor=north west,text width=3.87cm] at ($(D14.north west)+(2mm,-15.3mm)$) {_Static_assert(ARRAY_SIZE(handlers)\\== PT_OPCODE_COUNT, "table mismatch");};
+
+  \node[itemcard, minimum width=4.34cm, minimum height=2.52cm, anchor=north west] (D15) at (9.63cm,-12.48cm) {};
+  \node[num,fill=Rose,anchor=north west] at ($(D15.north west)+(1.7mm,-1.7mm)$) {15};
+  \node[anchor=north west,text=Rose!80!black,font=\bfseries\fontsize{7.2}{7.9}\selectfont] at ($(D15.north west)+(8.7mm,-1.8mm)$) {designated initializer};
+  \node[anchor=north west,text=Text,font=\fontsize{6.75}{7.9}\selectfont,text width=3.93cm] at ($(D15.north west)+(2mm,-8mm)$) {减少位置填错；结构体增删字段时更稳。};
+  \node[code,anchor=north west,text width=3.87cm] at ($(D15.north west)+(2mm,-15.3mm)$) {struct ops x = {\\.open = f_open,\\.read = f_read,\\};};
+
+  \node[itemcard, minimum width=4.34cm, minimum height=2.52cm, anchor=north west] (D16) at (14.08cm,-12.48cm) {};
+  \node[num,fill=Rose,anchor=north west] at ($(D16.north west)+(1.7mm,-1.7mm)$) {16};
+  \node[anchor=north west,text=Rose!80!black,font=\bfseries\fontsize{8}{8.7}\selectfont] at ($(D16.north west)+(8.7mm,-1.8mm)$) {表驱动设计};
+  \node[anchor=north west,text=Text,font=\fontsize{6.75}{7.9}\selectfont,text width=3.93cm] at ($(D16.north west)+(2mm,-8mm)$) {把变化项放进表，把流程代码变成受约束的数据。};
+  \node[code,anchor=north west,text width=3.87cm] at ($(D16.north west)+(2mm,-15.3mm)$) {static const struct pt_op ops[] = {\\{}[OP_OPEN] = { .fn = f_open },\\{}[OP_READ] = { .fn = f_read },\\};};
+
+  % ============================================================
+  % Section E
+  % ============================================================
+  \node[panel, draw=Purple!88, minimum width=18.6cm, minimum height=4.06cm, anchor=north west] (E) at (0,-15.45cm) {};
+  \node[header, fill=Purple, minimum width=18.45cm, anchor=north west] at (0.08cm,-15.53cm) {E. 编译器开关与工程纪律};
+  \node[anchor=east, text=Purple!80!black, font=\fontsize{6.6}{7.5}\selectfont] at (18.23cm,-15.97cm) {打开编译器的“全量体检模式”};
+
+  \foreach \x/\n/\ttl/\body in {
+    0.18/17/{-Werror}/{warning 只有变成 error，才真正形成约束。},
+    4.78/18/{-Wmissing-prototypes / -Wimplicit-fallthrough}/{强制 API 走头文件；防止 switch 漏 break。},
+    9.38/19/{不要滥用 cast}/{cast 往往是在“关闭编译器”，应视为需要解释的危险动作。},
+    13.98/20/{__must_check / BUILD_BUG_ON()}/{把常用约束包装成统一宏，形成工程规范。}
+  }{
+    \node[itemcard, minimum width=4.42cm, minimum height=2.9cm, anchor=north west] (E\n) at (\x cm,-16.28cm) {};
+    \node[num,fill=Purple,anchor=north west] at ($(E\n.north west)+(1.7mm,-1.7mm)$) {\n};
+    \node[anchor=north west,text=Purple!80!black,font=\bfseries\fontsize{6.9}{7.6}\selectfont,text width=3.45cm] at ($(E\n.north west)+(8.7mm,-1.8mm)$) {\ttl};
+    \node[anchor=north west,text=Text,font=\fontsize{6.55}{7.7}\selectfont,text width=3.98cm] at ($(E\n.north west)+(2mm,-9.0mm)$) {\body};
+  }
+  \node[code,anchor=north west,text width=3.95cm] at ($(E17.north west)+(2mm,-18.3mm)$) {-Wall -Wextra -Werror};
+  \node[code,anchor=north west,text width=3.95cm] at ($(E18.north west)+(2mm,-18.3mm)$) {-Wmissing-prototypes\\-Wimplicit-fallthrough};
+  \node[code,anchor=north west,text width=3.95cm] at ($(E19.north west)+(2mm,-18.3mm)$) {/* bad */ int x = (int)ptr;\\/* better: fix the type design */};
+  \node[code,anchor=north west,text width=3.95cm] at ($(E20.north west)+(2mm,-18.3mm)$) {\#define BUILD_BUG_ON(c)\\_Static_assert(!(c), "BUILD_BUG_ON")};
+
+  % ============================================================
+  % Bottom-left: ladder
+  % ============================================================
+  \node[panel, draw=Blue!65, minimum width=10.1cm, minimum height=4.66cm, anchor=north west] (L) at (0,-19.72cm) {};
+  \node[header, fill=Blue!85, minimum width=9.95cm, anchor=north west] at (0.08cm,-19.80cm) {约束等级（从弱到强）};
+
+  \def\ladderY{-20.86cm}
+  \node[rounded corners=1.5mm,draw=Line,fill=white,minimum width=1.18cm,minimum height=0.78cm,font=\bfseries\fontsize{5.8}{6.3}\selectfont] (l1) at (0.78cm,\ladderY) {注释约束};
+  \node[rounded corners=1.5mm,draw=Line,fill=BlueSoft,minimum width=1.15cm,minimum height=0.78cm,font=\bfseries\fontsize{5.8}{6.3}\selectfont] (l2) at (2.15cm,\ladderY) {warning};
+  \node[rounded corners=1.5mm,draw=Line,fill=GreenSoft,minimum width=1.25cm,minimum height=0.78cm,font=\bfseries\fontsize{5.6}{6.1}\selectfont] (l3) at (3.58cm,\ladderY) {warning\\$\to$error};
+  \node[rounded corners=1.5mm,draw=Line,fill=OrangeSoft,minimum width=1.32cm,minimum height=0.78cm,font=\bfseries\fontsize{5.5}{6.1}\selectfont] (l4) at (5.10cm,\ladderY) {编译期\\断言};
+  \node[rounded corners=1.5mm,draw=Line,fill=RoseSoft,minimum width=1.22cm,minimum height=0.78cm,font=\bfseries\fontsize{5.6}{6.1}\selectfont] (l5) at (6.62cm,\ladderY) {类型系统};
+  \node[rounded corners=1.5mm,draw=Line,fill=PurpleSoft,minimum width=1.22cm,minimum height=0.78cm,font=\bfseries\fontsize{5.6}{6.1}\selectfont] (l6) at (8.03cm,\ladderY) {API\\不可见};
+  \node[rounded corners=1.5mm,draw=Line,fill=TealSoft,minimum width=1.44cm,minimum height=0.78cm,font=\bfseries\fontsize{5.3}{5.9}\selectfont] (l7) at (9.47cm,\ladderY) {错误操作\\无法表达};
+
+  \foreach \a/\b in {l1/l2,l2/l3,l3/l4,l4/l5,l5/l6,l6/l7}
+    \draw[arrow,draw=Muted] (\a.east) -- (\b.west);
+
+  \node[anchor=north,text=Muted,font=\fontsize{5.5}{6.5}\selectfont,align=center,text width=1.35cm] at ($(l1.south)+(0,-1.3mm)$) {仅靠人工\\容易遗漏};
+  \node[anchor=north,text=Muted,font=\fontsize{5.5}{6.5}\selectfont,align=center,text width=1.35cm] at ($(l2.south)+(0,-1.3mm)$) {编译器提示\\但不阻止};
+  \node[anchor=north,text=Muted,font=\fontsize{5.5}{6.5}\selectfont,align=center,text width=1.35cm] at ($(l3.south)+(0,-1.3mm)$) {将警告变为\\强制约束};
+  \node[anchor=north,text=Muted,font=\fontsize{5.5}{6.5}\selectfont,align=center,text width=1.35cm] at ($(l4.south)+(0,-1.3mm)$) {在编译期\\发现问题};
+  \node[anchor=north,text=Muted,font=\fontsize{5.5}{6.5}\selectfont,align=center,text width=1.35cm] at ($(l5.south)+(0,-1.3mm)$) {用类型表达\\约束};
+  \node[anchor=north,text=Muted,font=\fontsize{5.5}{6.5}\selectfont,align=center,text width=1.35cm] at ($(l6.south)+(0,-1.3mm)$) {从接口层面\\防止误用};
+  \node[anchor=north,text=Muted,font=\fontsize{5.5}{6.5}\selectfont,align=center,text width=1.45cm] at ($(l7.south)+(0,-1.3mm)$) {从根本上\\不允许出错};
+
+  \draw[-{Latex[length=2.5mm,width=2.0mm]},line width=1.6pt,draw=Blue!80] (0.42cm,-23.27cm) -- (9.68cm,-23.27cm);
+  \node[anchor=north,text=Navy,font=\bfseries\fontsize{7.0}{8.0}\selectfont] at (5.05cm,-23.38cm) {更强的约束  $\longrightarrow$  更少的 Bug  $\longrightarrow$  更可靠的系统};
+
+  % ============================================================
+  % Bottom-right: top 10
+  % ============================================================
+  \node[panel, draw=Green!75, minimum width=8.25cm, minimum height=4.66cm, anchor=north west] (T) at (10.35cm,-19.72cm) {};
+  \node[header, fill=Green, minimum width=8.1cm, anchor=north west] at (10.43cm,-19.80cm) {底层 C 项目优先推荐（Top 10）};
+
+  \foreach \y/\n/\txt in {
+    -20.72/1/const,
+    -21.15/2/_Static_assert,
+    -21.58/3/warn_unused_result,
+    -22.01/4/{format(printf,...)},
+    -22.44/5/deprecated / error
+  }{
+    \node[num,fill=Green,minimum size=4.4mm,font=\bfseries\fontsize{5.8}{6.1}\selectfont] at (10.78cm,\y cm) {\n};
+    \node[anchor=west,text=Text,font=\fontsize{6.6}{7.4}\selectfont] at (11.12cm,\y cm) {\txt};
+  }
+  \foreach \y/\n/\txt in {
+    -20.72/6/-Wswitch-enum,
+    -21.15/7/-Wmissing-prototypes,
+    -21.58/8/static + opaque struct,
+    -22.01/9/强类型 typedef struct,
+    -22.44/10/designated initializer + 表驱动
+  }{
+    \node[num,fill=Green,minimum size=4.4mm,font=\bfseries\fontsize{5.8}{6.1}\selectfont] at (14.56cm,\y cm) {\n};
+    \node[anchor=west,text=Text,font=\fontsize{6.35}{7.2}\selectfont] at (14.92cm,\y cm) {\txt};
+  }
+
+  \node[rounded corners=1.7mm,draw=Green!25,fill=GreenSoft,minimum width=7.65cm,minimum height=0.72cm,anchor=north west] at (10.63cm,-22.95cm) {};
+  \node[anchor=west,text=Green!55!black,font=\bfseries\fontsize{6.6}{7.4}\selectfont] at (10.92cm,-23.31cm) {小步坚持，长期受益。好的 C，源于更严谨的工程约束。};
+
+  % Footer
+  \node[anchor=south east,text=Muted,font=\fontsize{5.5}{6.2}\selectfont] at (18.55cm,-24.58cm) {XeLaTeX + TikZ · compiler-enforced C design};
+
+  \end{scope}
+\end{tikzpicture}
+\mbox{}
+\end{document}
