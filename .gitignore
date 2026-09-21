@@ -3,7 +3,6 @@ pictures/*
 backup/*
 pdf/*
 output/*
-bash
 intermediates
 *.pdf
 *.aux
@@ -17,5 +16,3 @@ intermediates
 tmp.txt
 tmp.sh
 build
-
-

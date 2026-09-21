@@ -1,0 +1,139 @@
+\documentclass[10pt,a4paper,landscape]{article}
+\usepackage[margin=8mm]{geometry}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning,fit,calc,backgrounds,shadows.blur}
+\usepackage{tabularx,array,booktabs}
+\usepackage{enumitem}
+\usepackage{ragged2e}
+\usepackage{microtype}
+\pagestyle{empty}
+
+% ---------- Fonts ----------
+\setmainfont{DejaVu Sans}
+\setsansfont{DejaVu Sans}
+\setmonofont{DejaVu Sans Mono}
+\setCJKmainfont{Noto Sans CJK SC}
+\setCJKsansfont{Noto Sans CJK SC}
+\setCJKmonofont{Noto Sans Mono CJK SC}
+
+% ---------- Palette ----------
+\definecolor{ink}{HTML}{243447}
+\definecolor{subink}{HTML}{5B6775}
+\definecolor{paper}{HTML}{F7F9FC}
+\definecolor{linegray}{HTML}{D9E2EC}
+\definecolor{bash}{HTML}{167D8D}
+\definecolor{bashlight}{HTML}{E8F5F7}
+\definecolor{python}{HTML}{D97706}
+\definecolor{pythonlight}{HTML}{FFF3E0}
+\definecolor{green}{HTML}{2F855A}
+\definecolor{greenlight}{HTML}{E9F7EF}
+\definecolor{red}{HTML}{C2413B}
+\definecolor{redlight}{HTML}{FDECEC}
+\definecolor{blue}{HTML}{315E9B}
+\definecolor{bluelight}{HTML}{EAF0FA}
+\definecolor{purple}{HTML}{6B4FA3}
+\definecolor{purplelight}{HTML}{F0ECF8}
+
+\newcommand{\bashmark}{\textcolor{bash}{\bfseries Bash}}
+\newcommand{\pymark}{\textcolor{python}{\bfseries Python}}
+\newcommand{\good}{\textcolor{green}{\bfseries ✓}}
+\newcommand{\warn}{\textcolor{python}{\bfseries △}}
+\newcommand{\bad}{\textcolor{red}{\bfseries ✗}}
+
+\newcolumntype{Y}{>{\RaggedRight\arraybackslash}X}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+\begin{document}
+\pagecolor{paper}
+\begin{tikzpicture}[node distance=3mm, every node/.style={font=\sffamily}]
+
+% ---------- Header ----------
+\node[anchor=west, text=ink, font=\bfseries\fontsize{22}{24}\selectfont] (title)
+  {Bash vs Python：脚本边界判断快速参考};
+\node[below=0.8mm of title.south west, anchor=west, text=subink, font=\fontsize{9.5}{11}\selectfont] (subtitle)
+  {核心判断：脚本主要是在“编排外部命令”，还是已经开始承载“程序逻辑”？};
+
+\node[below=2.5mm of subtitle.south west, anchor=north west, rounded corners=2mm,
+      fill=bluelight, draw=blue!40, inner xsep=4mm, inner ysep=2.2mm,
+      text width=0.97\textwidth] (rule)
+  {\textcolor{blue}{\bfseries 一句话原则：}如果你的时间主要花在“业务逻辑”，Python 更合适；如果主要花在“把 git / cmake / tar / dd / mount 等工具可靠串起来”，Bash 仍然是很好的选择。};
+
+% ---------- Main table card ----------
+\node[below=3mm of rule.south west, anchor=north west, rounded corners=2.5mm,
+      fill=white, draw=linegray, blur shadow={shadow blur steps=5, shadow opacity=.08},
+      inner sep=2.4mm, text width=0.97\textwidth] (tablecard) {%
+\renewcommand{\arraystretch}{1.12}
+\setlength{\tabcolsep}{5pt}
+\footnotesize
+\begin{tabularx}{\linewidth}{>{\bfseries\color{ink}}p{0.26\linewidth} C{0.15\linewidth} C{0.15\linewidth} Y}
+\rowcolor{ink}
+\color{white}脚本特征 & \color{white}\bfseries Bash & \color{white}\bfseries Python & \color{white}\bfseries 判断说明 \\
+\rowcolor{bashlight}
+主要串 \texttt{git/cmake/tar/dd/mount} & \good\ 很合适 & \warn\ 可以，但偏重 & Bash 正处于舒适区：命令编排清楚、部署简单。 \\
+\rowcolor{white}
+约 100--300 行 orchestration & \good\ 合适 & \good\ 合适 & 两者都能胜任；优先看团队习惯和部署成本。 \\
+\rowcolor{bashlight}
+大量文件/文本处理 & \warn\ 开始吃力 & \good\ 更好 & 一旦出现复杂解析、转换、聚合，Python 可读性通常更高。 \\
+\rowcolor{white}
+JSON / YAML / TOML & \bad\ 不推荐硬搞 & \good\ 明显更好 & 结构化数据是 Python 的强项；Bash 容易依赖外部工具并产生 quoting 问题。 \\
+\rowcolor{bashlight}
+复杂数据结构 & \bad\ 很弱 & \good\ 很好 & 嵌套对象、映射、状态表越多，越应该迁 Python。 \\
+\rowcolor{white}
+多种异常恢复 / 重试策略 & \warn\ 越来越难 & \good\ 更清晰 & Bash 的 \texttt{set -e}/trap/返回码组合很快变复杂；Python 的异常模型更易推理。 \\
+\rowcolor{bashlight}
+单元测试 / mock & \warn\ 麻烦 & \good\ 成熟 & 需要模拟 Git、CMake、文件系统时，Python 测试生态明显更好。 \\
+\rowcolor{white}
+命令行参数越来越多 & \warn\ \texttt{getopts} 尚可 & \good\ \texttt{argparse} 更好 & 少量参数 Bash 足够；子命令、默认值、类型校验多时 Python 更省心。 \\
+\rowcolor{bashlight}
+并发任务 / 队列 / 超时 & \warn\ 很快复杂 & \good\ 更好 & 进程控制、超时、并行结果汇总会迅速超出 Bash 的舒适区。 \\
+\rowcolor{white}
+跨平台 Windows / Linux & \bad\ 很弱 & \good\ 好很多 & Bash 天然偏 Unix；Python 更容易统一路径、进程和文件操作。 \\
+\rowcolor{bashlight}
+数百至上千行 & \bad\ 应谨慎 & \good\ 通常更合适 & 规模越大，类型、测试、模块化和异常模型的价值越高。 \\
+\end{tabularx}
+};
+
+% ---------- Bottom left: migration triggers ----------
+\node[below=3mm of tablecard.south west, anchor=north west, rounded corners=2.2mm,
+      fill=pythonlight, draw=python!45, inner sep=2.4mm, text width=0.46\textwidth] (triggers) {%
+\textcolor{python}{\bfseries 迁移到 Python 的触发信号}\par\vspace{1.2mm}
+\begin{minipage}{\linewidth}\footnotesize
+\begin{itemize}[leftmargin=4.5mm,itemsep=0.5mm,topsep=0mm]
+  \item 开始加入 JSON/YAML/TOML、manifest 或复杂配置。
+  \item 同时支持多个 target / project / branch / profile。
+  \item 出现复杂重试、状态持久化、并发、超时或缓存。
+  \item 需要真正的单元测试、mock、fixture、覆盖率。
+  \item 你开始花大量时间研究 Bash 自身 corner case，而不是业务本身。
+\end{itemize}
+\end{minipage}
+};
+
+% ---------- Bottom right: decision ladder ----------
+\node[right=4mm of triggers, anchor=north west, rounded corners=2.2mm,
+      fill=greenlight, draw=green!45, inner sep=2.4mm, text width=0.485\textwidth] (ladder) {%
+\textcolor{green}{\bfseries 快速决策阶梯}\par\vspace{1.2mm}
+\begin{minipage}{\linewidth}\footnotesize
+\begin{tabularx}{\linewidth}{>{\bfseries}p{0.29\linewidth} Y}
+只是在串命令？ & 优先 \bashmark：保持小而清楚。\\[1mm]
+开始有结构化数据？ & 倾向 \pymark：别硬用 awk/sed/jq 堆业务逻辑。\\[1mm]
+错误路径越来越多？ & 倾向 \pymark：异常模型比 \texttt{set -e}+trap 更易维护。\\[1mm]
+需要测试/复用/扩展？ & 明显偏向 \pymark：模块化收益开始超过部署成本。\\[1mm]
+部署必须“scp 即跑”？ & \bashmark 仍有优势，只要逻辑仍是 orchestration。\\
+\end{tabularx}
+\end{minipage}
+};
+
+% ---------- Footer strip ----------
+\node[fit=(triggers)(ladder), inner sep=0pt] (bottomgroup) {};
+\node[below=2mm of bottomgroup.south west, anchor=north west, rounded corners=1.8mm,
+      fill=purplelight, draw=purple!35, inner xsep=3mm, inner ysep=1.5mm,
+      text width=0.97\textwidth] (footer)
+  {\textcolor{purple}{\bfseries 记忆口诀：}\quad
+   \textbf{“命令编排用 Bash，程序逻辑用 Python；一旦开始为 Bash 自身写基础设施，就要考虑迁移。”}}
+;
+
+\end{tikzpicture}
+\end{document}
