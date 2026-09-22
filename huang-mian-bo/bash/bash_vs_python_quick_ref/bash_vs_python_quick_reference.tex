@@ -14,6 +14,7 @@
 \usepackage{enumitem}
 \usepackage{ragged2e}
 \usepackage{microtype}
+\usepackage{etoolbox}
 \pagestyle{empty}
 
 % ============================================================
@@ -124,98 +125,140 @@
 
 % ============================================================
 % 6. Reusable render helpers
+%    \foreach runs BEFORE tabular/itemize environments and builds
+%    plain token lists. This avoids alignment/grouping problems caused
+%    by executing \foreach directly across table cells (& / \\).
 % ============================================================
-% Main comparison-table row.  The first argument is the row color.
-\newcommand{\DecisionRow}[5]{%
+\newcommand{\RenderDecisionRecord}[5]{%
   \rowcolor{#1}%
   #2 & #3 & #4 & #5 \\
 }
+\newcommand{\RenderTriggerRecord}[1]{\item #1}
+\newcommand{\RenderLadderRecord}[2]{\textbf{#1} & #2\\[1mm]}
 
-\newcommand{\TriggerItem}[1]{\item #1}
-\newcommand{\DecisionStep}[2]{\textbf{#1} & #2\\[1mm]}
+% Append one already-unpacked data record to the generated token list.
+\newcommand{\AppendDecisionRecord}[1]{%
+  \gappto\DecisionRowsRendered{\RenderDecisionRecord#1}%
+}
+\newcommand{\AppendTriggerRecord}[1]{%
+  \gappto\TriggerItemsRendered{\RenderTriggerRecord#1}%
+}
+\newcommand{\AppendLadderRecord}[1]{%
+  \gappto\LadderRowsRendered{\RenderLadderRecord#1}%
+}
+
+% Data -> generated render stream.
+% Each record has one outer brace pair, so expanding \record once lets
+% the append helper receive all record fields as a single argument.
+\newcommand{\BuildDecisionRows}{%
+  \global\let\DecisionRowsRendered\empty
+  \foreach \record in \DecisionData {%
+    \expandafter\AppendDecisionRecord\expandafter{\record}
+  }%
+}
+\newcommand{\BuildTriggerItems}{%
+  \global\let\TriggerItemsRendered\empty
+  \foreach \record in \TriggerData {%
+    \expandafter\AppendTriggerRecord\expandafter{\record}
+  }%
+}
+\newcommand{\BuildLadderRows}{%
+  \global\let\LadderRowsRendered\empty
+  \foreach \record in \LadderData {%
+    \expandafter\AppendLadderRecord\expandafter{\record}
+  }%
+}
 
 % ============================================================
 % 7. Content data
-%    Most future content edits should happen in this section only.
+%    DATA ONLY: add/remove/reorder records here.
+%    Do not call rendering macros in this section.
 % ============================================================
-\newcommand{\RenderDecisionRows}{%
-  \DecisionRow{bashlight}
-    {主要串 \texttt{git/cmake/tar/dd/mount}}
-    {\good\ 很合适}
-    {\warn\ 可以，但偏重}
-    {Bash 正处于舒适区：命令编排清楚、部署简单。}
-  \DecisionRow{white}
-    {约 100--300 行 orchestration}
-    {\good\ 合适}
-    {\good\ 合适}
-    {两者都能胜任；优先看团队习惯和部署成本。}
-  \DecisionRow{bashlight}
-    {大量文件/文本处理}
-    {\warn\ 开始吃力}
-    {\good\ 更好}
-    {一旦出现复杂解析、转换、聚合，Python 可读性通常更高。}
-  \DecisionRow{white}
-    {JSON / YAML / TOML}
-    {\bad\ 不推荐硬搞}
-    {\good\ 明显更好}
-    {结构化数据是 Python 的强项；Bash 容易依赖外部工具并产生 quoting 问题。}
-  \DecisionRow{bashlight}
-    {复杂数据结构}
-    {\bad\ 很弱}
-    {\good\ 很好}
-    {嵌套对象、映射、状态表越多，越应该迁 Python。}
-  \DecisionRow{white}
-    {多种异常恢复 / 重试策略}
-    {\warn\ 越来越难}
-    {\good\ 更清晰}
-    {Bash 的 \texttt{set -e}/trap/返回码组合很快变复杂；Python 的异常模型更易推理。}
-  \DecisionRow{bashlight}
-    {单元测试 / mock}
-    {\warn\ 麻烦}
-    {\good\ 成熟}
-    {需要模拟 Git、CMake、文件系统时，Python 测试生态明显更好。}
-  \DecisionRow{white}
-    {命令行参数越来越多}
-    {\warn\ \texttt{getopts} 尚可}
-    {\good\ \texttt{argparse} 更好}
-    {少量参数 Bash 足够；子命令、默认值、类型校验多时 Python 更省心。}
-  \DecisionRow{bashlight}
-    {并发任务 / 队列 / 超时}
-    {\warn\ 很快复杂}
-    {\good\ 更好}
-    {进程控制、超时、并行结果汇总会迅速超出 Bash 的舒适区。}
-  \DecisionRow{white}
-    {跨平台 Windows / Linux}
-    {\bad\ 很弱}
-    {\good\ 好很多}
-    {Bash 天然偏 Unix；Python 更容易统一路径、进程和文件操作。}
-  \DecisionRow{bashlight}
-    {数百至上千行}
-    {\bad\ 应谨慎}
-    {\good\ 通常更合适}
-    {规模越大，类型、测试、模块化和异常模型的价值越高。}
+% Record schema:
+%   {{row-color}{feature}{Bash verdict}{Python verdict}{reason}}
+\def\DecisionData{%
+  {{bashlight}
+   {主要串 \texttt{git/cmake/tar/dd/mount}}
+   {\good\ 很合适}
+   {\warn\ 可以，但偏重}
+   {Bash 正处于舒适区：命令编排清楚、部署简单。}},
+  {{white}
+   {约 100--300 行 orchestration}
+   {\good\ 合适}
+   {\good\ 合适}
+   {两者都能胜任；优先看团队习惯和部署成本。}},
+  {{bashlight}
+   {大量文件/文本处理}
+   {\warn\ 开始吃力}
+   {\good\ 更好}
+   {一旦出现复杂解析、转换、聚合，Python 可读性通常更高。}},
+  {{white}
+   {JSON / YAML / TOML}
+   {\bad\ 不推荐硬搞}
+   {\good\ 明显更好}
+   {结构化数据是 Python 的强项；Bash 容易依赖外部工具并产生 quoting 问题。}},
+  {{bashlight}
+   {复杂数据结构}
+   {\bad\ 很弱}
+   {\good\ 很好}
+   {嵌套对象、映射、状态表越多，越应该迁 Python。}},
+  {{white}
+   {多种异常恢复 / 重试策略}
+   {\warn\ 越来越难}
+   {\good\ 更清晰}
+   {Bash 的 \texttt{set -e}/trap/返回码组合很快变复杂；Python 的异常模型更易推理。}},
+  {{bashlight}
+   {单元测试 / mock}
+   {\warn\ 麻烦}
+   {\good\ 成熟}
+   {需要模拟 Git、CMake、文件系统时，Python 测试生态明显更好。}},
+  {{white}
+   {命令行参数越来越多}
+   {\warn\ \texttt{getopts} 尚可}
+   {\good\ \texttt{argparse} 更好}
+   {少量参数 Bash 足够；子命令、默认值、类型校验多时 Python 更省心。}},
+  {{bashlight}
+   {并发任务 / 队列 / 超时}
+   {\warn\ 很快复杂}
+   {\good\ 更好}
+   {进程控制、超时、并行结果汇总会迅速超出 Bash 的舒适区。}},
+  {{white}
+   {跨平台 Windows / Linux}
+   {\bad\ 很弱}
+   {\good\ 好很多}
+   {Bash 天然偏 Unix；Python 更容易统一路径、进程和文件操作。}},
+  {{bashlight}
+   {数百至上千行}
+   {\bad\ 应谨慎}
+   {\good\ 通常更合适}
+   {规模越大，类型、测试、模块化和异常模型的价值越高。}}%
 }
 
-\newcommand{\RenderTriggerItems}{%
-  \TriggerItem{开始加入 JSON/YAML/TOML、manifest 或复杂配置。}
-  \TriggerItem{同时支持多个 target / project / branch / profile。}
-  \TriggerItem{出现复杂重试、状态持久化、并发、超时或缓存。}
-  \TriggerItem{需要真正的单元测试、mock、fixture、覆盖率。}
-  \TriggerItem{你开始花大量时间研究 Bash 自身 corner case，而不是业务本身。}
+% Record schema:
+%   {{trigger text}}
+\def\TriggerData{%
+  {{开始加入 JSON/YAML/TOML、manifest 或复杂配置。}},
+  {{同时支持多个 target / project / branch / profile。}},
+  {{出现复杂重试、状态持久化、并发、超时或缓存。}},
+  {{需要真正的单元测试、mock、fixture、覆盖率。}},
+  {{你开始花大量时间研究 Bash 自身 corner case，而不是业务本身。}}%
 }
 
-\newcommand{\RenderDecisionSteps}{%
-  \DecisionStep{只是在串命令？}{优先 \bashmark：保持小而清楚。}
-  \DecisionStep{开始有结构化数据？}{倾向 \pymark：别硬用 awk/sed/jq 堆业务逻辑。}
-  \DecisionStep{错误路径越来越多？}{倾向 \pymark：异常模型比 \texttt{set -e}+trap 更易维护。}
-  \DecisionStep{需要测试/复用/扩展？}{明显偏向 \pymark：模块化收益开始超过部署成本。}
-  \DecisionStep{部署必须“scp 即跑”？}{\bashmark\ 仍有优势，只要逻辑仍是 orchestration。}
+% Record schema:
+%   {{question}{recommendation}}
+\def\LadderData{%
+  {{只是在串命令？}{优先 \bashmark：保持小而清楚。}},
+  {{开始有结构化数据？}{倾向 \pymark：别硬用 awk/sed/jq 堆业务逻辑。}},
+  {{错误路径越来越多？}{倾向 \pymark：异常模型比 \texttt{set -e}+trap 更易维护。}},
+  {{需要测试/复用/扩展？}{明显偏向 \pymark：模块化收益开始超过部署成本。}},
+  {{部署必须“scp 即跑”？}{\bashmark\ 仍有优势，只要逻辑仍是 orchestration。}}%
 }
 
 % ============================================================
-% 8. Higher-level components
+% 8. Higher-level components / data renderers
 % ============================================================
 \newcommand{\MainComparisonTable}{%
+  \BuildDecisionRows\par\noindent
   \renewcommand{\arraystretch}{1.12}%
   \setlength{\tabcolsep}{5pt}%
   \footnotesize
@@ -225,24 +268,26 @@
     \color{white}\bfseries Bash &
     \color{white}\bfseries Python &
     \color{white}\bfseries 判断说明 \\
-    \RenderDecisionRows
+    \DecisionRowsRendered
   \end{tabularx}%
 }
 
 \newcommand{\MigrationTriggers}{%
+  \BuildTriggerItems\par\noindent
   \textcolor{python}{\bfseries 迁移到 Python 的触发信号}\par\vspace{1.2mm}
   \begin{minipage}{\linewidth}\footnotesize
     \begin{itemize}[leftmargin=4.5mm,itemsep=0.5mm,topsep=0mm]
-      \RenderTriggerItems
+      \TriggerItemsRendered
     \end{itemize}
   \end{minipage}%
 }
 
 \newcommand{\DecisionLadder}{%
+  \BuildLadderRows\par\noindent
   \textcolor{green}{\bfseries 快速决策阶梯}\par\vspace{1.2mm}
   \begin{minipage}{\linewidth}\footnotesize
     \begin{tabularx}{\linewidth}{>{\bfseries}p{0.29\linewidth} Y}
-      \RenderDecisionSteps
+      \LadderRowsRendered
     \end{tabularx}
   \end{minipage}%
 }
