@@ -1,0 +1,263 @@
+% !TeX program = xelatex
+% ============================================================
+% AI-assisted C/C++ development workflow
+% XeLaTeX + TikZ
+% Design goals:
+%   1. Styles and content are separated as much as possible.
+%   2. Nodes use relative positioning (positioning library), no absolute coords.
+%   3. Most later edits only need changes in SECTION 3 (CONTENT).
+% ============================================================
+
+\documentclass[11pt,a4paper]{article}
+
+% -------------------- 1. PACKAGES ---------------------------
+\usepackage[a4paper,margin=14mm]{geometry}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{
+  arrows.meta,
+  positioning,
+  shapes.geometric,
+  fit,
+  backgrounds,
+  calc
+}
+\usepackage{enumitem}
+\usepackage{microtype}
+\pagestyle{empty}
+
+% -------------------- 2. TYPOGRAPHY + STYLE -----------------
+% Replace these two lines if you prefer another installed Chinese font.
+\setmainfont{DejaVu Sans}
+\setCJKmainfont{Noto Sans CJK SC}
+\setsansfont{DejaVu Sans}
+\setCJKsansfont{Noto Sans CJK SC}
+
+% ---- Palette: change colors here, not inside drawing code ----
+\definecolor{HumanBlue}{HTML}{2563EB}
+\definecolor{AIPurple}{HTML}{7C3AED}
+\definecolor{ToolGreen}{HTML}{059669}
+\definecolor{ReviewOrange}{HTML}{EA580C}
+\definecolor{PassGreen}{HTML}{15803D}
+\definecolor{FailRed}{HTML}{DC2626}
+\definecolor{Ink}{HTML}{1F2937}
+\definecolor{SoftGray}{HTML}{F3F4F6}
+\definecolor{LineGray}{HTML}{64748B}
+\definecolor{PaleBlue}{HTML}{EFF6FF}
+\definecolor{PalePurple}{HTML}{F5F3FF}
+\definecolor{PaleGreen}{HTML}{ECFDF5}
+\definecolor{PaleOrange}{HTML}{FFF7ED}
+
+% ---- Global TikZ knobs ----
+\tikzset{
+  >={Latex[length=2.8mm,width=1.9mm]},
+  every node/.style={font=\sffamily},
+  workflow/.style={
+    draw=Ink!55,
+    line width=0.85pt,
+    rounded corners=2.5mm,
+    text=Ink,
+    align=center,
+    minimum height=14mm,
+    text width=72mm,
+    inner xsep=5mm,
+    inner ysep=3mm,
+  },
+  human/.style={workflow, draw=HumanBlue, fill=PaleBlue},
+  ai/.style={workflow, draw=AIPurple, fill=PalePurple},
+  tool/.style={workflow, draw=ToolGreen, fill=PaleGreen},
+  review/.style={workflow, draw=ReviewOrange, fill=PaleOrange},
+  decision/.style={
+    diamond,
+    aspect=2.25,
+    draw=ReviewOrange,
+    fill=PaleOrange,
+    line width=0.9pt,
+    align=center,
+    text=Ink,
+    inner sep=1.5mm,
+    text width=27mm,
+  },
+  terminal/.style={
+    rounded corners=7mm,
+    draw=PassGreen,
+    fill=PassGreen!8,
+    line width=1pt,
+    minimum width=40mm,
+    minimum height=11mm,
+    align=center,
+    text=Ink,
+  },
+  flow/.style={->, draw=LineGray, line width=1.05pt},
+  feedback/.style={->, draw=FailRed, line width=1.05pt, dashed},
+  passflow/.style={->, draw=PassGreen, line width=1.05pt},
+  rolebox/.style={
+    rounded corners=2mm,
+    draw=Ink!25,
+    fill=white,
+    line width=0.6pt,
+    inner sep=3mm,
+    text width=48mm,
+    align=left,
+    font=\sffamily\small,
+  },
+  phasebg/.style={
+    rounded corners=3mm,
+    draw=none,
+    fill=SoftGray,
+    inner sep=4mm,
+  },
+  tag/.style={
+    rounded corners=1.5mm,
+    inner xsep=2.2mm,
+    inner ysep=1.0mm,
+    font=\sffamily\scriptsize\bfseries,
+    text=white,
+  }
+}
+
+% -------------------- 3. CONTENT ----------------------------
+% Most future maintenance should happen in this section only.
+
+\newcommand{\DocTitle}{AI 辅助 C/C++ 开发工作流}
+\newcommand{\DocSubtitle}{人定义约束，AI 高效执行，工具提供证据，人负责最终判断}
+
+\newcommand{\HumanDefineTitle}{人类工程师：定义问题}
+\newcommand{\HumanDefineBody}{需求、接口、性能目标、生命周期、并发约束与系统不变量}
+
+\newcommand{\AIDesignTitle}{AI：参与设计讨论}
+\newcommand{\AIDesignBody}{补充方案、暴露遗漏、比较实现路径；架构取舍仍由人主导}
+
+\newcommand{\AICodeTitle}{AI：生成与重构代码}
+\newcommand{\AICodeBody}{脚手架、初版实现、重复性代码、测试框架、重构候选方案}
+
+\newcommand{\StaticTitle}{编译器与静态检查}
+\newcommand{\StaticBody}{Warnings / clang-tidy / 格式检查 / 编译期约束}
+
+\newcommand{\RuntimeTitle}{运行期验证}
+\newcommand{\RuntimeBody}{ASan + UBSan；并发场景单独使用 TSan}
+
+\newcommand{\TestTitle}{测试与测量}
+\newcommand{\TestBody}{单元测试、边界测试、Stress / Fuzz、Benchmark / perf}
+
+\newcommand{\ReviewTitle}{人工 Review}
+\newcommand{\ReviewBody}{检查所有权、生命周期、锁粒度、失败路径、实时性与性能假设}
+
+\newcommand{\DecisionText}{是否满足\\约束与证据？}
+\newcommand{\PassText}{通过：合入 / 发布}
+\newcommand{\FailText}{问题与证据反馈给 AI\\修改后重新验证}
+
+\newcommand{\HumanRole}{%
+  \textbf{人负责：}\\[-1mm]
+  \begin{itemize}[leftmargin=*,nosep]
+    \item 定义 Contract / Invariant
+    \item 架构与接口取舍
+    \item 生命周期、并发与性能判断
+    \item 最终是否可合入
+  \end{itemize}}
+
+\newcommand{\AIRole}{%
+  \textbf{AI 负责：}\\[-1mm]
+  \begin{itemize}[leftmargin=*,nosep]
+    \item Boilerplate 与初版实现
+    \item 设计讨论与重构建议
+    \item 测试初稿与日志分析
+    \item 编译错误与工具输出解释
+  \end{itemize}}
+
+\newcommand{\ToolRole}{%
+  \textbf{工具负责：}\\[-1mm]
+  \begin{itemize}[leftmargin=*,nosep]
+    \item 提供可复现证据
+    \item 提高错误发现率
+    \item 验证正确性与性能假设
+  \end{itemize}}
+
+% -------------------- 4. DRAWING ----------------------------
+\begin{document}
+
+\begin{center}
+  {\LARGE\bfseries\color{Ink}\DocTitle}\par
+  \vspace{1.5mm}
+  {\small\color{LineGray}\DocSubtitle}
+\end{center}
+
+\vspace{2mm}
+
+\begin{tikzpicture}[node distance=6.5mm and 10mm]
+
+  % ---- Main vertical flow: all positions are relative ----
+  \node[human] (define) {\textbf{\HumanDefineTitle}\\[1mm]\small \HumanDefineBody};
+
+  \node[ai, below=of define] (design) {\textbf{\AIDesignTitle}\\[1mm]\small \AIDesignBody};
+
+  \node[ai, below=of design] (code) {\textbf{\AICodeTitle}\\[1mm]\small \AICodeBody};
+
+  \node[tool, below=of code] (static) {\textbf{\StaticTitle}\\[1mm]\small \StaticBody};
+
+  \node[tool, below=of static] (runtime) {\textbf{\RuntimeTitle}\\[1mm]\small \RuntimeBody};
+
+  \node[tool, below=of runtime] (tests) {\textbf{\TestTitle}\\[1mm]\small \TestBody};
+
+  \node[review, below=of tests] (review) {\textbf{\ReviewTitle}\\[1mm]\small \ReviewBody};
+
+  \node[decision, below=8mm of review] (decision) {\textbf{\DecisionText}};
+
+  \node[terminal, below=8mm of decision] (pass) {\textbf{\PassText}};
+
+  % ---- Straight flow arrows ----
+  \draw[flow] (define) -- (design);
+  \draw[flow] (design) -- (code);
+  \draw[flow] (code) -- (static);
+  \draw[flow] (static) -- (runtime);
+  \draw[flow] (runtime) -- (tests);
+  \draw[flow] (tests) -- (review);
+  \draw[flow] (review) -- (decision);
+  \draw[passflow] (decision) -- node[right, font=\scriptsize\bfseries, text=PassGreen] {是} (pass);
+
+  % ---- Feedback loop: relative routing, no absolute coordinates ----
+  % Keep the feedback card on the right, but route the return path BELOW the
+  % main flow and then UP the left side.  This deliberately avoids crossing
+  % the AI/TOOLS responsibility cards on the right.
+  \node[review, text width=49mm, right=18mm of decision] (feedback) {\textbf{发现问题}\\[1mm]\small \FailText};
+  \draw[feedback] (decision.east) -- node[above, font=\scriptsize\bfseries, text=FailRed] {否} (feedback.west);
+
+  % Helper coordinates are all derived from node anchors, so maintenance
+  % remains relative-position based rather than relying on absolute (x,y).
+  \coordinate (feedbackbottom) at ([yshift=-7mm]pass.south);
+  \coordinate (feedbackleft)   at ([xshift=-9mm]code.west);
+  \draw[feedback]
+    (feedback.south)
+    |- (feedbackbottom)
+    -| (feedbackleft)
+    -- node[above, near end, font=\scriptsize\bfseries, text=FailRed] {返回修改} (code.west);
+
+  % ---- Role summary panel, also relatively positioned ----
+  \node[rolebox, right=18mm of design] (humanrole) {\HumanRole};
+  \node[rolebox, below=5mm of humanrole] (airole) {\AIRole};
+  \node[rolebox, below=5mm of airole] (toolrole) {\ToolRole};
+
+  % ---- Small role tags ----
+  \node[tag, fill=HumanBlue, above left=-1mm and 0mm of humanrole.north west] {HUMAN};
+  \node[tag, fill=AIPurple, above left=-1mm and 0mm of airole.north west] {AI};
+  \node[tag, fill=ToolGreen, above left=-1mm and 0mm of toolrole.north west] {TOOLS};
+
+  % ---- Soft background grouping for main stages ----
+  \begin{scope}[on background layer]
+    \node[phasebg, fit=(define)] {};
+    \node[phasebg, fit=(design)(code)] {};
+    \node[phasebg, fit=(static)(runtime)(tests)] {};
+    \node[phasebg, fit=(review)(decision)(pass)(feedback)] {};
+  \end{scope}
+
+\end{tikzpicture}
+
+\vfill
+\begin{center}
+  \small\bfseries\color{Ink}
+  人定规，AI 施工；工具验收，人签字。
+\end{center}
+
+\end{document}
