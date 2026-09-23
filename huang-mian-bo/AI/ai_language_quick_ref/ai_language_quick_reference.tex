@@ -1,16 +1,16 @@
-\documentclass[12pt]{ctexart}
+\documentclass[tikz,border=6mm]{standalone}
 
-\usepackage[a3paper,margin=14mm]{geometry}
+% ============================================================
+%  Packages
+% ============================================================
+\usepackage[UTF8]{ctex}
 \usepackage{xcolor}
 \usepackage{tikz}
 \usetikzlibrary{matrix,positioning,fit,backgrounds}
-\usepackage{array}
-\usepackage{ragged2e}
-\usepackage{setspace}
-\usepackage{enumitem}
-\pagestyle{empty}
 
-% ---------- Color Palette ----------
+% ============================================================
+%  Color Palette
+% ============================================================
 \definecolor{TitleBlue}{HTML}{1F4E79}
 \definecolor{HeaderBlue}{HTML}{D9EAF7}
 \definecolor{HeaderText}{HTML}{103A5C}
@@ -23,13 +23,25 @@
 \definecolor{NoteBg}{HTML}{FAFCFF}
 \definecolor{NoteBorder}{HTML}{B7CCDD}
 
-% ---------- Typography ----------
-\newcommand{\code}[1]{\texttt{#1}}
-\newcommand{\tightcell}[1]{\parbox[t]{\linewidth}{\RaggedRight\arraybackslash #1}}
-\setlength{\parindent}{0pt}
-\renewcommand{\arraystretch}{1.18}
+% ============================================================
+%  Layout Parameters
+%  后续调整版面时，优先修改这里
+% ============================================================
+\newcommand{\TableGap}{8mm}
+\newcommand{\TableRowHeight}{22mm}
+\newcommand{\HeaderRowHeight}{13mm}
+\newcommand{\TitleTextWidth}{16.7cm}
+\newcommand{\NoteTextWidth}{16.7cm}
+\newcommand{\NoteColWidth}{5.05cm}
 
-% ---------- Content Macros ----------
+% ============================================================
+%  Typography Helpers
+% ============================================================
+\newcommand{\code}[1]{\texttt{#1}}
+
+% ============================================================
+%  Content: Title / Headers
+% ============================================================
 \newcommand{\TitleText}{AI 时代多语言开发模式快速参考表}
 \newcommand{\SubTitleText}{AI 最适合做什么 / 人最该盯住什么 / 主要验证工具}
 
@@ -38,6 +50,9 @@
 \newcommand{\HdrHuman}{人最该盯住}
 \newcommand{\HdrTools}{主要验证工具}
 
+% ============================================================
+%  Content: Table Rows
+% ============================================================
 \newcommand{\RowBashAI}{脚手架、批处理、文本处理、自动化}
 \newcommand{\RowBashHuman}{quoting、错误传播、幂等性、破坏性命令}
 \newcommand{\RowBashTools}{\code{shellcheck}、\code{bash -n}、测试环境}
@@ -58,61 +73,98 @@
 \newcommand{\RowRustHuman}{\code{unsafe}、生命周期建模、API 设计、性能}
 \newcommand{\RowRustTools}{\code{cargo clippy}、\code{cargo test}、Miri、sanitizer}
 
+% ============================================================
+%  TikZ Styles
+% ============================================================
+\tikzset{
+    titlebox/.style={
+        draw=TitleBlue,
+        fill=TitleBlue!5,
+        rounded corners=3mm,
+        line width=0.9pt,
+        inner xsep=6mm,
+        inner ysep=4.5mm,
+        text width=\TitleTextWidth,
+        align=center
+    },
+    tablecell/.style={
+        draw=GridLine,
+        line width=0.6pt,
+        align=center,
+        anchor=center,
+        inner xsep=4.5mm,
+        inner ysep=4.5mm,
+        font=\small
+    },
+    headercell/.style={
+        fill=HeaderBlue,
+        text=HeaderText,
+        font=\bfseries\small,
+        align=center,
+        minimum height=\HeaderRowHeight
+    },
+    datacell/.style={
+        align=center,
+        minimum height=\TableRowHeight
+    },
+    notebox/.style={
+        draw=NoteBorder,
+        fill=NoteBg,
+        rounded corners=2.5mm,
+        line width=0.7pt,
+        text width=\NoteTextWidth,
+        align=left,
+        inner xsep=6mm,
+        inner ysep=4.5mm
+    }
+}
+
 \begin{document}
-\begin{center}
 \begin{tikzpicture}[font=\small]
 
-% ---------- Title ----------
-\node[
-    draw=TitleBlue,
-    fill=TitleBlue!5,
-    rounded corners=3mm,
-    line width=0.9pt,
-    inner xsep=8mm,
-    inner ysep=4mm,
-    text width=0.95\textwidth,
-    align=center
-] (titlebox) {
+% ============================================================
+%  Title
+% ============================================================
+\node[titlebox] (titlebox) {
     {\Large\bfseries\color{TitleBlue}\TitleText}\\[1mm]
     {\normalsize\color{HeaderText}\SubTitleText}
 };
 
-% ---------- Table Matrix ----------
+% ============================================================
+%  Main Table
+%  注意：所有单元格均由 TikZ node 自身负责自动换行与居中，
+%       不再使用顶对齐 parbox，因此垂直居中更稳定。
+% ============================================================
 \matrix[
     matrix of nodes,
-    below=7mm of titlebox,
-    nodes={
-        draw=GridLine,
-        line width=0.6pt,
-        anchor=north west,
-        align=left,
-        inner xsep=4.5mm,
-        inner ysep=3.5mm,
-        text depth=0.2ex,
-        font=\small
-    },
+    below=\TableGap of titlebox,
+    nodes={tablecell},
     row sep=-\pgflinewidth,
     column sep=-\pgflinewidth,
-    column 1/.style={nodes={text width=1.7cm,font=\bfseries\small\centering,align=center}},
-    column 2/.style={nodes={text width=4.4cm}},
-    column 3/.style={nodes={text width=4.8cm}},
-    column 4/.style={nodes={text width=5.0cm}},
-    row 1/.style={nodes={fill=HeaderBlue,text=HeaderText,font=\bfseries\small,align=center}},
-    row 2/.style={nodes={fill=RowA}},
-    row 3/.style={nodes={fill=RowB}},
-    row 4/.style={nodes={fill=RowA}},
-    row 5/.style={nodes={fill=RowB}},
-    row 6/.style={nodes={fill=RowA}}
+    column 1/.style={
+        nodes={text width=1.55cm,font=\bfseries\normalsize,align=center}
+    },
+    column 2/.style={nodes={text width=3.95cm,align=center}},
+    column 3/.style={nodes={text width=4.25cm,align=center}},
+    column 4/.style={nodes={text width=4.55cm,align=center}},
+    row 1/.style={nodes={headercell}},
+    row 2/.style={nodes={datacell,fill=RowA}},
+    row 3/.style={nodes={datacell,fill=RowB}},
+    row 4/.style={nodes={datacell,fill=RowA}},
+    row 5/.style={nodes={datacell,fill=RowB}},
+    row 6/.style={nodes={datacell,fill=RowA}}
 ] (tbl) {
     \HdrLang & \HdrAI & \HdrHuman & \HdrTools \\
-    Bash   & \tightcell{\RowBashAI} & \tightcell{\RowBashHuman} & \tightcell{\RowBashTools} \\
-    Python & \tightcell{\RowPyAI}   & \tightcell{\RowPyHuman}   & \tightcell{\RowPyTools} \\
-    C      & \tightcell{\RowCAI}    & \tightcell{\RowCHuman}    & \tightcell{\RowCTools} \\
-    C++    & \tightcell{\RowCppAI}  & \tightcell{\RowCppHuman}  & \tightcell{\RowCppTools} \\
-    Rust   & \tightcell{\RowRustAI} & \tightcell{\RowRustHuman} & \tightcell{\RowRustTools} \\
+    Bash   & \RowBashAI & \RowBashHuman & \RowBashTools \\
+    Python & \RowPyAI   & \RowPyHuman   & \RowPyTools \\
+    C      & \RowCAI    & \RowCHuman    & \RowCTools \\
+    C++    & \RowCppAI  & \RowCppHuman  & \RowCppTools \\
+    Rust   & \RowRustAI & \RowRustHuman & \RowRustTools \\
 };
 
-% ---------- Accent Backgrounds ----------
+% ============================================================
+%  Column Accent Overlays
+% ============================================================
 \begin{scope}[on background layer]
     \node[
         fit=(tbl-2-2)(tbl-6-2),
@@ -140,35 +192,26 @@
     ] {};
 \end{scope}
 
-% ---------- Notes ----------
-\node[
-    below=7mm of tbl,
-    draw=NoteBorder,
-    fill=NoteBg,
-    rounded corners=2.5mm,
-    line width=0.7pt,
-    text width=0.95\textwidth,
-    align=left,
-    inner xsep=6mm,
-    inner ysep=4mm
-] (note) {
-    {\bfseries\color{TitleBlue}使用提示}\\[1mm]
-    \begin{minipage}[t]{0.31\textwidth}
+% ============================================================
+%  Notes
+% ============================================================
+\node[notebox,below=\TableGap of tbl] (note) {
+    {\bfseries\color{TitleBlue}使用提示}\\[1.5mm]
+    \begin{minipage}[t]{\NoteColWidth}
         {\bfseries 1. 通用工作流}\\
         人定义目标与约束 $\rightarrow$ AI 生成/修改 $\rightarrow$ 工具验证 $\rightarrow$ 人 Review
     \end{minipage}
     \hfill
-    \begin{minipage}[t]{0.31\textwidth}
+    \begin{minipage}[t]{\NoteColWidth}
         {\bfseries 2. 语言差异的本质}\\
         骨架相似，但每种语言的风险点、验证工具与 Review 重点不同。
     \end{minipage}
     \hfill
-    \begin{minipage}[t]{0.31\textwidth}
+    \begin{minipage}[t]{\NoteColWidth}
         {\bfseries 3. 关键原则}\\
         让 AI 提高速度，让工具尽早暴露错误，让工程经验负责最终决策。
     \end{minipage}
 };
 
 \end{tikzpicture}
-\end{center}
 \end{document}
