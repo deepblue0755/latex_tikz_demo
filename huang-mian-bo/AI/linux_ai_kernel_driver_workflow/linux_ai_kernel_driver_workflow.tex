@@ -1,0 +1,245 @@
+\documentclass[tikz,border=6mm,multi=tikzpicture]{standalone}
+\usepackage[UTF8]{ctex}
+\usepackage{xcolor}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric,fit,backgrounds,calc}
+
+% ---------- Color Palette ----------
+\definecolor{TitleBlue}{HTML}{1F4E79}
+\definecolor{HardwareBlue}{HTML}{E8F1FB}
+\definecolor{HardwareBorder}{HTML}{2F6DA3}
+\definecolor{AIgreen}{HTML}{EAF7EA}
+\definecolor{AIborder}{HTML}{4B8B3B}
+\definecolor{ToolOrange}{HTML}{FFF2E2}
+\definecolor{ToolBorder}{HTML}{C97A1A}
+\definecolor{ReviewPurple}{HTML}{F2EAFE}
+\definecolor{ReviewBorder}{HTML}{7A4FB3}
+\definecolor{FailRed}{HTML}{FDEBEC}
+\definecolor{FailBorder}{HTML}{C84C61}
+\definecolor{PassTeal}{HTML}{E7F8F4}
+\definecolor{PassBorder}{HTML}{2D9A88}
+\definecolor{MergeGray}{HTML}{EEF2F6}
+\definecolor{MergeBorder}{HTML}{647380}
+\definecolor{LineGray}{HTML}{6C7886}
+\definecolor{PanelBg}{HTML}{FBFCFE}
+\definecolor{PanelBorder}{HTML}{B9C8D7}
+
+% ---------- Styles ----------
+\tikzset{
+  flow/.style={-{Stealth[length=3mm,width=2.2mm]}, line width=1.0pt, draw=LineGray},
+  feedback/.style={-{Stealth[length=3mm,width=2.2mm]}, line width=1.0pt, draw=FailBorder, dashed},
+  box/.style={
+    rounded corners=2.5mm,
+    draw,
+    line width=0.9pt,
+    minimum width=71mm,
+    minimum height=11.8mm,
+    align=center,
+    inner xsep=5mm,
+    inner ysep=2.9mm,
+    font=\small
+  },
+  hardware/.style={box, fill=HardwareBlue, draw=HardwareBorder},
+  ai/.style={box, fill=AIgreen, draw=AIborder},
+  tool/.style={box, fill=ToolOrange, draw=ToolBorder},
+  review/.style={box, fill=ReviewPurple, draw=ReviewBorder},
+  fail/.style={box, fill=FailRed, draw=FailBorder, minimum width=28mm},
+  pass/.style={box, fill=PassTeal, draw=PassBorder, minimum width=28mm},
+  merge/.style={box, fill=MergeGray, draw=MergeBorder, minimum width=30mm},
+  decision/.style={
+    diamond,
+    aspect=2.0,
+    draw=ReviewBorder,
+    fill=ReviewPurple!65,
+    line width=0.9pt,
+    minimum width=32mm,
+    minimum height=12mm,
+    align=center,
+    inner xsep=2mm,
+    inner ysep=1.2mm,
+    font=\small\bfseries
+  },
+  titlebox/.style={
+    rounded corners=3mm,
+    draw=TitleBlue,
+    fill=TitleBlue!5,
+    line width=0.9pt,
+    inner xsep=8mm,
+    inner ysep=4mm,
+    align=center,
+    text width=156mm
+  },
+  legendbox/.style={
+    rounded corners=2.5mm,
+    draw=PanelBorder,
+    fill=PanelBg,
+    line width=0.8pt,
+    inner xsep=5mm,
+    inner ysep=4mm,
+    align=left,
+    font=\footnotesize,
+    text width=56mm
+  },
+  labeltag/.style={font=\scriptsize\bfseries, text=LineGray, fill=white, inner xsep=1.1mm, inner ysep=0.3mm}
+}
+
+% ---------- Content presets ----------
+\newcommand{\SetEnglishContent}{%
+  \def\ChartTitle{Modern Linux Kernel Driver Development Workflow}%
+  \def\ChartSubtitle{AI-assisted workflow for kernel driver engineering}%
+  \def\NHardware{Hardware / Protocol / Datasheet}%
+  \def\NContract{Driver Contract / Invariant}%
+  \def\NAI{AI-assisted coding}%
+  \def\NBuild{Kbuild / Kconfig / modpost}%
+  \def\NCompiler{Compiler warnings + sparse}%
+  \def\NStatic{smatch / Coccinelle / checkpatch}%
+  \def\NUnit{KUnit / kselftest}%
+  \def\NSanitizer{KASAN / UBSAN / KCSAN / lockdep}%
+  \def\NTrace{ftrace / trace-cmd / perf / debugfs}%
+  \def\NRealHW{Real Hardware Test}%
+  \def\NStress{Stress / Fault Injection / Hotplug}%
+  \def\NReview{Human Review}%
+  \def\NDecision{Decision}%
+  \def\NDecisionSub{Accept the result?}%
+  \def\NFailed{Failed}%
+  \def\NPassed{Passed}%
+  \def\NFix{AI / Human Revision}%
+  \def\NMerge{Merge}%
+  \def\LblNo{No}%
+  \def\LblYes{Yes}%
+  \def\LblIterate{Iterate}%
+  \def\LegendTitle{Color Legend}%
+  \def\LegendHardware{Human / Hardware / Constraint Input}%
+  \def\LegendAI{AI-assisted Coding / AI Revision}%
+  \def\LegendTool{Toolchain / Static Analysis / Testing / Validation}%
+  \def\LegendReview{Human Review / Decision}%
+  \def\LegendPass{Passed}%
+  \def\LegendFail{Failed}%
+  \def\LegendMerge{Merge / Integration}%
+}
+
+\newcommand{\SetChineseContent}{%
+  \def\ChartTitle{现代 Linux 内核驱动开发工作流}%
+  \def\ChartSubtitle{面向内核驱动工程的 AI 辅助开发流程}%
+  \def\NHardware{硬件 / 协议 / 数据手册}%
+  \def\NContract{驱动契约 / 不变量}%
+  \def\NAI{AI 辅助编码}%
+  \def\NBuild{Kbuild / Kconfig / modpost}%
+  \def\NCompiler{编译器告警 + sparse}%
+  \def\NStatic{smatch / Coccinelle / checkpatch}%
+  \def\NUnit{KUnit / kselftest}%
+  \def\NSanitizer{KASAN / UBSAN / KCSAN / lockdep}%
+  \def\NTrace{ftrace / trace-cmd / perf / debugfs}%
+  \def\NRealHW{真实硬件测试}%
+  \def\NStress{压力测试 / 故障注入 / 热插拔}%
+  \def\NReview{人工审查}%
+  \def\NDecision{决策}%
+  \def\NDecisionSub{是否接受当前结果？}%
+  \def\NFailed{失败}%
+  \def\NPassed{通过}%
+  \def\NFix{AI / 人修正}%
+  \def\NMerge{合入}%
+  \def\LblNo{否}%
+  \def\LblYes{是}%
+  \def\LblIterate{迭代}%
+  \def\LegendTitle{颜色用途说明}%
+  \def\LegendHardware{人工 / 硬件 / 约束输入}%
+  \def\LegendAI{AI 辅助编码 / AI 修正}%
+  \def\LegendTool{工具链 / 静态检查 / 测试 / 验证}%
+  \def\LegendReview{人工审查 / 决策}%
+  \def\LegendPass{通过 / Passed}%
+  \def\LegendFail{失败 / Failed}%
+  \def\LegendMerge{合入 / Merge}%
+}
+
+% ---------- Drawing macro ----------
+\newcommand{\DrawWorkflow}{%
+\begin{tikzpicture}[node distance=5.8mm and 13mm]
+
+% ---------- Main flow ----------
+\node[hardware] (hardware) {\textbf{\NHardware}};
+\node[hardware, below=of hardware] (contract) {\textbf{\NContract}};
+\node[ai, below=of contract] (ai) {\textbf{\NAI}};
+\node[tool, below=of ai] (build) {\textbf{\NBuild}};
+\node[tool, below=of build] (compiler) {\textbf{\NCompiler}};
+\node[tool, below=of compiler] (static) {\textbf{\NStatic}};
+\node[tool, below=of static] (unit) {\textbf{\NUnit}};
+\node[tool, below=of unit] (san) {\textbf{\NSanitizer}};
+\node[tool, below=of san] (trace) {\textbf{\NTrace}};
+\node[hardware, below=of trace] (realhw) {\textbf{\NRealHW}};
+\node[tool, below=of realhw] (stress) {\textbf{\NStress}};
+\node[review, below=of stress] (review) {\textbf{\NReview}};
+\node[decision, below=9mm of review] (decision) {\NDecision\\[-0.4mm]\footnotesize \NDecisionSub};
+
+\node[fail, below left=15mm and 25mm of decision] (failed) {\textbf{\NFailed}};
+\node[pass, below right=15mm and 25mm of decision] (passed) {\textbf{\NPassed}};
+\node[ai, below=10mm of failed, minimum width=35mm] (fix) {\textbf{\NFix}};
+\node[merge, below=10mm of passed] (merge) {\textbf{\NMerge}};
+
+% ---------- Legend ----------
+\node[legendbox, right=20mm of san.east, anchor=west] (legend) {
+  {\bfseries\color{TitleBlue}\LegendTitle}\\[1mm]
+  \begin{tabular}{@{}p{1.8cm}p{3.6cm}@{}}
+  \tikz{\node[hardware, minimum width=10mm, minimum height=4.5mm, inner sep=0pt]{};} & \LegendHardware \\
+  \tikz{\node[ai, minimum width=10mm, minimum height=4.5mm, inner sep=0pt]{};} & \LegendAI \\
+  \tikz{\node[tool, minimum width=10mm, minimum height=4.5mm, inner sep=0pt]{};} & \LegendTool \\
+  \tikz{\node[review, minimum width=10mm, minimum height=4.5mm, inner sep=0pt]{};} & \LegendReview \\
+  \tikz{\node[pass, minimum width=10mm, minimum height=4.5mm, inner sep=0pt]{};} & \LegendPass \\
+  \tikz{\node[fail, minimum width=10mm, minimum height=4.5mm, inner sep=0pt]{};} & \LegendFail \\
+  \tikz{\node[merge, minimum width=10mm, minimum height=4.5mm, inner sep=0pt]{};} & \LegendMerge \\
+  \end{tabular}
+};
+
+% ---------- Background body ----------
+\begin{scope}[on background layer]
+\node[
+  fit=(hardware)(contract)(ai)(build)(compiler)(static)(unit)(san)(trace)(realhw)(stress)(review)(decision)(failed)(passed)(fix)(merge)(legend),
+  rounded corners=4mm,
+  draw=PanelBorder,
+  fill=white,
+  line width=0.8pt,
+  inner xsep=8mm,
+  inner ysep=8mm
+] (bodybg) {};
+\end{scope}
+
+% ---------- Title ----------
+\node[titlebox, above=8mm of bodybg.north, anchor=south] (title) {
+  {\Large\bfseries\color{TitleBlue}\ChartTitle}\\[1mm]
+  {\normalsize\color{TitleBlue!85!black}\ChartSubtitle}
+};
+
+% ---------- Flow arrows ----------
+\draw[flow] (hardware) -- (contract);
+\draw[flow] (contract) -- (ai);
+\draw[flow] (ai) -- (build);
+\draw[flow] (build) -- (compiler);
+\draw[flow] (compiler) -- (static);
+\draw[flow] (static) -- (unit);
+\draw[flow] (unit) -- (san);
+\draw[flow] (san) -- (trace);
+\draw[flow] (trace) -- (realhw);
+\draw[flow] (realhw) -- (stress);
+\draw[flow] (stress) -- (review);
+\draw[flow] (review) -- (decision);
+
+% decision branches: horizontal then vertical
+\draw[flow] (decision.west) -- (decision.west -| failed.north) -- node[pos=0.26,left=1mm,labeltag]{\LblNo} (failed.north);
+\draw[flow] (decision.east) -- (decision.east -| passed.north) -- node[pos=0.26,right=1mm,labeltag]{\LblYes} (passed.north);
+\draw[flow] (failed) -- (fix);
+\draw[flow] (passed) -- (merge);
+
+% feedback loop from fix back to AI-assisted coding
+\coordinate[left=24mm of ai] (fbleft);
+\draw[feedback] (fix.west) -- ++(-10mm,0) |- (fbleft) |- (ai.west);
+\node[labeltag, above right=1mm and 1mm of fbleft, text=FailBorder] {\LblIterate};
+
+\end{tikzpicture}%
+}
+
+\begin{document}
+\SetEnglishContent
+\DrawWorkflow
+
+\SetChineseContent
+\DrawWorkflow
+\end{document}
