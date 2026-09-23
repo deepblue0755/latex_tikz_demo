@@ -1,0 +1,174 @@
+\documentclass[12pt]{ctexart}
+
+\usepackage[a3paper,margin=14mm]{geometry}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{matrix,positioning,fit,backgrounds}
+\usepackage{array}
+\usepackage{ragged2e}
+\usepackage{setspace}
+\usepackage{enumitem}
+\pagestyle{empty}
+
+% ---------- Color Palette ----------
+\definecolor{TitleBlue}{HTML}{1F4E79}
+\definecolor{HeaderBlue}{HTML}{D9EAF7}
+\definecolor{HeaderText}{HTML}{103A5C}
+\definecolor{RowA}{HTML}{F8FBFE}
+\definecolor{RowB}{HTML}{EEF6FC}
+\definecolor{GridLine}{HTML}{B7CCDD}
+\definecolor{AccentGreen}{HTML}{E8F5E9}
+\definecolor{AccentOrange}{HTML}{FFF3E0}
+\definecolor{AccentPurple}{HTML}{F3E5F5}
+\definecolor{NoteBg}{HTML}{FAFCFF}
+\definecolor{NoteBorder}{HTML}{B7CCDD}
+
+% ---------- Typography ----------
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\tightcell}[1]{\parbox[t]{\linewidth}{\RaggedRight\arraybackslash #1}}
+\setlength{\parindent}{0pt}
+\renewcommand{\arraystretch}{1.18}
+
+% ---------- Content Macros ----------
+\newcommand{\TitleText}{AI 时代多语言开发模式快速参考表}
+\newcommand{\SubTitleText}{AI 最适合做什么 / 人最该盯住什么 / 主要验证工具}
+
+\newcommand{\HdrLang}{语言}
+\newcommand{\HdrAI}{AI 最适合做}
+\newcommand{\HdrHuman}{人最该盯住}
+\newcommand{\HdrTools}{主要验证工具}
+
+\newcommand{\RowBashAI}{脚手架、批处理、文本处理、自动化}
+\newcommand{\RowBashHuman}{quoting、错误传播、幂等性、破坏性命令}
+\newcommand{\RowBashTools}{\code{shellcheck}、\code{bash -n}、测试环境}
+
+\newcommand{\RowPyAI}{业务逻辑、自动化、测试、数据处理}
+\newcommand{\RowPyHuman}{类型边界、异常路径、依赖、运行时行为}
+\newcommand{\RowPyTools}{\code{pytest}、\code{mypy/pyright}、\code{ruff}}
+
+\newcommand{\RowCAI}{驱动、底层接口、协议、资源控制}
+\newcommand{\RowCHuman}{指针、生命周期、越界、UB、并发}
+\newcommand{\RowCTools}{compiler warnings、ASan/UBSan、静态分析}
+
+\newcommand{\RowCppAI}{复杂系统、抽象、并发、性能}
+\newcommand{\RowCppHuman}{ownership、RAII、模板、线程安全、性能}
+\newcommand{\RowCppTools}{clang-tidy、ASan/UBSan/TSan、benchmark}
+
+\newcommand{\RowRustAI}{并发、系统编程、安全抽象}
+\newcommand{\RowRustHuman}{\code{unsafe}、生命周期建模、API 设计、性能}
+\newcommand{\RowRustTools}{\code{cargo clippy}、\code{cargo test}、Miri、sanitizer}
+
+\begin{document}
+\begin{center}
+\begin{tikzpicture}[font=\small]
+
+% ---------- Title ----------
+\node[
+    draw=TitleBlue,
+    fill=TitleBlue!5,
+    rounded corners=3mm,
+    line width=0.9pt,
+    inner xsep=8mm,
+    inner ysep=4mm,
+    text width=0.95\textwidth,
+    align=center
+] (titlebox) {
+    {\Large\bfseries\color{TitleBlue}\TitleText}\\[1mm]
+    {\normalsize\color{HeaderText}\SubTitleText}
+};
+
+% ---------- Table Matrix ----------
+\matrix[
+    matrix of nodes,
+    below=7mm of titlebox,
+    nodes={
+        draw=GridLine,
+        line width=0.6pt,
+        anchor=north west,
+        align=left,
+        inner xsep=4.5mm,
+        inner ysep=3.5mm,
+        text depth=0.2ex,
+        font=\small
+    },
+    row sep=-\pgflinewidth,
+    column sep=-\pgflinewidth,
+    column 1/.style={nodes={text width=1.7cm,font=\bfseries\small\centering,align=center}},
+    column 2/.style={nodes={text width=4.4cm}},
+    column 3/.style={nodes={text width=4.8cm}},
+    column 4/.style={nodes={text width=5.0cm}},
+    row 1/.style={nodes={fill=HeaderBlue,text=HeaderText,font=\bfseries\small,align=center}},
+    row 2/.style={nodes={fill=RowA}},
+    row 3/.style={nodes={fill=RowB}},
+    row 4/.style={nodes={fill=RowA}},
+    row 5/.style={nodes={fill=RowB}},
+    row 6/.style={nodes={fill=RowA}}
+] (tbl) {
+    \HdrLang & \HdrAI & \HdrHuman & \HdrTools \\
+    Bash   & \tightcell{\RowBashAI} & \tightcell{\RowBashHuman} & \tightcell{\RowBashTools} \\
+    Python & \tightcell{\RowPyAI}   & \tightcell{\RowPyHuman}   & \tightcell{\RowPyTools} \\
+    C      & \tightcell{\RowCAI}    & \tightcell{\RowCHuman}    & \tightcell{\RowCTools} \\
+    C++    & \tightcell{\RowCppAI}  & \tightcell{\RowCppHuman}  & \tightcell{\RowCppTools} \\
+    Rust   & \tightcell{\RowRustAI} & \tightcell{\RowRustHuman} & \tightcell{\RowRustTools} \\
+};
+
+% ---------- Accent Backgrounds ----------
+\begin{scope}[on background layer]
+    \node[
+        fit=(tbl-2-2)(tbl-6-2),
+        fill=AccentGreen,
+        fill opacity=0.16,
+        rounded corners=1.5mm,
+        inner sep=0pt,
+        draw=none
+    ] {};
+    \node[
+        fit=(tbl-2-3)(tbl-6-3),
+        fill=AccentOrange,
+        fill opacity=0.18,
+        rounded corners=1.5mm,
+        inner sep=0pt,
+        draw=none
+    ] {};
+    \node[
+        fit=(tbl-2-4)(tbl-6-4),
+        fill=AccentPurple,
+        fill opacity=0.18,
+        rounded corners=1.5mm,
+        inner sep=0pt,
+        draw=none
+    ] {};
+\end{scope}
+
+% ---------- Notes ----------
+\node[
+    below=7mm of tbl,
+    draw=NoteBorder,
+    fill=NoteBg,
+    rounded corners=2.5mm,
+    line width=0.7pt,
+    text width=0.95\textwidth,
+    align=left,
+    inner xsep=6mm,
+    inner ysep=4mm
+] (note) {
+    {\bfseries\color{TitleBlue}使用提示}\\[1mm]
+    \begin{minipage}[t]{0.31\textwidth}
+        {\bfseries 1. 通用工作流}\\
+        人定义目标与约束 $\rightarrow$ AI 生成/修改 $\rightarrow$ 工具验证 $\rightarrow$ 人 Review
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.31\textwidth}
+        {\bfseries 2. 语言差异的本质}\\
+        骨架相似，但每种语言的风险点、验证工具与 Review 重点不同。
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.31\textwidth}
+        {\bfseries 3. 关键原则}\\
+        让 AI 提高速度，让工具尽早暴露错误，让工程经验负责最终决策。
+    \end{minipage}
+};
+
+\end{tikzpicture}
+\end{center}
+\end{document}

@@ -1,0 +1,288 @@
+% !TeX program = xelatex
+% ============================================================
+% Linux System Configuration in the AI Era
+% XeLaTeX + TikZ
+%
+% Design goals:
+%   1. Keep visual styles and text content separated.
+%   2. Use relative node positioning only; no absolute (x,y) coordinates.
+%   3. Keep the feedback path away from the responsibility cards.
+%   4. Match the companion "AI-assisted C/C++ development workflow".
+% ============================================================
+
+\documentclass[10pt,a4paper]{article}
+
+% -------------------- 1. PACKAGES ---------------------------
+\usepackage[a4paper,margin=13mm]{geometry}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{
+  arrows.meta,
+  positioning,
+  shapes.geometric,
+  fit,
+  backgrounds,
+  calc
+}
+\usepackage{enumitem}
+\usepackage{microtype}
+\pagestyle{empty}
+
+% -------------------- 2. TYPOGRAPHY + STYLE -----------------
+% Replace these font lines if another local font is preferred.
+\setmainfont{DejaVu Sans}
+\setCJKmainfont{Noto Sans CJK SC}
+\setsansfont{DejaVu Sans}
+\setCJKsansfont{Noto Sans CJK SC}
+
+% ---- Palette: shared with the companion C++ workflow ----
+\definecolor{HumanBlue}{HTML}{2563EB}
+\definecolor{AIPurple}{HTML}{7C3AED}
+\definecolor{ToolGreen}{HTML}{059669}
+\definecolor{ReviewOrange}{HTML}{EA580C}
+\definecolor{PassGreen}{HTML}{15803D}
+\definecolor{FailRed}{HTML}{DC2626}
+\definecolor{Ink}{HTML}{1F2937}
+\definecolor{SoftGray}{HTML}{F3F4F6}
+\definecolor{LineGray}{HTML}{64748B}
+\definecolor{PaleBlue}{HTML}{EFF6FF}
+\definecolor{PalePurple}{HTML}{F5F3FF}
+\definecolor{PaleGreen}{HTML}{ECFDF5}
+\definecolor{PaleOrange}{HTML}{FFF7ED}
+\definecolor{ApplyTeal}{HTML}{0F766E}
+\definecolor{PaleTeal}{HTML}{F0FDFA}
+
+% ---- Global TikZ knobs ----
+\tikzset{
+  >={Latex[length=2.8mm,width=1.9mm]},
+  every node/.style={font=\sffamily},
+  workflow/.style={
+    draw=Ink!55,
+    line width=0.85pt,
+    rounded corners=2.5mm,
+    text=Ink,
+    align=center,
+    minimum height=12.5mm,
+    text width=72mm,
+    inner xsep=5mm,
+    inner ysep=2.7mm,
+  },
+  human/.style={workflow, draw=HumanBlue, fill=PaleBlue},
+  ai/.style={workflow, draw=AIPurple, fill=PalePurple},
+  tool/.style={workflow, draw=ToolGreen, fill=PaleGreen},
+  review/.style={workflow, draw=ReviewOrange, fill=PaleOrange},
+  apply/.style={workflow, draw=ApplyTeal, fill=PaleTeal},
+  decision/.style={
+    diamond,
+    aspect=2.35,
+    draw=ReviewOrange,
+    fill=PaleOrange,
+    line width=0.9pt,
+    align=center,
+    text=Ink,
+    inner sep=1.2mm,
+    text width=29mm,
+  },
+  terminal/.style={
+    rounded corners=7mm,
+    draw=PassGreen,
+    fill=PassGreen!8,
+    line width=1pt,
+    minimum width=48mm,
+    minimum height=10mm,
+    align=center,
+    text=Ink,
+  },
+  flow/.style={->, draw=LineGray, line width=1.05pt},
+  feedback/.style={->, draw=FailRed, line width=1.05pt, dashed},
+  passflow/.style={->, draw=PassGreen, line width=1.05pt},
+  rolebox/.style={
+    rounded corners=2mm,
+    draw=Ink!25,
+    fill=white,
+    line width=0.6pt,
+    inner sep=3mm,
+    text width=48mm,
+    align=left,
+    font=\sffamily\small,
+  },
+  rulebox/.style={
+    rounded corners=2mm,
+    draw=FailRed!45,
+    fill=FailRed!4,
+    line width=0.65pt,
+    inner sep=3mm,
+    text width=48mm,
+    align=left,
+    font=\sffamily\small,
+  },
+  phasebg/.style={
+    rounded corners=3mm,
+    draw=none,
+    fill=SoftGray,
+    inner sep=4mm,
+  },
+  tag/.style={
+    rounded corners=1.5mm,
+    inner xsep=2.2mm,
+    inner ysep=1.0mm,
+    font=\sffamily\scriptsize\bfseries,
+    text=white,
+  }
+}
+
+% -------------------- 3. CONTENT ----------------------------
+% Most later edits should only touch this section.
+
+\newcommand{\DocTitle}{Linux System Configuration in the AI Era}
+\newcommand{\DocSubtitle}{人定目标，AI 出变更，工具验状态；分步执行、可测可退，人做最终验收}
+
+\newcommand{\DesiredTitle}{人：定义 Desired State}
+\newcommand{\DesiredBody}{明确目标状态、约束、不变量、性能指标、允许的风险与不可破坏条件}
+
+\newcommand{\CurrentTitle}{工具：采集 Current State}
+\newcommand{\CurrentBody}{系统版本、启动参数、服务、网络、存储、IRQ、日志与关键运行状态；先取证，后修改}
+
+\newcommand{\PlanTitle}{AI：分析差距并生成 Change Set}
+\newcommand{\PlanBody}{基于实际状态给出配置差异、修改文件、命令、影响范围、验证点与候选回滚方案}
+
+\newcommand{\ReviewTitle}{人：Review 变更与回滚边界}
+\newcommand{\ReviewBody}{确认依赖关系、故障影响、远程失联风险、重启要求、维护窗口与恢复路径}
+
+\newcommand{\PreflightTitle}{工具：Preflight / Static Validation}
+\newcommand{\PreflightBody}{语法检查、配置验证、dry-run、shellcheck / bash -n / systemd-analyze verify 等}
+
+\newcommand{\ApplyTitle}{受控执行：Staged Apply}
+\newcommand{\ApplyBody}{备份原配置；小步、幂等、可审计地应用；一次只改变可归因的一组变量}
+
+\newcommand{\ObserveTitle}{工具：采集 Actual State 与证据}
+\newcommand{\ObserveBody}{systemctl / journalctl / dmesg / procfs / sysfs / perf / cyclictest 等重新测量实际状态}
+
+\newcommand{\CompareTitle}{人 + AI：Desired vs. Actual}
+\newcommand{\CompareBody}{AI 辅助解释日志和差异；人判断目标是否真正达到，以及副作用是否可接受}
+
+\newcommand{\DecisionText}{目标、证据与\\风险均满足？}
+\newcommand{\PassText}{通过：固化配置 / 版本化 / 文档化}
+\newcommand{\FailText}{把偏差、日志和测量证据\\反馈给 AI，重新生成变更计划}
+
+\newcommand{\HumanRole}{%
+  \textbf{人负责：}\\[-1mm]
+  \begin{itemize}[leftmargin=*,nosep]
+    \item 定义 Desired State / Invariant
+    \item 判断风险、依赖与维护窗口
+    \item 决定是否执行、是否回滚
+    \item 最终验收与上线责任
+  \end{itemize}}
+
+\newcommand{\AIRole}{%
+  \textbf{AI 负责：}\\[-1mm]
+  \begin{itemize}[leftmargin=*,nosep]
+    \item 分析 Current / Actual State
+    \item 生成 Change Set 与脚本草案
+    \item 辅助解释日志、差异与异常
+    \item 生成验证项、文档与回滚建议
+  \end{itemize}}
+
+\newcommand{\ToolRole}{%
+  \textbf{工具负责：}\\[-1mm]
+  \begin{itemize}[leftmargin=*,nosep]
+    \item 提供真实系统状态和可复现证据
+    \item 做语法、静态和运行期验证
+    \item 测量性能、服务状态和副作用
+  \end{itemize}}
+
+\newcommand{\SafetyRule}{%
+  \textbf{核心规则：}\\[-1mm]
+  不让 AI 从“问题描述”直接跳到 root 命令。\\
+  至少经过：\textbf{Current State → Change Plan → Verify Plan}。}
+
+% -------------------- 4. DRAWING ----------------------------
+\begin{document}
+
+\begin{center}
+  {\LARGE\bfseries\color{Ink}\DocTitle}\par
+  \vspace{1.2mm}
+  {\small\color{LineGray}\DocSubtitle}
+\end{center}
+
+\vspace{1.5mm}
+
+\begin{tikzpicture}[node distance=5.1mm and 10mm]
+
+  % ---- Main vertical flow: all positions are relative ----
+  \node[human] (desired) {\textbf{\DesiredTitle}\\[0.8mm]\small \DesiredBody};
+
+  \node[tool, below=of desired] (current) {\textbf{\CurrentTitle}\\[0.8mm]\small \CurrentBody};
+
+  \node[ai, below=of current] (plan) {\textbf{\PlanTitle}\\[0.8mm]\small \PlanBody};
+
+  \node[review, below=of plan] (review) {\textbf{\ReviewTitle}\\[0.8mm]\small \ReviewBody};
+
+  \node[tool, below=of review] (preflight) {\textbf{\PreflightTitle}\\[0.8mm]\small \PreflightBody};
+
+  \node[apply, below=of preflight] (apply) {\textbf{\ApplyTitle}\\[0.8mm]\small \ApplyBody};
+
+  \node[tool, below=of apply] (observe) {\textbf{\ObserveTitle}\\[0.8mm]\small \ObserveBody};
+
+  \node[human, below=of observe] (compare) {\textbf{\CompareTitle}\\[0.8mm]\small \CompareBody};
+
+  \node[decision, below=7mm of compare] (decision) {\textbf{\DecisionText}};
+
+  \node[terminal, below=7mm of decision] (pass) {\textbf{\PassText}};
+
+  % ---- Main flow arrows ----
+  \draw[flow] (desired) -- (current);
+  \draw[flow] (current) -- (plan);
+  \draw[flow] (plan) -- (review);
+  \draw[flow] (review) -- (preflight);
+  \draw[flow] (preflight) -- (apply);
+  \draw[flow] (apply) -- (observe);
+  \draw[flow] (observe) -- (compare);
+  \draw[flow] (compare) -- (decision);
+  \draw[passflow] (decision) -- node[right, font=\scriptsize\bfseries, text=PassGreen] {是} (pass);
+
+  % ---- Failure card and return path ----
+  % The card is to the right of the decision. The dashed return path travels
+  % below the main flow and then up the LEFT side to the AI planning node,
+  % so it never crosses the responsibility cards on the right.
+  \node[review, text width=49mm, right=18mm of decision] (feedback) {\textbf{发现偏差 / 副作用}\\[0.8mm]\small \FailText};
+  \draw[feedback] (decision.east) -- node[above, font=\scriptsize\bfseries, text=FailRed] {否} (feedback.west);
+
+  \coordinate (feedbackbottom) at ([yshift=-7mm]pass.south);
+  \coordinate (feedbackleft)   at ([xshift=-9mm]plan.west);
+  \draw[feedback]
+    (feedback.south)
+    |- (feedbackbottom)
+    -| (feedbackleft)
+    -- node[above, near end, font=\scriptsize\bfseries, text=FailRed] {证据驱动再规划} (plan.west);
+
+  % ---- Responsibility cards ----
+  \node[rolebox, right=18mm of current] (humanrole) {\HumanRole};
+  \node[rolebox, below=4.5mm of humanrole] (airole) {\AIRole};
+  \node[rolebox, below=4.5mm of airole] (toolrole) {\ToolRole};
+  \node[rulebox, below=4.5mm of toolrole] (rule) {\SafetyRule};
+
+  \node[tag, fill=HumanBlue, above left=-1mm and 0mm of humanrole.north west] {HUMAN};
+  \node[tag, fill=AIPurple, above left=-1mm and 0mm of airole.north west] {AI};
+  \node[tag, fill=ToolGreen, above left=-1mm and 0mm of toolrole.north west] {TOOLS};
+  \node[tag, fill=FailRed, above left=-1mm and 0mm of rule.north west] {RULE};
+
+  % ---- Soft background grouping ----
+  \begin{scope}[on background layer]
+    \node[phasebg, fit=(desired)(current)] {};
+    \node[phasebg, fit=(plan)(review)] {};
+    \node[phasebg, fit=(preflight)(apply)(observe)] {};
+    \node[phasebg, fit=(compare)(decision)(pass)(feedback)] {};
+  \end{scope}
+
+\end{tikzpicture}
+
+\vfill
+\begin{center}
+  \small\bfseries\color{Ink}
+  Desired State → Evidence → Change Set → Verify → Staged Apply → Observe → Review
+\end{center}
+
+\end{document}
