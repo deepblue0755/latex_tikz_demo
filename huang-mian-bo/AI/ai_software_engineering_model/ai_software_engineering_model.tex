@@ -1,0 +1,361 @@
+\documentclass[tikz,border=6mm,multi=tikzpicture]{standalone}
+\usepackage[UTF8]{ctex}
+\usepackage{xcolor}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric,fit,backgrounds,calc}
+
+% ============================================================
+% Color palette: semantic colors shared by both language pages
+% ============================================================
+\definecolor{TitleBlue}{HTML}{1F4E79}
+
+% Human / intent / contract
+\definecolor{HumanBlue}{HTML}{E3F2FD}
+\definecolor{HumanBorder}{HTML}{1565C0}
+
+% AI
+\definecolor{AIGreen}{HTML}{E8F5E9}
+\definecolor{AIBorder}{HTML}{2E7D32}
+
+% Toolchain / tests / runtime validation
+\definecolor{ToolOrange}{HTML}{FFF3E0}
+\definecolor{ToolBorder}{HTML}{EF6C00}
+
+% Human review / decision
+\definecolor{ReviewPurple}{HTML}{F3E5F5}
+\definecolor{ReviewBorder}{HTML}{7B1FA2}
+
+% Failure / feedback
+\definecolor{FailRed}{HTML}{FFEBEE}
+\definecolor{FailBorder}{HTML}{C62828}
+
+% Success / pass
+\definecolor{PassGreen}{HTML}{E0F2F1}
+\definecolor{PassBorder}{HTML}{00897B}
+
+% Merge / delivery
+\definecolor{MergeGray}{HTML}{ECEFF1}
+\definecolor{MergeBorder}{HTML}{546E7A}
+
+\definecolor{LineGray}{HTML}{6A7785}
+\definecolor{PanelBg}{HTML}{F8FBFE}
+\definecolor{PanelBorder}{HTML}{B8C9D8}
+
+% ============================================================
+% Styles
+% ============================================================
+\tikzset{
+  flow/.style={-{Stealth[length=3mm,width=2.2mm]}, line width=1.0pt, draw=LineGray},
+  feedback/.style={-{Stealth[length=3mm,width=2.2mm]}, line width=1.0pt, draw=FailBorder, dashed},
+  box/.style={
+    rounded corners=2.5mm,
+    draw,
+    line width=0.9pt,
+    minimum width=66mm,
+    minimum height=13mm,
+    align=center,
+    inner xsep=5mm,
+    inner ysep=3.2mm,
+    font=\small
+  },
+  humanbox/.style={box, fill=HumanBlue, draw=HumanBorder},
+  aibox/.style={box, fill=AIGreen, draw=AIBorder},
+  toolbox/.style={box, fill=ToolOrange, draw=ToolBorder},
+  reviewbox/.style={box, fill=ReviewPurple, draw=ReviewBorder},
+  failbox/.style={box, fill=FailRed, draw=FailBorder, minimum width=30mm},
+  passbox/.style={box, fill=PassGreen, draw=PassBorder, minimum width=30mm},
+  mergebox/.style={box, fill=MergeGray, draw=MergeBorder, minimum width=34mm},
+  decision/.style={
+    diamond,
+    aspect=2.0,
+    draw=ReviewBorder,
+    fill=ReviewPurple!65,
+    line width=0.9pt,
+    minimum width=31mm,
+    minimum height=12mm,
+    align=center,
+    inner xsep=2mm,
+    inner ysep=1.2mm,
+    font=\small\bfseries
+  },
+  titlebox/.style={
+    rounded corners=3mm,
+    draw=TitleBlue,
+    fill=TitleBlue!5,
+    line width=0.9pt,
+    inner xsep=8mm,
+    inner ysep=4mm,
+    align=center,
+    text width=150mm
+  },
+  infobox/.style={
+    rounded corners=2.5mm,
+    draw=PanelBorder,
+    fill=PanelBg,
+    line width=0.8pt,
+    align=left,
+    inner xsep=6mm,
+    inner ysep=4.5mm,
+    font=\footnotesize,
+    text width=52mm
+  },
+  legendbox/.style={
+    rounded corners=2.5mm,
+    draw=PanelBorder,
+    fill=PanelBg,
+    line width=0.8pt,
+    align=left,
+    inner xsep=6mm,
+    inner ysep=4mm,
+    font=\scriptsize,
+    text width=58mm
+  },
+  labeltag/.style={
+    font=\scriptsize\bfseries,
+    text=LineGray,
+    fill=white,
+    inner xsep=1.1mm,
+    inner ysep=0.3mm
+  }
+}
+
+% A compact non-TikZ swatch, safe to use inside a TikZ node.
+\newcommand{\LegendSwatch}[3]{%
+  \fcolorbox{#2}{#1}{\rule{0pt}{1.7mm}\rule{3.0mm}{0pt}}\,#3%
+}
+
+% ============================================================
+% Language content presets
+% ============================================================
+\newcommand{\SetEnglishContent}{%
+  \def\ChartTitle{AI Software Engineering Model -- Quick Reference}%
+  \def\ChartSubtitle{Human-in-the-loop workflow: define, generate, verify, review, iterate}%
+
+  \def\NodeHumanTop{Human}%
+  \def\NodeHumanTopSub{Owner / Decision Maker}%
+  \def\NodeDefine{Define intent / contract}%
+  \def\NodeDefineSub{Goals, constraints, invariants}%
+  \def\NodeAI{AI}%
+  \def\NodeAISub{Generate / Refactor / Explain}%
+  \def\NodeToolchain{Language toolchain}%
+  \def\NodeToolchainSub{Compiler / Linter / Type Checker}%
+  \def\NodeTests{Tests}%
+  \def\NodeTestsSub{Unit / Integration / Property}%
+  \def\NodeRuntime{Runtime validation}%
+  \def\NodeRuntimeSub{Sanitizer / Fuzz / Stress}%
+  \def\NodeReview{Human Review}%
+  \def\NodeReviewSub{Architecture, correctness, trade-offs}%
+  \def\NodeDecision{Decision}%
+  \def\NodeDecisionSub{Accept the result?}%
+  \def\NodeFailed{Failed}%
+  \def\NodePassed{Passed}%
+  \def\NodeMerge{Merge}%
+  \def\NodeMergeSub{Ship / Integrate / Deliver}%
+
+  \def\BranchNo{No}%
+  \def\BranchYes{Yes}%
+  \def\FeedbackText{Iterate}%
+
+  \def\NoteCoreTitle{Core principles}%
+  \def\NoteCoreBody{%
+    1. Human defines intent and constraints.\\
+    2. AI accelerates implementation and explanation.\\
+    3. Toolchain and tests provide evidence.\\
+    4. Final judgment remains with people.%
+  }%
+
+  \def\NoteScopeTitle{Scope}%
+  \def\NoteScopeBody{%
+    Bash / Python / C / C++ / Rust can all use this workflow skeleton.\\
+    Replace the language-specific toolchain and validation tools as needed.%
+  }%
+
+  \def\NoteToolsTitle{Typical tools}%
+  \def\NoteToolsBody{%
+    • C/C++: compiler, clang-tidy,\\
+    \hspace*{1.5em}ASan/TSan\\
+    • Python: ruff, mypy, pytest\\
+    • Rust: rustc, clippy, cargo test\\
+    • Bash: shellcheck, bash -n, dry-run%
+  }%
+
+  \def\LegendTitle{Color legend}%
+  \def\LegendHuman{Human}%
+  \def\LegendAI{AI}%
+  \def\LegendTool{Tool / Validation}%
+  \def\LegendReview{Review / Decision}%
+  \def\LegendPass{Passed}%
+  \def\LegendFail{Failed}%
+  \def\LegendMerge{Merge}%
+}
+
+\newcommand{\SetChineseContent}{%
+  \def\ChartTitle{AI 软件工程模型参考图}%
+  \def\ChartSubtitle{人在闭环中的工作流：定义、生成、验证、审查、迭代}%
+
+  \def\NodeHumanTop{人类工程师}%
+  \def\NodeHumanTopSub{责任主体 / 最终决策者}%
+  \def\NodeDefine{定义意图 / 契约}%
+  \def\NodeDefineSub{目标、约束、不变量}%
+  \def\NodeAI{AI}%
+  \def\NodeAISub{生成 / 重构 / 解释}%
+  \def\NodeToolchain{语言工具链}%
+  \def\NodeToolchainSub{编译器 / Linter / 类型检查器}%
+  \def\NodeTests{测试}%
+  \def\NodeTestsSub{单元测试 / 集成测试 / 属性测试}%
+  \def\NodeRuntime{运行时验证}%
+  \def\NodeRuntimeSub{Sanitizer / 模糊测试 / 压力测试}%
+  \def\NodeReview{人工审查}%
+  \def\NodeReviewSub{架构、正确性、工程权衡}%
+  \def\NodeDecision{决策}%
+  \def\NodeDecisionSub{结果可以接受吗？}%
+  \def\NodeFailed{未通过}%
+  \def\NodePassed{通过}%
+  \def\NodeMerge{合入}%
+  \def\NodeMergeSub{发布 / 集成 / 交付}%
+
+  \def\BranchNo{否}%
+  \def\BranchYes{是}%
+  \def\FeedbackText{反馈迭代}%
+
+  \def\NoteCoreTitle{核心原则}%
+  \def\NoteCoreBody{%
+    1. 人负责定义意图、目标与约束。\\
+    2. AI 加速实现、重构与问题解释。\\
+    3. 工具链与测试负责提供验证证据。\\
+    4. 最终判断与工程取舍仍由人负责。%
+  }%
+
+  \def\NoteScopeTitle{适用范围}%
+  \def\NoteScopeBody{%
+    Bash / Python / C / C++ / Rust 等开发流程都可套用这套骨架。\\
+    只需替换中间的语言工具链与验证工具。%
+  }%
+
+  \def\NoteToolsTitle{典型工具示例}%
+  \def\NoteToolsBody{%
+    • C/C++：compiler、clang-tidy、\\
+    \hspace*{1.5em}ASan/TSan\\
+    • Python：ruff、mypy、pytest\\
+    • Rust：rustc、clippy、cargo test\\
+    • Bash：shellcheck、bash -n、dry-run%
+  }%
+
+  \def\LegendTitle{颜色说明}%
+  \def\LegendHuman{人 / 约束}%
+  \def\LegendAI{AI}%
+  \def\LegendTool{工具 / 验证}%
+  \def\LegendReview{审查 / 决策}%
+  \def\LegendPass{通过}%
+  \def\LegendFail{失败}%
+  \def\LegendMerge{合入}%
+}
+
+% ============================================================
+% Shared drawing. Content comes from one of the presets above.
+% ============================================================
+\newcommand{\DrawWorkflow}{%
+\begin{tikzpicture}[node distance=7mm and 14mm]
+
+% ---------- Main Flow ----------
+\node[humanbox] (human) {\textbf{\NodeHumanTop}\\[-0.4mm]\footnotesize \NodeHumanTopSub};
+\node[humanbox, below=of human] (define) {\textbf{\NodeDefine}\\[-0.4mm]\footnotesize \NodeDefineSub};
+\node[aibox, below=of define] (ai) {\textbf{\NodeAI}\\[-0.4mm]\footnotesize \NodeAISub};
+\node[toolbox, below=of ai] (toolchain) {\textbf{\NodeToolchain}\\[-0.4mm]\footnotesize \NodeToolchainSub};
+\node[toolbox, below=of toolchain] (tests) {\textbf{\NodeTests}\\[-0.4mm]\footnotesize \NodeTestsSub};
+\node[toolbox, below=of tests] (runtime) {\textbf{\NodeRuntime}\\[-0.4mm]\footnotesize \NodeRuntimeSub};
+\node[reviewbox, below=of runtime] (review) {\textbf{\NodeReview}\\[-0.4mm]\footnotesize \NodeReviewSub};
+\node[decision, below=10mm of review] (decision) {\NodeDecision\\[-0.3mm]\footnotesize \NodeDecisionSub};
+
+\node[failbox, below left=16mm and 28mm of decision] (failed) {\textbf{\NodeFailed}};
+\node[passbox, below right=16mm and 28mm of decision] (passed) {\textbf{\NodePassed}};
+\node[mergebox, below=of passed] (merge) {\textbf{\NodeMerge}\\[-0.4mm]\footnotesize \NodeMergeSub};
+
+% ---------- Side Notes ----------
+\node[infobox, right=22mm of toolchain.east, anchor=west] (note1) {
+  {\bfseries\color{TitleBlue}\NoteCoreTitle}\\[1mm]
+  \NoteCoreBody
+};
+
+\node[infobox, below=7mm of note1] (note2) {
+  {\bfseries\color{TitleBlue}\NoteScopeTitle}\\[1mm]
+  \NoteScopeBody
+};
+
+\node[infobox, below=7mm of note2] (note3) {
+  {\bfseries\color{TitleBlue}\NoteToolsTitle}\\[1mm]
+  \NoteToolsBody
+};
+
+% ---------- Color Legend: lower-right ----------
+\node[legendbox, right=12mm of merge.east, anchor=west] (legend) {
+  {\bfseries\color{TitleBlue}\LegendTitle}\\[1.2mm]
+  \begin{tabular}{@{}ll@{}}
+    \LegendSwatch{HumanBlue}{HumanBorder}{\LegendHuman} &
+    \LegendSwatch{AIGreen}{AIBorder}{\LegendAI} \\[1.2mm]
+    \LegendSwatch{ToolOrange}{ToolBorder}{\LegendTool} &
+    \LegendSwatch{ReviewPurple}{ReviewBorder}{\LegendReview} \\[1.2mm]
+    \LegendSwatch{PassGreen}{PassBorder}{\LegendPass} &
+    \LegendSwatch{FailRed}{FailBorder}{\LegendFail} \\[1.2mm]
+    \LegendSwatch{MergeGray}{MergeBorder}{\LegendMerge} & {}
+  \end{tabular}
+};
+
+% ---------- Body Background ----------
+\begin{scope}[on background layer]
+\node[
+  fit=(human)(define)(ai)(toolchain)(tests)(runtime)(review)(decision)(failed)(passed)(merge)(note1)(note2)(note3)(legend),
+  rounded corners=4mm,
+  draw=PanelBorder,
+  fill=white,
+  line width=0.8pt,
+  inner xsep=8mm,
+  inner ysep=8mm
+] (bodybg) {};
+\end{scope}
+
+% ---------- Title: centered to the full body layout ----------
+\node[titlebox, above=8mm of bodybg.north, anchor=south] (title) {
+  {\Large\bfseries\color{TitleBlue}\ChartTitle}\\[1mm]
+  {\normalsize\color{TitleBlue!85!black}\ChartSubtitle}
+};
+
+% ---------- Arrows ----------
+\draw[flow] (human) -- (define);
+\draw[flow] (define) -- (ai);
+\draw[flow] (ai) -- (toolchain);
+\draw[flow] (toolchain) -- (tests);
+\draw[flow] (tests) -- (runtime);
+\draw[flow] (runtime) -- (review);
+\draw[flow] (review) -- (decision);
+
+% Decision branches: exactly two orthogonal segments,
+% first horizontal, then vertical into Failed / Passed.
+\coordinate (failturn) at (failed.north |- decision.west);
+\coordinate (passturn) at (passed.north |- decision.east);
+\draw[flow] (decision.west) -- (failturn) -- node[pos=0.55,left=1mm,labeltag]{\BranchNo} (failed.north);
+\draw[flow] (decision.east) -- (passturn) -- node[pos=0.55,right=1mm,labeltag]{\BranchYes} (passed.north);
+\draw[flow] (passed) -- (merge);
+
+% Feedback loop: Failed -> AI
+\coordinate[left=28mm of ai] (fbleft);
+\draw[feedback] (failed.west) -- ++(-10mm,0) |- (fbleft) |- (ai.west);
+\node[labeltag, above right=1mm and 1mm of fbleft, text=FailBorder] {\FeedbackText};
+
+\end{tikzpicture}%
+}
+
+\begin{document}
+
+% Page 1: English
+\begingroup
+\SetEnglishContent
+\DrawWorkflow
+\endgroup
+
+% Page 2: Chinese
+\begingroup
+\SetChineseContent
+\DrawWorkflow
+\endgroup
+
+\end{document}
