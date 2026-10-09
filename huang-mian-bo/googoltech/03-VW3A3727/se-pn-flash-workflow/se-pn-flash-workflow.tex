@@ -1,10 +1,58 @@
 % PN board factory signed-firmware flashing workflow -- serpentine TikZ flowchart.
 % Engine: XeLaTeX (xeCJK).  Build with:  make
-\documentclass[a4paper]{article}
+\documentclass[UTF8, a4paper]{article}
 \usepackage[a4paper,margin=1cm]{geometry}
 \usepackage{xeCJK}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta, positioning, shapes.geometric}
+
+\usepackage{enumitem}
+\usepackage{needspace}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[most]{tcolorbox}
+\usepackage{hyperref}
+\usepackage{fvextra}
+\usepackage{needspace}
+
+\definecolor{ink}{HTML}{263238}
+\definecolor{accent}{HTML}{176B87}
+\definecolor{codebg}{HTML}{F4F7F9}
+\definecolor{codeframe}{HTML}{D5E0E5}
+\definecolor{muted}{HTML}{596A73}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt plus 1pt minus 1pt}
+\setlist[enumerate,1]{
+  label=\arabic*.,
+  leftmargin=2.3em,
+  labelsep=0.6em,
+  itemsep=10pt,
+  topsep=5pt
+}
+\setlist[enumerate,2]{
+  label=\alph*.,
+  leftmargin=2.2em,
+  labelsep=0.6em,
+  itemsep=4pt,
+  topsep=3pt
+}
+\setlist[itemize]{leftmargin=2.1em,itemsep=4pt,topsep=4pt}
+\newtcolorbox{codebox}{
+  enhanced,
+  breakable,
+  colback=codebg,
+  colframe=codeframe,
+  boxrule=0.5pt,
+  arc=1.5mm,
+  left=2.5mm,
+  right=2.5mm,
+  top=1.5mm,
+  bottom=1.5mm,
+  before skip=4pt,
+  after skip=7pt
+}
+\newcommand{\filename}[1]{\texttt{\detokenize{#1}}}
 
 % CJK fonts -- change here if the build host has a different font set installed.
 \setCJKmainfont{Noto Serif CJK SC}
@@ -17,6 +65,7 @@
 \begin{center}
 {\Large \textbf{PN 板卡出厂烧录签名固件流程}}
 \end{center}
+
 \vspace{4mm}
 
 \begin{tikzpicture}[
@@ -123,5 +172,97 @@
 \end{center}
 
 \footnotetext{RPKH：Root Public Key Hash，芯片安全启动信任根公钥哈希，烧录后不可更改，请务必核对密钥哈希值后再执行。}
+
+\newpage
+
+\begin{center}
+  {\LARGE\bfseries\textcolor{ink}{Qt 执行环境及烧录流程说明}}\par
+\end{center}
+\vspace{2mm}
+
+\begin{enumerate}[start=0]
+  \item 检查Qt执行环境下是否有Python环境，以及相关模块是否安装就绪：
+    \begin{itemize}
+      \item 执行 \verb|py -c "import serial; import Crypto"|，返回值应该为0；返回值非0，表示Python环境或相关模块未安装就绪，应退出整个流程。
+      \item 同时还要确认脚本 \filename{googol_flash_rpkh.py} 等相关文件是否存在。其他步骤的依赖，请陈工联系相关人员沟通确认。
+    \end{itemize}
+
+  \item 烧录OTP密钥（假设工装此时是断电的）, 对应流程 1-3：
+    \begin{enumerate}
+      \item 操作继电器让工装下电
+      \item 操作继电器切换工装为SCI模式
+      \item 操作继电器让工装上电
+      \item 执行烧录OTP密钥Python脚本（需要切换到 \filename{googol_flash_rpkh.py} 脚本所在路径！！）
+    \end{enumerate}
+    \begin{codebox}
+\begin{Verbatim}[fontsize=\small,breaklines,breakanywhere]
+process.setWorkingDirectory(R"(googol_flash_rpkh.py所在路径)");
+
+process.start("py.exe", {
+    "googol_flash_rpkh.py"
+});
+\end{Verbatim}
+    \end{codebox}
+
+  \item 烧录签名固件（参考其他文档）, 对应流程 4-7：
+
+  \item 烧录加密芯片的UUID （参考其他文档）, 对应流程 8-10：
+
+  \item 永久禁止JTAG口,对应流程11-15
+    \begin{enumerate}
+      \item 操作继电器让工装下电
+      \item 操作继电器切换工装为SCI模式
+      \item 操作继电器让工装上电
+      \item 执行禁止JTAG的Python脚本（需要切换到 \filename{googol_prohibit_jtag.py} 脚本所在路径！！）
+    \end{enumerate}
+    \begin{codebox}
+\begin{Verbatim}[fontsize=\small,breaklines,breakanywhere]
+process.setWorkingDirectory(R"(googol_prohibit_jtag.py所在路径)");
+
+process.start("py.exe", {
+    "googol_prohibit_jtag.py"
+});
+\end{Verbatim}
+    \end{codebox}
+    \Needspace{11\baselineskip}
+    \begin{enumerate}[resume]
+      \item 可选：检查脚本 \filename{googol_check_jtagmode.py} 的输出结果是否包含：\texttt{RESULT : JTAG is PERMANENTLY PROHIBITED}
+    \end{enumerate}
+    \begin{codebox}
+\begin{Verbatim}[fontsize=\small,breaklines,breakanywhere]
+process.setWorkingDirectory(R"(googol_check_jtagmode.py所在路径)");
+
+process.start("py.exe", {
+    "googol_check_jtagmode.py"
+});
+/*  检查返回结果是否为0 且输出是否包含 RESULT : JTAG is PERMANENTLY PROHIBITED */
+\end{Verbatim}
+    \end{codebox}
+
+  \item 永久禁止SCI启动模式,对应流程 16-19
+    \begin{enumerate}
+      \item 操作继电器让工装下电
+      \item 操作继电器切换工装为SCI模式
+      \item 操作继电器让工装上电
+      \item 执行禁止SCI启动模式Python脚本（需要切换到 \filename{googol_disable_sciboot.py} 脚本所在路径！！）
+    \end{enumerate}
+    \begin{codebox}
+\begin{Verbatim}[fontsize=\small,breaklines,breakanywhere]
+process.setWorkingDirectory(R"(googol_disable_sciboot.py所在路径)");
+
+process.start("py.exe", {
+    "googol_disable_sciboot.py"
+});
+\end{Verbatim}
+    \end{codebox}
+\end{enumerate}
+
+\vspace{3mm}
+
+\begin{itemize}
+  \item 上述代码只是简单示例如何在Qt里面运行Python脚本，不代表可以直接运行，具体还需要陈工结合实际Qt WIN环境进行调试。
+  \item 至于如何将Python执行的命令行结果显示到Qt界面去，陈工需要研究一下；目前脚本默认会在当前脚本路径下生成日志。
+  \item 上述脚本返回值0表示成功，非0表示失败。（除了可选的 \filename{googol_check_jtagmode.py}，该脚本还需要检查输出结果。）
+\end{itemize}
 
 \end{document}

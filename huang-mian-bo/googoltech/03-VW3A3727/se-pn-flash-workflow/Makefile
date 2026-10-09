@@ -31,7 +31,7 @@ $(OUTPUT_DIR)/%.pdf: %.tex
 
 $(OUTPUT_DIR)/%.png: $(OUTPUT_DIR)/%.pdf
 	@mkdir -p $(OUTPUT_DIR)
-	@pdftoppm -png -r 600 $< $(basename $<)
+	@pdftoppm -png -r 600 -f 1 -l 1 $< $(basename $<)
 	@mv -fv $(basename $<)-1.png $@
 
 .PHONY : clean view share debug 
