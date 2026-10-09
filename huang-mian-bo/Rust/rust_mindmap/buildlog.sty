@@ -1,0 +1,17 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{buildlog}[2026/10/09 Colored build log markers]
+
+% Important information
+\newcommand{\BuildInfo}[1]{%
+  \typeout{BUILD:INFO: #1}%
+}
+
+% Warning: does not fail the compilation
+\newcommand{\BuildWarn}[1]{%
+  \typeout{BUILD:WARN: #1}%
+}
+
+% Error marker: logs an error but does not stop compilation
+\newcommand{\BuildError}[1]{%
+  \typeout{BUILD:ERROR: #1}%
+}

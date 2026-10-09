@@ -1,0 +1,208 @@
+% ============================================================
+%  Rust 基础思维导图（暗色版，TikZ）
+%  编译：xelatex rust_mindmap.tex      （含中文，需 XeLaTeX）
+%
+%  维护指南
+%  1. 所有间距集中在下面「布局参数」，改一处全图联动。
+%  2. 节点之间全部用相对定位（left=… of / above=… of / at=([shift]node)），
+%     没有任何绝对坐标；唯一的原点是中心节点 root。
+%  3. 增删叶子：改 \leavesL / \leavesR 里的文字即可；
+%     加一个易错标记：\warn{节点名}，节点名 = 分支名+序号（如 Ow2）。
+%  4. 换背景色：改 bg；换某个色系：改「配色」里对应 5 个颜色。
+% ============================================================
+\documentclass[tikz,border=14pt]{standalone}
+\usepackage{buildlog}
+\IfFileExists{ctex.sty}{\usepackage{ctex}}{%
+  \usepackage{fontspec}
+  \setmainfont{Noto Sans CJK SC}
+  \BuildInfo{Using Noto Sans CJK SC}
+}{%
+  \BuildInfo{Using Other Fonts}
+} 
+\usetikzlibrary{arrows.meta,positioning,calc}
+
+% ---------- 配色（暗色模式：F=800填充  S=200描边/次级文字  T=100标题文字  M=400连线）----------
+\definecolor{bg}{HTML}{000000}
+\definecolor{textPri}{HTML}{FAF9F5}   \definecolor{textSec}{HTML}{B4B2A9}
+\definecolor{boxF}{HTML}{262624}      \definecolor{boxS}{HTML}{5F5E5A}
+\definecolor{blueF}{HTML}{0C447C}     \definecolor{blueS}{HTML}{85B7EB}
+\definecolor{blueT}{HTML}{B5D4F4}     \definecolor{blueM}{HTML}{378ADD}
+\definecolor{greenF}{HTML}{27500A}    \definecolor{greenS}{HTML}{97C459}
+\definecolor{greenT}{HTML}{C0DD97}    \definecolor{greenM}{HTML}{639922}
+\definecolor{coralF}{HTML}{712B13}    \definecolor{coralS}{HTML}{F0997B}
+\definecolor{coralT}{HTML}{F5C4B3}    \definecolor{coralM}{HTML}{D85A30}
+\definecolor{purpleF}{HTML}{3C3489}   \definecolor{purpleS}{HTML}{AFA9EC}
+\definecolor{purpleT}{HTML}{CECBF6}   \definecolor{purpleM}{HTML}{7F77DD}
+\definecolor{pinkF}{HTML}{72243E}     \definecolor{pinkS}{HTML}{ED93B1}
+\definecolor{pinkT}{HTML}{F4C0D1}     \definecolor{pinkM}{HTML}{D4537E}
+\definecolor{grayF}{HTML}{444441}     \definecolor{grayS}{HTML}{B4B2A9}
+\definecolor{grayT}{HTML}{D3D1C7}     \definecolor{grayM}{HTML}{888780}
+\definecolor{redF}{HTML}{791F1F}      \definecolor{redS}{HTML}{F09595}
+\definecolor{redT}{HTML}{F7C1C1}      \definecolor{redM}{HTML}{E24B4A}
+
+% ---------- 布局参数（全部相对量，改这里即可）----------
+\newcommand{\leafH}{19.5pt}        % 叶子高度
+\newcommand{\leafGap}{6pt}         % 同组叶子之间的间距
+\newcommand{\gapCB}{28.5pt}        % 中心节点 ↔ 一级分支
+\newcommand{\gapBL}{18pt}          % 一级分支 ↔ 叶子
+\newcommand{\branchPitch}{112.5pt} % 相邻一级分支的垂直间距（须大于 4 片叶子的高度）
+\newcommand{\legendGap}{12pt}      % 图例与最上方叶子的间距
+\newcommand{\stripGap}{21pt}       % 思维导图 ↔ 底部「跨分支关联」
+\newcommand{\stripIndent}{76pt}    % 底部条带相对左叶子左缘的缩进（给标题留位）
+\newcommand{\arrowGap}{22pt}       % 关联对内两个块的间距
+\newcommand{\pairGap}{39pt}        % 两组关联之间的间距
+\newcommand{\rowGap}{9pt}          % 关联条带的行距
+\newcommand{\chipRowGap}{18pt}     % 关联条带 ↔ 易混淆行
+\newcommand{\chipGap}{9pt}         % 易混淆块之间的间距
+\newcommand{\headGap}{12pt}        % 条带标题 ↔ 第一个块
+\pgfmathsetlengthmacro{\halfpitch}{(\leafH+\leafGap)/2}
+
+% ---------- 样式 ----------
+\tikzset{
+  every node/.append style={text=textSec},
+  leaf/.style={rounded corners=2.25pt,line width=0.4pt,minimum width=96pt,
+    minimum height=\leafH,text width=81pt,align=left,inner xsep=7.5pt,
+    inner ysep=0pt,font=\fontsize{9}{11}\selectfont},
+  branch/.style={rounded corners=6pt,minimum width=75pt,minimum height=33pt,
+    align=center,inner sep=2pt,font=\fontsize{10.5}{12}\selectfont\bfseries},
+  pill/.style={rounded corners=3pt,line width=0.4pt,minimum width=78pt,
+    minimum height=21pt,align=center,inner sep=2pt,font=\fontsize{9}{11}\selectfont},
+  chip/.style={pill,minimum width=90pt},
+  warn/.style={circle,line width=0.4pt,minimum size=12pt,inner sep=0pt,
+    font=\fontsize{10.5}{12}\selectfont\bfseries},
+  sw/.style={rectangle,rounded corners=1.5pt,line width=0.4pt,minimum size=9pt,inner sep=0pt},
+  lab/.style={font=\fontsize{9}{11}\selectfont,inner sep=0pt,text=textSec},
+  head/.style={font=\fontsize{10.5}{12}\selectfont\bfseries,inner sep=0pt,text=textPri},
+  rel/.style={-{Stealth[length=4pt]},line width=0.75pt,draw=grayM},
+}
+
+% ---------- 宏 ----------
+\newcommand{\code}[1]{\texttt{#1}}
+
+% \branch{色系}{节点名}{线宽}{文字}{定位选项}
+\newcommand{\branch}[5]{\node[branch,fill=#1F,draw=#1S,text=#1T,line width=#3,#5] (#2) {#4};}
+
+% \leavesL{色系}{分支名}{叶1}{叶2}{叶3}{叶4}  叶子在分支左侧，节点名为 分支名1..4
+\newcommand{\leavesL}[6]{%
+  \node[leaf,fill=#1F,draw=#1S,text=#1S,left=\gapBL of #2,yshift=\halfpitch] (#22) {#4};
+  \node[leaf,fill=#1F,draw=#1S,text=#1S,below=\leafGap of #22] (#23) {#5};
+  \node[leaf,fill=#1F,draw=#1S,text=#1S,above=\leafGap of #22] (#21) {#3};
+  \node[leaf,fill=#1F,draw=#1S,text=#1S,below=\leafGap of #23] (#24) {#6};
+  \foreach \i in {1,2,3,4}{\draw[#1M,line width=0.9pt] (#2.west) to[out=180,in=0] (#2\i.east);}}
+
+% \leavesR：叶子在分支右侧
+\newcommand{\leavesR}[6]{%
+  \node[leaf,fill=#1F,draw=#1S,text=#1S,right=\gapBL of #2,yshift=\halfpitch] (#22) {#4};
+  \node[leaf,fill=#1F,draw=#1S,text=#1S,below=\leafGap of #22] (#23) {#5};
+  \node[leaf,fill=#1F,draw=#1S,text=#1S,above=\leafGap of #22] (#21) {#3};
+  \node[leaf,fill=#1F,draw=#1S,text=#1S,below=\leafGap of #23] (#24) {#6};
+  \foreach \i in {1,2,3,4}{\draw[#1M,line width=0.9pt] (#2.east) to[out=0,in=180] (#2\i.west);}}
+
+% \warn{叶子名}：易错标记，贴在叶子右端内侧
+\newcommand{\warn}[1]{\node[warn,fill=redF,draw=redS,text=redT] at ([xshift=-12pt]#1.east) {!};}
+
+% \legitem{色系}{id}{文字}{定位}：图例项（色块 + 文字）
+\newcommand{\legitem}[4]{%
+  \node[sw,fill=#1F,draw=#1S,#4] (lg#2) {};
+  \node[lab,right=3pt of lg#2] (lg#2t) {#3};}
+
+% \pill{色系}{名}{文字}{定位}   \chip 同理（更宽）
+\newcommand{\pill}[4]{\node[pill,fill=#1F,draw=#1S,text=#1S,#4] (#2) {#3};}
+\newcommand{\chip}[4]{\node[chip,fill=#1F,draw=#1S,text=#1S,#4] (#2) {#3};}
+
+\begin{document}
+\pagecolor{bg}% 背景色
+\begin{tikzpicture}
+
+% ===== 中心节点（唯一原点）=====
+\node[draw=boxS,fill=boxF,line width=0.4pt,rounded corners=6pt,
+      minimum width=63pt,minimum height=52.5pt,align=center,inner sep=2pt,
+      font=\fontsize{9}{12}\selectfont,text=textSec] (root) at (0,0)
+  {{\fontsize{10.5}{12}\selectfont\bfseries\color{textPri}Rust}\\内存安全\\零成本抽象};
+
+% ===== 一级分支：每侧以中间一个为基准，其余按 \branchPitch 上下排布 =====
+\branch{green}{Ty}{0.75pt}{类型与数据}{left=\gapCB of root}
+\branch{gray}{Tc}{0.75pt}{工具链}{at={([yshift=\branchPitch]Ty)}}
+\branch{coral}{Ct}{0.75pt}{控制流与函数}{at={([yshift=-\branchPitch]Ty)}}
+
+\branch{pink}{Er}{0.75pt}{错误处理}{right=\gapCB of root}
+\branch{blue}{Ow}{1.9pt}{所有权与借用}{at={([yshift=\branchPitch]Er)}}
+\branch{purple}{Ab}{0.75pt}{抽象机制}{at={([yshift=-\branchPitch]Er)}}
+
+% ===== 中心 → 分支 连线 =====
+\foreach \n/\c in {Tc/gray,Ty/green,Ct/coral}
+  \draw[\c M,line width=1.5pt,line cap=round] (root.west) to[out=180,in=0] (\n.east);
+\foreach \n/\c in {Ow/blue,Er/pink,Ab/purple}
+  \draw[\c M,line width=1.5pt,line cap=round] (root.east) to[out=0,in=180] (\n.west);
+
+% ===== 叶子（叶子名 = 分支名 + 序号 1..4）=====
+\leavesL{gray}{Tc}
+  {\code{cargo new / run}}{\code{cargo check}}{\code{Cargo.toml}}{\code{crates.io}}
+\leavesL{green}{Ty}
+  {\code{let / mut}}
+  {整数$\cdot$浮点$\cdot$\code{bool}}
+  {\code{struct} $\cdot$ \code{enum}}
+  {\code{Vec}$\cdot$\code{String}$\cdot$\code{Map}}
+\leavesL{coral}{Ct}
+  {\code{if / match}}
+  {\code{loop}$\cdot$\code{while}$\cdot$\code{for}}
+  {\code{fn} 与返回表达式}
+  {闭包 \code{\textbar x\textbar\ x+1}}
+
+\leavesR{blue}{Ow}
+  {每值唯一所有者}
+  {\code{move} 与 \code{Clone}}
+  {\code{\&T} 共享借用}
+  {\code{\&mut} 独占借用}
+\leavesR{pink}{Er}
+  {\code{Option\textless T\textgreater}}
+  {\code{Result\textless T, E\textgreater}}
+  {\code{?} 运算符}
+  {\code{panic!} 慎用}
+\leavesR{purple}{Ab}
+  {\code{trait} 定义行为}
+  {泛型 \code{\textless T: Trait\textgreater}}
+  {生命周期 \code{\textquotesingle a}}
+  {\code{impl / dyn}}
+
+% ===== 易错标记 =====
+\warn{Ty1}\warn{Ow2}\warn{Ow4}\warn{Ab3}
+
+% ===== 图例（相对最上方左叶子 Tc1 定位，依次向右排）=====
+\legitem{blue}{A}{所有权}{anchor=south west,at={([yshift=\legendGap]Tc1.north west)}}
+\legitem{green}{B}{类型数据}{right=8pt of lgAt}
+\legitem{coral}{C}{控制流}{right=8pt of lgBt}
+\legitem{purple}{D}{抽象}{right=8pt of lgCt}
+\legitem{pink}{E}{错误处理}{right=8pt of lgDt}
+\legitem{gray}{F}{工具链}{right=8pt of lgEt}
+\node[warn,fill=redF,draw=redS,text=redT,right=8pt of lgFt] (lgW) {!};
+\node[lab,right=3pt of lgW] (lgWt) {易错};
+\node[sw,fill=blueF,draw=blueS,line width=1.9pt,right=8pt of lgWt] (lgK) {};
+\node[lab,right=3pt of lgK] {核心难点};
+
+% ===== 跨分支关联（相对左下角叶子 Ct4 定位）=====
+\pill{green}{A1}{\code{enum}}
+  {anchor=north west,at={([xshift=\stripIndent,yshift=-\stripGap]Ct4.south west)}}
+\pill{coral}{A2}{\code{match}}{right=\arrowGap of A1}
+\pill{blue}{A3}{借用 \code{\&T}}{right=\pairGap of A2}
+\pill{purple}{A4}{生命周期 \code{\textquotesingle a}}{right=\arrowGap of A3}
+\pill{pink}{B1}{\code{Result\textless T,E\textgreater}}{below=\rowGap of A1}
+\pill{purple}{B2}{\code{From} trait}{below=\rowGap of A2}
+\pill{coral}{B3}{闭包捕获}{below=\rowGap of A3}
+\pill{blue}{B4}{\code{move}$\cdot$借用}{below=\rowGap of A4}
+\draw[rel] (A1.east) -- (A2.west);
+\draw[rel] (A3.east) -- (A4.west);
+\draw[rel] (B1.east) -- (B2.west);
+\draw[rel] (B3.east) -- (B4.west);
+\node[head,left=\headGap of A1] {跨分支关联};
+
+% ===== 易混淆概念 =====
+\chip{red}{C1}{\code{String} $\neq$ \code{\&str}}
+  {anchor=north west,at={([yshift=-\chipRowGap]B1.south west)}}
+\chip{red}{C2}{\code{Copy} $\neq$ \code{Clone}}{right=\chipGap of C1}
+\chip{red}{C3}{\code{\&T} $\neq$ \code{\&mut T}}{right=\chipGap of C2}
+\chip{red}{C4}{\code{Vec} $\neq$ 数组}{right=\chipGap of C3}
+\node[head,left=\headGap of C1] {易混淆};
+
+\end{tikzpicture}
+\end{document}
