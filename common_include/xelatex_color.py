@@ -168,15 +168,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 130
 
     if return_code == 0:
-        print(f"{GREEN}[INFO] XeLaTeX finished successfully.{RESET}"
-              if enabled else
-              "[INFO] XeLaTeX finished successfully.")
         logging.info("XeLaTeX finished successfully.")
     else:
-        print(f"{RED}[ERROR] XeLaTeX exited with code "
-              f"{return_code}.{RESET}"
-              if enabled else
-              f"[ERROR] XeLaTeX exited with code {return_code}.")
+        logging.error("XeLaTeX exited with code %s.",return_code)
 
     return return_code
 
