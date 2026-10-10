@@ -1,0 +1,185 @@
+\documentclass[tikz,border=6mm]{standalone}
+\usepackage[UTF8]{ctex}
+\usepackage{xcolor}
+\usetikzlibrary{positioning,fit,backgrounds,calc}
+
+% ---------- Color palette ----------
+\definecolor{TitleBlue}{HTML}{1F4E79}
+\definecolor{PanelBorder}{HTML}{B7C8D8}
+\definecolor{PanelBg}{HTML}{FBFCFE}
+\definecolor{TextDark}{HTML}{263746}
+\definecolor{TextMuted}{HTML}{5F6B76}
+
+\definecolor{BlueFill}{HTML}{E8F1FB}
+\definecolor{BlueBorder}{HTML}{2F6DA3}
+\definecolor{PurpleFill}{HTML}{F2EAFE}
+\definecolor{PurpleBorder}{HTML}{7A4FB3}
+\definecolor{OrangeFill}{HTML}{FFF2E2}
+\definecolor{OrangeBorder}{HTML}{C97A1A}
+\definecolor{RedFill}{HTML}{FDEBEC}
+\definecolor{RedBorder}{HTML}{C84C61}
+\definecolor{GreenFill}{HTML}{EAF7EA}
+\definecolor{GreenBorder}{HTML}{4B8B3B}
+
+% ---------- Content ----------
+\newcommand{\ChartTitle}{Linux 内核驱动 Contract / Invariant 设计检查表}
+\newcommand{\ChartSubtitle}{写代码之前，先回答这 10 个问题}
+
+\newcommand{\QOneTitle}{1. Ownership / 所有权}
+\newcommand{\QOneMain}{谁拥有这个资源？}
+\newcommand{\QOneHint}{谁负责创建、引用、转移与最终释放？}
+
+\newcommand{\QTwoTitle}{2. Lifetime / 生命周期}
+\newcommand{\QTwoMain}{这个资源什么时候有效？}
+\newcommand{\QTwoHint}{从 probe 到 remove/reset，创建与销毁边界在哪里？}
+
+\newcommand{\QThreeTitle}{3. Concurrency / 并发}
+\newcommand{\QThreeMain}{谁能同时访问它？}
+\newcommand{\QThreeHint}{process / IRQ / worker / timer 是否可能并发访问同一状态？}
+
+\newcommand{\QFourTitle}{4. Locking / 锁规则}
+\newcommand{\QFourMain}{访问时必须持什么锁？}
+\newcommand{\QFourHint}{锁保护哪些字段？锁顺序是什么？是否存在 ABBA 风险？}
+
+\newcommand{\QFiveTitle}{5. Context / 执行上下文}
+\newcommand{\QFiveMain}{代码运行在哪种上下文？}
+\newcommand{\QFiveHint}{process / softirq / hardirq / workqueue / timer？}
+
+\newcommand{\QSixTitle}{6. Blocking / 阻塞规则}
+\newcommand{\QSixMain}{这里允许 sleep 吗？}
+\newcommand{\QSixHint}{能否 mutex\_lock、等待 completion、分配 GFP\_KERNEL 内存？}
+
+\newcommand{\QSevenTitle}{7. Error Path / 失败路径}
+\newcommand{\QSevenMain}{失败以后必须恢复到什么状态？}
+\newcommand{\QSevenHint}{部分初始化如何回滚？资源释放是否完整且顺序正确？}
+
+\newcommand{\QEightTitle}{8. Teardown / 拆卸顺序}
+\newcommand{\QEightMain}{remove / reset 时按什么顺序停止？}
+\newcommand{\QEightHint}{先阻止新请求，再停 IRQ / DMA / worker，最后释放资源。}
+
+\newcommand{\QNineTitle}{9. Hardware State / 硬件状态}
+\newcommand{\QNineMain}{软件状态如何对应硬件状态？}
+\newcommand{\QNineHint}{寄存器、DMA、IRQ、BAR 与 driver state 是否保持一致？}
+
+\newcommand{\QTenTitle}{10. Invariants / 不变量}
+\newcommand{\QTenMain}{哪些关系绝不能被破坏？}
+\newcommand{\QTenHint}{例如：IRQ 仍可能运行时，device context 绝不能被释放。}
+
+% ---------- Styles ----------
+\tikzset{
+  titlebox/.style={
+    rounded corners=3mm,
+    draw=TitleBlue,
+    fill=TitleBlue!5,
+    line width=0.9pt,
+    align=center,
+    inner xsep=8mm,
+    inner ysep=4mm,
+    text width=158mm
+  },
+  card/.style={
+    rounded corners=2.6mm,
+    draw,
+    line width=0.85pt,
+    minimum width=77mm,
+    minimum height=28mm,
+    text width=68mm,
+    align=left,
+    inner xsep=5mm,
+    inner ysep=4mm,
+    anchor=north west
+  },
+  bluecard/.style={card, fill=BlueFill, draw=BlueBorder},
+  purplecard/.style={card, fill=PurpleFill, draw=PurpleBorder},
+  orangecard/.style={card, fill=OrangeFill, draw=OrangeBorder},
+  redcard/.style={card, fill=RedFill, draw=RedBorder},
+  greencard/.style={card, fill=GreenFill, draw=GreenBorder},
+  footer/.style={
+    rounded corners=2.5mm,
+    draw=PanelBorder,
+    fill=PanelBg,
+    line width=0.8pt,
+    align=center,
+    text width=158mm,
+    inner xsep=6mm,
+    inner ysep=4mm
+  }
+}
+
+\newcommand{\CardText}[3]{%
+  {\bfseries\color{TextDark}#1}\\[1.2mm]
+  {\large\bfseries #2}\\[1mm]
+  {\footnotesize\color{TextMuted}#3}%
+}
+
+\begin{document}
+\begin{tikzpicture}[node distance=6mm and 7mm]
+
+% ---------- Title ----------
+\node[titlebox] (title) {
+  {\Large\bfseries\color{TitleBlue}\ChartTitle}\\[1mm]
+  {\normalsize\color{TitleBlue!85!black}\ChartSubtitle}
+};
+
+% ---------- Row 1 ----------
+\node[bluecard, below left=8mm and 0mm of title.south west, anchor=north west] (q1) {
+  \CardText{\QOneTitle}{\QOneMain}{\QOneHint}
+};
+\node[bluecard, right=7mm of q1.north east, anchor=north west] (q2) {
+  \CardText{\QTwoTitle}{\QTwoMain}{\QTwoHint}
+};
+
+% ---------- Row 2 ----------
+\node[purplecard, below=6mm of q1.south west, anchor=north west] (q3) {
+  \CardText{\QThreeTitle}{\QThreeMain}{\QThreeHint}
+};
+\node[purplecard, below=6mm of q2.south west, anchor=north west] (q4) {
+  \CardText{\QFourTitle}{\QFourMain}{\QFourHint}
+};
+
+% ---------- Row 3 ----------
+\node[orangecard, below=6mm of q3.south west, anchor=north west] (q5) {
+  \CardText{\QFiveTitle}{\QFiveMain}{\QFiveHint}
+};
+\node[orangecard, below=6mm of q4.south west, anchor=north west] (q6) {
+  \CardText{\QSixTitle}{\QSixMain}{\QSixHint}
+};
+
+% ---------- Row 4 ----------
+\node[redcard, below=6mm of q5.south west, anchor=north west] (q7) {
+  \CardText{\QSevenTitle}{\QSevenMain}{\QSevenHint}
+};
+\node[redcard, below=6mm of q6.south west, anchor=north west] (q8) {
+  \CardText{\QEightTitle}{\QEightMain}{\QEightHint}
+};
+
+% ---------- Row 5 ----------
+\node[greencard, below=6mm of q7.south west, anchor=north west] (q9) {
+  \CardText{\QNineTitle}{\QNineMain}{\QNineHint}
+};
+\node[greencard, below=6mm of q8.south west, anchor=north west] (q10) {
+  \CardText{\QTenTitle}{\QTenMain}{\QTenHint}
+};
+
+% ---------- Footer ----------
+\node[footer, below=8mm of $(q9.south)!0.5!(q10.south)$] (footer) {
+  {\bfseries\color{TitleBlue}使用原则：}\\[1mm]
+  Contract 定义“什么操作在什么条件下合法”；Invariant 定义“哪些关系在整个生命周期中绝不能被破坏”。\\[1mm]
+  {\footnotesize\color{TextMuted}建议在 probe/remove、IRQ、DMA、reset、hotplug、error path 编码前逐项回答，并把答案写进设计文档、注释和测试计划。}
+};
+
+% ---------- Background ----------
+\begin{scope}[on background layer]
+\node[
+  fit=(q1)(q2)(q3)(q4)(q5)(q6)(q7)(q8)(q9)(q10)(footer),
+  rounded corners=4mm,
+  draw=PanelBorder,
+  fill=white,
+  line width=0.8pt,
+  inner xsep=7mm,
+  inner ysep=7mm
+] {};
+\end{scope}
+
+\end{tikzpicture}
+\end{document}
