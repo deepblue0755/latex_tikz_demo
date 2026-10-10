@@ -16,9 +16,9 @@ RED = "\033[31m"
 YELLOW = "\033[33m"
 GREEN = "\033[32m"
 
-INFO_RE = re.compile(r"\bBUILD:INFO:")
-WARN_RE = re.compile(r"\bBUILD:WARN:")
-ERROR_RE = re.compile(r"\bBUILD:ERROR:")
+INFO_RE = re.compile(r"\[INFO\]")
+WARN_RE = re.compile(r"\[WARN\]")
+ERROR_RE = re.compile(r"\[ERROR\]")
 
 LATEX_ERROR_RE = re.compile(
     r"^!\s|"
