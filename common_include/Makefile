@@ -10,18 +10,12 @@ USE_COLOR_LOG := $(shell \
 	 test -f buildlog.sty && \
 	 test -f xelatex_color.py && \
 	 echo yes)
+
 # define command
 LATEX := xelatex 
 MOVE := mv 
 PDF_VIEWER := evince
 FIND := find
-ifeq ($(USE_COLOR_LOG), yes)
-LATEX_CMD := python3 xelatex_color.py 
-$(info $(COLOR_GREEN)[Makefile] Colored XeLaTeX logging enabled$(COLOR_RESET))
-else
-LATEX_CMD := $(LATEX) $(FLAGS)
-$(info $(COLOR_GREEN)[Makefile] Using Plain XeLatex$(COLOR_RESET))
-endif
 
 # set output directory
 OUTPUT_DIR=./build
@@ -32,6 +26,14 @@ FLAGS+=-halt-on-error
 FLAGS+=-output-directory=$(OUTPUT_DIR)
 FLAGS+=-interaction=nonstopmode
 DRAFTMODE_FLAGS=-draftmode
+
+ifeq ($(USE_COLOR_LOG), yes)
+LATEX_CMD := python3 xelatex_color.py 
+$(info $(COLOR_GREEN)[INFO] [Makefile] Colored XeLaTeX logging enabled$(COLOR_RESET))
+else
+LATEX_CMD := $(LATEX) $(FLAGS)
+$(info $(COLOR_GREEN)[INFO] [Makefile] Using Plain XeLatex$(COLOR_RESET))
+endif
 
 # define tex source file
 TEX_FILE := $(shell $(FIND) ./ -maxdepth 1 -name  '*.tex')
