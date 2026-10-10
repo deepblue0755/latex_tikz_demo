@@ -1,17 +1,18 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{buildlog}[2026/10/09 Colored build log markers]
+\RequirePackage{currfile}
 
 % Important information
 \newcommand{\BuildInfo}[1]{%
-    \typeout{[INFO]: TEX BUILD: #1}%
+    \typeout{[INFO] \currfilepath:\the\inputlineno: #1}%
 }
 
 % Warning: does not fail the compilation
 \newcommand{\BuildWarn}[1]{%
-    \typeout{[WARN]: TEX BUILD: #1}%
+    \typeout{[WARN] \currfilepath:\the\inputlineno: #1}%
 }
 
 % Error marker: logs an error but does not stop compilation
 \newcommand{\BuildError}[1]{%
-    \typeout{[ERROR]: TEX BUILD: #1}%
+    \typeout{[ERROR] \currfilepath:\the\inputlineno: #1}%
 }
