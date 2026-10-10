@@ -4,15 +4,15 @@
 
 % Important information
 \newcommand{\BuildInfo}[1]{%
-    \typeout{[INFO] \currfilepath:\the\inputlineno: #1}%
+    \typeout{\currfilepath:\the\inputlineno: [INFO] #1}%
 }
 
 % Warning: does not fail the compilation
 \newcommand{\BuildWarn}[1]{%
-    \typeout{[WARN] \currfilepath:\the\inputlineno: #1}%
+    \typeout{\currfilepath:\the\inputlineno: [WARN] #1}%
 }
 
 % Error marker: logs an error but does not stop compilation
 \newcommand{\BuildError}[1]{%
-    \typeout{[ERROR] \currfilepath:\the\inputlineno: #1}%
+    \typeout{\currfilepath:\the\inputlineno: [ERROR] #1}%
 }

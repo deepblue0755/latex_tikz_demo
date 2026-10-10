@@ -29,10 +29,10 @@ DRAFTMODE_FLAGS=-draftmode
 
 ifeq ($(USE_COLOR_LOG), yes)
 LATEX_CMD := python3 xelatex_color.py 
-$(info $(COLOR_GREEN)[INFO] [Makefile] Colored XeLaTeX logging enabled$(COLOR_RESET))
+$(info $(COLOR_GREEN)Makefile: [INFO] Colored XeLaTeX logging enabled$(COLOR_RESET))
 else
 LATEX_CMD := $(LATEX) $(FLAGS)
-$(info $(COLOR_GREEN)[INFO] [Makefile] Using Plain XeLatex$(COLOR_RESET))
+$(info $(COLOR_GREEN)Makefile: [INFO] Using Plain XeLatex$(COLOR_RESET))
 endif
 
 # define tex source file

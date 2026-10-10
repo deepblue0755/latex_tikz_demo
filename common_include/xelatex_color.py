@@ -9,7 +9,28 @@ import re
 import shutil
 import subprocess
 import sys
+import logging
 from collections.abc import Sequence
+
+class ColorFormatter(logging.Formatter):
+    COLORS = {
+        logging.INFO: "\033[32m",      # Green
+        logging.WARNING: "\033[33m",   # Yellow
+        logging.ERROR: "\033[31m",     # Red
+        logging.DEBUG: "\033[90m",     # Gray
+        logging.CRITICAL: "\033[1;31m",  # Bold red
+    }
+    RESET = "\033[0m"
+
+    def format(self, record: logging.LogRecord) -> str:
+        message = super().format(record)
+
+        # Redirected output should not contain ANSI escape codes.
+        if not sys.stderr.isatty():
+            return message
+
+        color = self.COLORS.get(record.levelno, "")
+        return f"{color}{message}{self.RESET}" if color else message
 
 RESET = "\033[0m"
 RED = "\033[31m"
@@ -71,6 +92,20 @@ def colorize(line: str, enabled: bool) -> str:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    logging.addLevelName(logging.WARNING, "WARN")
+    handler = logging.StreamHandler()
+    handler.setFormatter(
+        ColorFormatter(
+            "%(filename)s:%(lineno)d: [%(levelname)s] %(message)s"
+        )
+    )
+
+    logging.basicConfig(
+        level=logging.INFO,
+        handlers=[handler],
+        force=True,
+    )
+
     parser = argparse.ArgumentParser(
         description="Compile a LaTeX document with colored XeLaTeX logs."
     )
@@ -136,6 +171,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"{GREEN}[INFO] XeLaTeX finished successfully.{RESET}"
               if enabled else
               "[INFO] XeLaTeX finished successfully.")
+        logging.info("XeLaTeX finished successfully.")
     else:
         print(f"{RED}[ERROR] XeLaTeX exited with code "
               f"{return_code}.{RESET}"
