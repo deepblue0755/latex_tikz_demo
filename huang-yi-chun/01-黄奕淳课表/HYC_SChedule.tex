@@ -1,10 +1,20 @@
 \documentclass[a4paper,12pt]{article}
+\usepackage{iftex}
+
+\ifPDFTeX
+    \usepackage[T1]{fontenc}
+    \usepackage{CJKutf8}
+\else\ifXeTeX
+    \usepackage{fontspec}
+    \usepackage{xeCJK}
+\else\ifLuaTeX
+    \usepackage{fontspec}
+\fi\fi\fi
 
 \usepackage[a4paper, margin=1.5cm]{geometry}
 \usepackage{array}
 \usepackage{multirow}
 \usepackage{makecell}
-\usepackage{CJKutf8}
 \usepackage{tabularx}
 \usepackage{pdflscape}
 % \usepackage{diagbox}
@@ -16,7 +26,9 @@
 \renewcommand{\arraystretch}{3.5} % 适当增加行高，让表格更好看
 
 \begin{document}
+\ifPDFTeX
 \begin{CJK*}{UTF8}{gbsn}
+\fi
 
 \begin{landscape}
 \centering
@@ -90,5 +102,7 @@
 
 \end{landscape}
 
+\ifPDFTeX
 \end{CJK*}
+\fi
 \end{document}
