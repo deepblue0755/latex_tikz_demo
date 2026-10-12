@@ -28,7 +28,7 @@ FLAGS+=-interaction=nonstopmode
 DRAFTMODE_FLAGS=-draftmode
 
 ifeq ($(USE_COLOR_LOG), yes)
-LATEX_CMD := python3 xelatex_color.py 
+LATEX_CMD := @python3 xelatex_color.py 
 $(info $(COLOR_GREEN)Makefile: [INFO] Colored XeLaTeX logging enabled$(COLOR_RESET))
 else
 LATEX_CMD := $(LATEX) $(FLAGS)
