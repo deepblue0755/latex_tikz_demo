@@ -12,7 +12,6 @@ USE_COLOR_LOG := $(shell \
 	 echo yes)
 
 # define command
-LATEX := xelatex 
 MOVE := mv 
 PDF_VIEWER := evince
 FIND := find
@@ -27,20 +26,37 @@ FLAGS+=-output-directory=$(OUTPUT_DIR)
 FLAGS+=-interaction=nonstopmode
 DRAFTMODE_FLAGS=-draftmode
 
-ifeq ($(USE_COLOR_LOG), yes)
-LATEX_CMD := @python3 xelatex_color.py 
-$(info $(COLOR_GREEN)Makefile: [INFO] Colored XeLaTeX logging enabled$(COLOR_RESET))
-else
-LATEX_CMD := $(LATEX) $(FLAGS)
-$(info $(COLOR_GREEN)Makefile: [INFO] Using Plain XeLatex$(COLOR_RESET))
-endif
-
 # define tex source file
 TEX_FILE := $(shell $(FIND) ./ -maxdepth 1 -name  '*.tex')
 TEX_FILE := $(notdir $(TEX_FILE))
 PDF_FILE := $(patsubst %.tex, %.pdf, $(TEX_FILE))
 PDF_FILE := $(addprefix $(OUTPUT_DIR)/,$(PDF_FILE))
 PNG_FILE := $(patsubst %.pdf, %.png, $(PDF_FILE))
+ifeq ($(strip $(TEX_FILE)), )
+$(error $(COLOR_RED)Makefile: [ERROR] No valid TeX files found$(COLOR_RESET))
+endif
+
+# Read the first line and detect the LaTeX engine.
+LATEX_ENGINE := $(shell sed -nE \
+    '1s/^[[:space:]]*%[[:space:]]*!TEX[[:space:]]+program[[:space:]]*=[[:space:]]*(xelatex|lualatex|pdflatex)[[:space:]]*$$/\1/p' \
+    "$(TEX_FILE)")
+
+# Default to lualatex if no valid declaration is found.
+ifeq ($(strip $(LATEX_ENGINE)),)
+$(info $(COLOR_GREEN)Makefile: [INFO] LaTeX engine is not specified in the TeX file$(COLOR_RESET))
+LATEX_ENGINE := xelatex
+else
+$(info $(COLOR_GREEN)Makefile: [INFO] LaTeX engine $(LATEX_ENGINE) is specified in tex file$(COLOR_RESET))
+endif
+
+# Select the build method: native LaTeX or a Python script.
+ifeq ($(USE_COLOR_LOG), yes)
+LATEX_CMD := @python3 xelatex_color.py ${LATEX_ENGINE} $(FLAGS)
+$(info $(COLOR_GREEN)Makefile: [INFO] Colored XeLaTeX logging enabled$(COLOR_RESET))
+else
+LATEX_CMD := $(LATEX_ENGINE) $(FLAGS)
+$(info $(COLOR_GREEN)Makefile: [INFO] Using Plain XeLatex$(COLOR_RESET))
+endif
 
 all: $(PDF_FILE)  $(PNG_FILE)
 

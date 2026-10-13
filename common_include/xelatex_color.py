@@ -1,47 +1,55 @@
 #!/usr/bin/env python3
-"""Run XeLaTeX with colored terminal diagnostics."""
+"""Run a LaTeX engine with colored terminal diagnostics.
+
+All arguments after the engine name are passed to the engine unchanged.
+
+Usage:
+    xelatex_color.py <engine> [engine args ...]
+
+Example:
+    xelatex_color.py xelatex -file-line-error -halt-on-error \
+        -output-format=pdf -interaction=nonstopmode \
+        -output-directory=./build main.tex
+"""
 
 from __future__ import annotations
 
 import argparse
-import os
+import logging
 import re
 import shutil
 import subprocess
 import sys
-import logging
 from collections.abc import Sequence
+from typing import ClassVar, Final
+
 
 class ColorFormatter(logging.Formatter):
-    COLORS = {
-        logging.INFO: "\033[32m",      # Green
-        logging.WARNING: "\033[33m",   # Yellow
-        logging.ERROR: "\033[31m",     # Red
-        logging.DEBUG: "\033[90m",     # Gray
+    COLORS: ClassVar[dict[int, str]] = {
+        logging.INFO: "\033[32m",        # Green
+        logging.WARNING: "\033[33m",     # Yellow
+        logging.ERROR: "\033[31m",       # Red
+        logging.DEBUG: "\033[90m",       # Gray
         logging.CRITICAL: "\033[1;31m",  # Bold red
     }
-    RESET = "\033[0m"
+    RESET: ClassVar[str] = "\033[0m"
 
     def format(self, record: logging.LogRecord) -> str:
-        message = super().format(record)
-
-        # Redirected output should not contain ANSI escape codes.
-        if not sys.stderr.isatty():
-            return message
-
-        color = self.COLORS.get(record.levelno, "")
+        message: str = super().format(record)
+        color: str = self.COLORS.get(record.levelno, "")
         return f"{color}{message}{self.RESET}" if color else message
 
-RESET = "\033[0m"
-RED = "\033[31m"
-YELLOW = "\033[33m"
-GREEN = "\033[32m"
 
-INFO_RE = re.compile(r"\[INFO\]")
-WARN_RE = re.compile(r"\[WARN\]")
-ERROR_RE = re.compile(r"\[ERROR\]")
+RESET: Final[str] = "\033[0m"
+RED: Final[str] = "\033[31m"
+YELLOW: Final[str] = "\033[33m"
+GREEN: Final[str] = "\033[32m"
 
-LATEX_ERROR_RE = re.compile(
+INFO_RE: Final[re.Pattern[str]] = re.compile(r"\[INFO\]")
+WARN_RE: Final[re.Pattern[str]] = re.compile(r"\[WARN\]")
+ERROR_RE: Final[re.Pattern[str]] = re.compile(r"\[ERROR\]")
+
+LATEX_ERROR_RE: Final[re.Pattern[str]] = re.compile(
     r"^!\s|"
     r":\d+:\s*(?:Undefined control sequence|"
     r"LaTeX Error|Package .* Error|"
@@ -50,10 +58,12 @@ LATEX_ERROR_RE = re.compile(
     r"Emergency stop)\b|"
     r"LaTeX Error:|"
     r"Package .* Error:|"
+    r"Fatal error|"
+    r".*Error:|"
     r"Emergency stop\."
 )
 
-LATEX_WARN_RE = re.compile(
+LATEX_WARN_RE: Final[re.Pattern[str]] = re.compile(
     r"LaTeX Warning:|"
     r"Package .* Warning:|"
     r"Class .* Warning:|"
@@ -64,21 +74,8 @@ LATEX_WARN_RE = re.compile(
 )
 
 
-def supports_color(mode: str) -> bool:
-    """Determine whether ANSI color should be enabled."""
-    if mode == "always":
-        return True
-    if mode == "never":
-        return False
-
-    return sys.stdout.isatty() and "NO_COLOR" not in os.environ
-
-
-def colorize(line: str, enabled: bool) -> str:
+def colorize(line: str) -> str:
     """Color a complete diagnostic line."""
-    if not enabled:
-        return line
-
     if ERROR_RE.search(line) or LATEX_ERROR_RE.search(line):
         return f"{RED}{line}{RESET}"
 
@@ -91,13 +88,29 @@ def colorize(line: str, enabled: bool) -> str:
     return line
 
 
+def build_parser() -> argparse.ArgumentParser:
+    """Create the command-line parser."""
+    parser: argparse.ArgumentParser = argparse.ArgumentParser(
+        description="Run a LaTeX engine with colored diagnostic logs.",
+        usage="%(prog)s engine [engine_args ...]",
+    )
+    parser.add_argument(
+        "engine",
+        help="LaTeX engine, e.g. xelatex, lualatex, pdflatex",
+    )
+    parser.add_argument(
+        "engine_args",
+        nargs=argparse.REMAINDER,
+        help="Arguments passed to the engine unchanged (options, .tex file, ...)",
+    )
+    return parser
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     logging.addLevelName(logging.WARNING, "WARN")
-    handler = logging.StreamHandler()
+    handler: logging.StreamHandler[object] = logging.StreamHandler()
     handler.setFormatter(
-        ColorFormatter(
-            "%(filename)s:%(lineno)d: [%(levelname)s] %(message)s"
-        )
+        ColorFormatter("%(filename)s:%(lineno)d: [%(levelname)s] %(message)s")
     )
 
     logging.basicConfig(
@@ -106,41 +119,27 @@ def main(argv: Sequence[str] | None = None) -> int:
         force=True,
     )
 
-    parser = argparse.ArgumentParser(
-        description="Compile a LaTeX document with colored XeLaTeX logs."
-    )
-    parser.add_argument("source", help="Main .tex file")
-    parser.add_argument(
-        "--color",
-        choices=("auto", "always", "never"),
-        default="auto",
-        help="Color policy (default: auto)",
-    )
+    parser: argparse.ArgumentParser = build_parser()
+    args: argparse.Namespace = parser.parse_args(argv)
 
-    args, extra_args = parser.parse_known_args(argv)
+    engine: str = args.engine
+    engine_args: list[str] = list(args.engine_args)
 
-    executable = shutil.which("xelatex")
+    # Allow an optional "--" separator between engine and its arguments.
+    if engine_args and engine_args[0] == "--":
+        engine_args = engine_args[1:]
+
+    executable: str | None = shutil.which(engine)
     if executable is None:
-        print(
-            "[ERROR] xelatex not found; check PATH and TeX installation.",
-            file=sys.stderr,
-        )
+        logging.error("%s not found; check PATH and TeX installation.", engine)
         return 127
 
-    command = [
-        executable,
-        "-file-line-error",
-        "-halt-on-error",
-        "-interaction=nonstopmode",
-        "-output-directory=./build",
-        *extra_args,
-        args.source,
-    ]
+    command: list[str] = [executable, *engine_args]
 
-    enabled = supports_color(args.color)
+    logging.info("Running: %s", " ".join(command))
 
-    print(f"[INFO] Running: {' '.join(command)}", flush=True)
-
+    process: subprocess.Popen[str] | None = None
+    return_code: int
     try:
         process = subprocess.Popen(
             command,
@@ -152,25 +151,27 @@ def main(argv: Sequence[str] | None = None) -> int:
             bufsize=1,
         )
 
-        assert process.stdout is not None
+        if process.stdout is None:
+            raise RuntimeError("failed to capture subprocess output")
 
+        line: str
         for line in process.stdout:
-            sys.stdout.write(colorize(line, enabled))
+            sys.stdout.write(colorize(line))
             sys.stdout.flush()
 
         return_code = process.wait()
 
     except KeyboardInterrupt:
-        print("\n[WARN] Interrupted by user.", flush=True)
-        if "process" in locals() and process.poll() is None:
+        logging.warning("Interrupted by user.")
+        if process is not None and process.poll() is None:
             process.terminate()
             process.wait()
         return 130
 
     if return_code == 0:
-        logging.info("XeLaTeX finished successfully.")
+        logging.info("%s finished successfully.", engine)
     else:
-        logging.error("XeLaTeX exited with code %s.",return_code)
+        logging.error("%s exited with code %s.", engine, return_code)
 
     return return_code
 
