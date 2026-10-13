@@ -38,7 +38,7 @@ endif
 
 # Read the first line and detect the LaTeX engine.
 LATEX_ENGINE := $(shell sed -nE \
-    '1s/^[[:space:]]*%[[:space:]]*!TEX[[:space:]]+program[[:space:]]*=[[:space:]]*(xelatex|lualatex|pdflatex)[[:space:]]*$$/\1/p' \
+    '1s/^[[:space:]]*%[[:space:]]*![Tt][Ee][Xx][[:space:]]+program[[:space:]]*=[[:space:]]*(xelatex|lualatex|pdflatex)[[:space:]]*$$/\1/p' \
     "$(TEX_FILE)")
 
 # Default to lualatex if no valid declaration is found.
