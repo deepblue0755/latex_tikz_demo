@@ -1,0 +1,199 @@
+% !TeX program = xelatex
+% pci_test D08 pipeline: bilingual two-page source, one shared graph.
+% Page 1: Chinese; Page 2: English.
+% Node geometry, relative placement, edges, colors, and legend are defined ONCE.
+% Change only \Tr{Chinese}{English} for translations.
+\documentclass[tikz,multi=tikzpicture,border=6mm]{standalone}
+\usepackage[UTF8,fontset=fandol]{ctex}
+\usepackage{fontspec}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,positioning}
+
+\include{./common_include/set_fonts.tex}
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+
+\definecolor{lineblue}{HTML}{34425B}
+\definecolor{resourcecolor}{HTML}{006C72}
+\definecolor{startfill}{HTML}{DCE9FC}
+\definecolor{frontfill}{HTML}{DFF3E8}
+\definecolor{commandfill}{HTML}{FFE6BA}
+\definecolor{phasefill}{HTML}{E8E1F9}
+\definecolor{contextfill}{HTML}{D6F1F5}
+\definecolor{resultfill}{HTML}{FBE0DD}
+\definecolor{notecolor}{HTML}{888888}
+
+\tikzset{
+  flow/.style={draw=lineblue, line width=0.95pt,
+    -{Latex[length=2.45mm,width=1.65mm]}},
+  resource/.style={draw=resourcecolor,line width=0.65pt,
+    dash pattern=on 3.3pt off 3pt,
+    -{Latex[length=2.25mm,width=1.5mm]}},
+  block/.style={draw=lineblue,line width=0.85pt,rounded corners=3pt,
+    minimum height=1.08cm,inner sep=2pt,align=center,
+    font=\fontsize{9}{11.8}\selectfont},
+  smallnote/.style={font=\fontsize{7}{10}\selectfont,
+    text=notecolor,align=center},
+}
+
+% ------- Centralized layout settings --------------------------------------
+\newcommand{\FrontColumnGap}{0.95cm}
+\newcommand{\StageGap}{0.69cm}
+\newcommand{\ResourceGap}{0.70cm}
+
+% ------- Translation switch -----------------------------------------------
+\newif\ifEnglish
+\newcommand{\Tr}[2]{\ifEnglish#2\else#1\fi}
+
+% All nodes and all edges are defined in this SINGLE macro.  Only text is
+% switched via \Tr.  Relative positioning is unchanged across both pages.
+\newcommand{\DrawPipeline}{%
+\begin{tikzpicture}
+
+% 1. Frontends
+\node[block,fill=startfill,text width=3.86cm] (argv)
+    {\texttt{argc / argv}\\\Tr{程序入口参数}{Program arguments}};
+\node[block,fill=frontfill,text width=3.86cm,
+      below=0.46cm of argv] (main)
+    {\texttt{pci\_test\_main.c}\\\Tr{Frontend 分流}{Frontend dispatch}};
+
+\node[block,fill=frontfill,text width=5.02cm,
+      below=1.03cm of main] (subcommand)
+    {Subcommand CLI\\\texttt{pt\_parse\_subcommand\_command()}};
+\node[block,fill=frontfill,text width=4.32cm,
+      left=\FrontColumnGap of subcommand] (legacy)
+    {Legacy CLI\\\texttt{pt\_parse\_legacy\_command()}};
+\node[block,fill=frontfill,text width=4.65cm,
+      right=\FrontColumnGap of subcommand] (numbered)
+    {Numbered CLI\\\Tr{设备选择 / 数字菜单}{Device selection / menu}};
+\node[block,fill=frontfill,text width=5.53cm,
+      below=0.63cm of numbered] (collect)
+    {\texttt{pt\_collect\_numbered\_parameters()}\\
+      \Tr{收集交互参数}{Collect interactive parameters}};
+\node[block,fill=frontfill,text width=6.17cm,
+      below=0.64cm of collect] (convert)
+    {\texttt{pt\_numbered\_command\_from\_collected()}\\
+      \Tr{构造类型化命令}{Construct typed command}};
+
+% Anchor the command below the longest CLI branch, while keeping it
+% horizontally aligned with Subcommand CLI.
+\coordinate (command-start) at (subcommand.center |- convert.south);
+\node[block,fill=commandfill,text width=5.62cm,
+      minimum height=1.58cm,anchor=north] (cmd)
+    at ($(command-start)+(0,-0.41cm)$)
+    {\textbf{\texttt{struct pt\_command}}\\
+     \Tr{命令类型 / 设备路径 / 参数 Union}{Type / device path / arguments}\\[-1pt]
+     \textit{What to do}};
+
+% 2. Main execution path
+\node[block,fill=phasefill,text width=6.50cm,
+      below=0.50cm of cmd] (runner)
+    {\texttt{pt\_run\_command\_with\_result()}\\
+     \Tr{统一执行生命周期编排}{Orchestrate execution lifecycle}};
+\node[block,fill=phasefill,text width=5.48cm,
+      below=0.66cm of runner] (validate)
+    {\texttt{pt\_validate\_command()}\\
+     \Tr{验证命令参数与设备要求}{Check command and device needs}};
+\node[block,fill=phasefill,text width=5.48cm,
+      below=\StageGap of validate] (acquire)
+    {\Tr{Acquire / 检查预获取 fd}{Acquire / pre-acquired fd check}\\
+     \Tr{设备获取与错误回滚}{Device acquisition / error rollback}};
+\node[block,fill=phasefill,text width=5.48cm,
+      below=0.67cm of acquire] (prepare)
+    {Prepare Buffers\\
+     \Tr{按 Command 需求分配缓冲区}{Allocate command buffers}};
+\node[block,fill=phasefill,text width=5.48cm,
+      below=\StageGap of prepare] (execute)
+    {\texttt{pt\_execute(cmd, ctx)}\\
+     \Tr{按 \texttt{cmd->type} 查表分发}{Dispatch by \texttt{cmd->type} lookup}};
+\node[block,fill=phasefill,text width=5.86cm,
+      below=\StageGap of execute] (handlers)
+    {\Tr{Typed Handlers（41 种 Command）}{Typed Handlers (41 commands)}\\
+     BAR / DMA / FIFO / System / Stress};
+\node[block,fill=resultfill,text width=5.75cm,
+      minimum height=2.10cm,below=0.9cm of handlers] (result)
+    {\textbf{\texttt{struct pt\_result}}\\
+     status / stage / execution\_code\\
+     \Tr{可选 error\_code / elapsed\_us}{Optional error\_code / elapsed\_us}\\[-1pt]
+     \textit{What happened}};
+\node[block,fill=resultfill,text width=5.75cm,
+      below=0.9cm of result] (report)
+    {\texttt{pt\_report\_result()}\\
+     \Tr{仅启用 \texttt{--report-result} 时打印}{Print only with \texttt{--report-result}}};
+
+% 3. Resource column
+\node[block,fill=contextfill,text width=4.94cm,
+      minimum height=2.00cm,right=\ResourceGap of acquire,
+      yshift=-0.43cm] (ctx)
+    {\textbf{\texttt{struct pt\_context}}\\
+     \texttt{io\_fd / dma\_fd}\\
+     \texttt{read\_buf / write\_buf}\\[-1pt]
+     \textit{What we own}};
+\node[block,fill=contextfill,text width=4.94cm,anchor=center] (cleanup)
+    at ($(ctx.center |- report.center)+(0,0.58cm)$)
+    {\texttt{pt\_context\_cleanup()}\\
+     \Tr{退出路径统一释放资源}{Release resources on exit}};
+
+% 4. Control/call edges: shared between languages
+\draw[flow] (argv.south) -- (main.north);
+\coordinate (frontend-fork) at ($(main.south)+(0,-0.42cm)$);
+\draw[lineblue,line width=0.95pt] (main.south) -- (frontend-fork);
+\draw[lineblue,line width=0.95pt]
+    (legacy.north |- frontend-fork) -- (numbered.north |- frontend-fork);
+\foreach \dest in {legacy,subcommand,numbered} {
+    \draw[flow] (\dest.north |- frontend-fork) -- (\dest.north);
+}
+\draw[flow] (numbered.south) -- (collect.north);
+\draw[flow] (collect.south) -- (convert.north);
+\draw[flow] (legacy.south) |- (cmd.west);
+\draw[flow] (subcommand.south) -- (cmd.north);
+\draw[flow] (convert.south) |- (cmd.east);
+\foreach \upper/\lower in {
+  cmd/runner,runner/validate,validate/acquire,acquire/prepare,
+  prepare/execute,execute/handlers,handlers/result,result/report} {
+  \draw[flow] (\upper.south) -- (\lower.north);
+}
+
+% 5. Resource edges: shared between languages
+\draw[resource] (acquire.east) -- (ctx.west);
+\draw[resource] (prepare.east) -| (ctx.south);
+\draw[resource] (ctx.south west)
+   -- ($(execute.east)+(0.62cm,0)$) -- (execute.east);
+\coordinate (resource-bus) at ($(ctx.east)+(0.68cm,0)$);
+\draw[resource] (ctx.east) -- (resource-bus)
+   -- (resource-bus |- cleanup.east) -- (cleanup.east);
+
+% 6. Annotations
+\node[smallnote,text width=3.55cm,
+      left=1.25cm of acquire] (failnote)
+    {\Tr{失败路径直接返回；\\结果记录失败阶段；\\不执行后续 Handler}{Failure returns immediately;\\records the failed stage;\\skips subsequent handlers}};
+\node[smallnote,text width=4.35cm,
+      left=1.07cm of result] (resultnote)
+    {\Tr{Result 在运行包装层记录，\\不是 Handler 直接写入。}{The runner records pt\_result;\\handlers do not write it directly.}};
+\node[smallnote,text width=5.18cm,
+      below=0.86cm of ctx] (ctxnote)
+    {\Tr{资源由 Context 管理，Handler 只借用；\\Numbered 可预获取两个设备 fd}{Context manages resources; handlers borrow them.\\Numbered may pre-acquire both device fds.}};
+
+% 7. Footnote and legend
+\node[smallnote,text width=17.3cm,
+      below=0.27cm of report] (footnote)
+    {\Tr{注：逻辑数据流示意。Numbered 的设备获取时序不同；运行期间的 Context 由上层初始化并最终清理。}{Note: Logical data-flow view. Numbered acquires devices at a different point; the caller initializes and eventually cleans up the context.}};
+\coordinate (legend-one) at ($(footnote.south west)+(1.1cm,-0.42cm)$);
+\draw[flow] (legend-one) -- ++(1.10cm,0);
+\node[smallnote,anchor=west] (legend-text-one)
+    at ($(legend-one)+(1.35cm,0)$)
+    {\Tr{控制 / 调用流程}{Control / call flow}};
+\coordinate (legend-two) at ($(legend-one)+(7.75cm,0)$);
+\draw[resource] (legend-two) -- ++(1.10cm,0);
+\node[smallnote,anchor=west]
+    at ($(legend-two)+(1.35cm,0)$)
+    {\Tr{资源填充 / 借用 / 清理关联}{Resource acquisition / borrowing / cleanup}};
+
+\end{tikzpicture}%
+}
+
+\begin{document}
+  \Englishfalse\DrawPipeline  % Page 1: Chinese
+  \Englishtrue \DrawPipeline  % Page 2: English
+\end{document}

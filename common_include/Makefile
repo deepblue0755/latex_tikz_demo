@@ -27,19 +27,19 @@ FLAGS+=-interaction=nonstopmode
 DRAFTMODE_FLAGS=-draftmode
 
 # define tex source file
-TEX_FILE := $(shell $(FIND) ./ -maxdepth 1 -name  '*.tex')
-TEX_FILE := $(notdir $(TEX_FILE))
-PDF_FILE := $(patsubst %.tex, %.pdf, $(TEX_FILE))
+TEX_FILES := $(shell $(FIND) ./ -maxdepth 1 -name  '*.tex')
+TEX_FILES := $(notdir $(TEX_FILES))
+PDF_FILE := $(patsubst %.tex, %.pdf, $(TEX_FILES))
 PDF_FILE := $(addprefix $(OUTPUT_DIR)/,$(PDF_FILE))
 PNG_FILE := $(patsubst %.pdf, %.png, $(PDF_FILE))
-ifeq ($(strip $(TEX_FILE)), )
+ifeq ($(strip $(TEX_FILES)), )
 $(error $(COLOR_RED)Makefile: [ERROR] No valid TeX files found$(COLOR_RESET))
 endif
 
 # Read the first line and detect the LaTeX engine.
 LATEX_ENGINE := $(shell sed -nE \
     '1s/^[[:space:]]*%[[:space:]]*![Tt][Ee][Xx][[:space:]]+program[[:space:]]*=[[:space:]]*(xelatex|lualatex|pdflatex)[[:space:]]*$$/\1/p' \
-    "$(TEX_FILE)")
+    "$(word 1, $(TEX_FILES))")
 
 # Default to lualatex if no valid declaration is found.
 ifeq ($(strip $(LATEX_ENGINE)),)
@@ -98,7 +98,7 @@ print-%:
 	@printf '  literal : %s\n' '$(value $*)'
 
 debug:
-	@echo "TEX_FILE=$(TEX_FILE)"
+	@echo "TEX_FILES=$(TEX_FILES)"
 	@echo "PDF_FILE=$(PDF_FILE)"
 	@echo "PNG_FILE=$(PNG_FILE)"
 	@echo "MAKE_FILES=$(MAKE_FILES)"
