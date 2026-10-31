@@ -1,0 +1,199 @@
+% !TeX program = xelatex
+% BAR READ call-chain diagram, based on pci_test D08 source (2026-10-29).
+% Two pages share exactly ONE definition of nodes, positions, and arrows.
+% Page 1 = Chinese, page 2 = English.
+% Build: xelatex -interaction=nonstopmode -halt-on-error <thisfile>.tex
+\documentclass[tikz,multi=tikzpicture,border=8mm]{standalone}
+\usepackage[UTF8,fontset=fandol]{ctex}
+\usepackage{fontspec}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds}
+
+\include{./common_include/set_fonts.tex}
+
+\pagestyle{empty}
+\definecolor{ink}{HTML}{19334D}
+\definecolor{muted}{HTML}{65768A}
+\definecolor{blue}{HTML}{285BC0}
+\definecolor{bluebg}{HTML}{E8F0FF}
+\definecolor{violet}{HTML}{7654B0}
+\definecolor{violetbg}{HTML}{F0EAFC}
+\definecolor{teal}{HTML}{087F7F}
+\definecolor{tealbg}{HTML}{E1F5F1}
+\definecolor{amber}{HTML}{AB6A0B}
+\definecolor{amberbg}{HTML}{FFF2D7}
+\definecolor{green}{HTML}{237349}
+\definecolor{greenbg}{HTML}{E6F6EA}
+\definecolor{red}{HTML}{AD4C46}
+\definecolor{redbg}{HTML}{FCEDEB}
+\definecolor{slatebg}{HTML}{F2F5F8}
+
+% ------- Text is the only language-dependent part ---------------------------
+\newif\ifEnglish
+\newcommand{\Tr}[2]{\ifEnglish#2\else#1\fi}
+
+% ------- Layout and appearance are single-sourced ---------------------------
+\newcommand{\MainWidth}{7.05cm}
+\newcommand{\SideWidth}{5.00cm}
+\newcommand{\StageGap}{0.32cm}
+\newcommand{\SideGap}{1.04cm}
+\tikzset{
+  every picture/.style={line cap=round,line join=round},
+  mainbox/.style={draw=ink!70,line width=0.7pt,rounded corners=4pt,
+       fill=white,text=ink,align=center,text width=\MainWidth,
+       minimum height=0.83cm,inner ysep=5pt,inner xsep=7pt,
+       font=\fontsize{9.0}{11.8}\selectfont},
+  sidebox/.style={draw=ink!38,line width=0.65pt,rounded corners=4pt,
+       fill=slatebg,text=ink,align=left,text width=\SideWidth,
+       minimum height=0.78cm,inner ysep=7pt,inner xsep=9pt,
+       font=\fontsize{8.7}{11.5}\selectfont},
+  arrow/.style={draw=ink!75,line width=1.03pt,-{Latex[length=2.4mm,width=1.55mm]}},
+  dataline/.style={draw=teal,line width=0.85pt,dashed,
+       -{Latex[length=2.0mm,width=1.35mm]}},
+  returnline/.style={draw=green,line width=0.85pt,densely dashed,
+       -{Latex[length=2.0mm,width=1.35mm]}},
+  minor/.style={font=\fontsize{8}{11}\selectfont,text=muted,align=center},
+  section/.style={font=\fontsize{9}{11}\selectfont\bfseries,align=center,text=ink},
+}
+
+% All nodes, placements, and ALL arrows are authored once below.
+% If a stage is added, only change this macro (not language-specific copies).
+\newcommand{\DrawBARRead}{%
+\begin{tikzpicture}
+  % ---- Headline and entry ---------------------------------------------------
+  \node[font=\fontsize{16}{19}\selectfont\bfseries,text=ink,align=center, text width=16.6cm] (title)
+     {\Tr{BAR READ：从命令行到硬件的实际调用链}
+          {BAR READ: Actual Call Chain from CLI to Hardware}};
+  \node[font=\fontsize{8.5}{11}\selectfont,text=muted,
+        below=0.07cm of title] (subtitle)
+     {\Tr{D08 · Subcommand 模式 · 成功执行路径（含返回和清理）}
+          {D08 · Subcommand mode · Successful execution path (including return and cleanup)}};
+  \node[mainbox,fill=bluebg,draw=blue,below=0.38cm of subtitle] (argv)
+     {\textbf{argc / argv}\\[-1pt]
+      \texttt{bar read -d /dev/...io0 -b 0 -l 64 -o 0}};
+  \node[mainbox,fill=bluebg,draw=blue,below=\StageGap of argv] (main)
+     {\textbf{main()} \(\rightarrow\) \textbf{pt\_dispatch\_frontend()}\\[-1pt]
+      \Tr{初始化 Context / Result，选择 Subcommand 前端}
+         {Init ctx/result; select Subcommand}};
+  \node[mainbox,fill=bluebg,draw=blue,below=\StageGap of main] (parse)
+     {\textbf{pt\_parse\_subcommand\_command()}\\[-1pt]
+      \Tr{将命令行参数转换为类型化命令}{Convert CLI arguments into a typed command}};
+  \node[mainbox,fill=bluebg,draw=blue,below=\StageGap of parse] (frontvalidate)
+     {\textbf{pt\_validate\_command()}\\[-1pt]
+      \Tr{Frontend 首次检查：类型、设备路径等公共条件}
+         {Pre-check command type and device paths}};
+
+  % ---- Runner and resource lifecycle --------------------------------------
+  \node[mainbox,fill=violetbg,draw=violet,below=0.49cm of frontvalidate] (wrapper)
+     {\textbf{pt\_run\_command\_with\_result()}\\[-1pt]
+      \Tr{计时包装层；调用 Runner，随后构造 Result}
+         {Time the run; record the final result}};
+  \node[mainbox,fill=violetbg,draw=violet,below=\StageGap of wrapper] (run)
+     {\textbf{pt\_run\_command()}\\[-1pt]
+      \Tr{按 Validation → Acquisition → Buffers → Execution 编排}
+         {Validate, acquire, prepare, execute}};
+  \node[mainbox,fill=violetbg,draw=violet,below=\StageGap of run] (runvalidate)
+     {\textbf{pt\_validate\_command()}\\[-1pt]
+      \Tr{Runner 内再次验证}{Validate again inside Runner}};
+  \node[mainbox,fill=tealbg,draw=teal,below=\StageGap of runvalidate] (acquire)
+     {\textbf{pt\_acquire\_command\_resources()}\\[-1pt]
+      \texttt{pt\_context\_acquire\_io()} \(\rightarrow\) \texttt{open(O\_RDWR)}};
+  \node[mainbox,fill=tealbg,draw=teal,below=\StageGap of acquire] (buffers)
+     {\textbf{pt\_context\_prepare\_buffers()}\\[-1pt]
+      \Tr{为 BAR Read 准备 read\_buf（不需要 write\_buf）}
+         {Prepare read\_buf; no write\_buf needed}};
+
+  % ---- Dispatcher, handler and hardware -----------------------------------
+  \node[mainbox,fill=violetbg,draw=violet,below=0.49cm of buffers] (execute)
+     {\textbf{pt\_execute(cmd, ctx)}\\[-1pt]
+      \texttt{pt\_routes[PT\_CMD\_BAR\_READ]}};
+  \node[mainbox,fill=amberbg,draw=amber,below=\StageGap of execute] (handler)
+     {\textbf{pt\_execute\_bar\_read(cmd, ctx)}\\[-1pt]
+      \Tr{读取 cmd->args.bar，借用 ctx->io\_fd / read\_buf}
+         {Read BAR args; borrow IO fd and buffer}};
+  \node[mainbox,fill=amberbg,draw=amber,below=\StageGap of handler] (helper)
+     {\textbf{pt\_bar\_read\_ioctl()}\\[-1pt]
+      \Tr{封装 usr\_pci\_param，并记录原有测试输出}
+         {Fill usr\_pci\_param; print legacy test output}};
+  \node[mainbox,fill=amberbg,draw=amber,below=\StageGap of helper] (ioctl)
+     {\textbf{ioctl(fd, IOCTL\_ACCESS\_READ\_MEM\_ADDR, \&param)}\\[-1pt]
+      \Tr{进入 Linux PCIe 驱动并访问 BAR}{Enter Linux PCIe driver and access BAR}};
+
+  % ---- Return/result/report/cleanup --------------------------------------
+  \node[mainbox,fill=greenbg,draw=green,below=0.49cm of ioctl] (ret)
+     {\Tr{返回值逐层上传}{Return propagates up the call stack}\\[-1pt]
+      \Tr{Handler 核对返回字节数后生成状态码}{Handler checks the byte count and returns a status}\\[-1pt]
+      \texttt{handler} \(\rightarrow\) \texttt{execute} \(\rightarrow\) \texttt{run}};
+  \node[mainbox,fill=greenbg,draw=green,below=\StageGap of ret] (result)
+     {\textbf{pt\_result\_record\_execution()}\\[-1pt]
+      \Tr{Wrapper 记录状态、阶段、返回码及耗时}
+         {Wrapper records status, stage, code, time}};
+  \node[mainbox,fill=greenbg,draw=green,below=\StageGap of result] (report)
+     {\textbf{pt\_report\_result()}\\[-1pt]
+      \Tr{main() 中仅当 --report-result 启用才调用}
+         {Called by main() only when --report-result is enabled}};
+  \node[mainbox,fill=greenbg,draw=green,below=\StageGap of report] (cleanup)
+     {\textbf{pt\_context\_cleanup()}\\[-1pt]
+      \Tr{main() 统一关闭 fd、释放 read\_buf；随后释放旧资源}
+         {main() closes fd and frees read\_buf; then releases legacy resources}};
+
+  % ---- Side annotations: shared node geometry -----------------------------
+  \node[sidebox,fill=bluebg,draw=blue!60,
+        right=\SideGap of parse] (cmd)
+     {\textbf{struct pt\_command}\\[2pt]
+      \texttt{type = PT\_CMD\_BAR\_READ}\\
+      \texttt{io\_device = ...io0}\\
+      \texttt{bar = \{index=0, length=64, offset=0\}}\\[2pt]
+      \Tr{描述做什么，不拥有 fd / buffer}
+         {Describes the request; owns no fd/buffer}};
+  \node[sidebox,fill=slatebg,right=\SideGap of wrapper] (dryrun)
+     {\textbf{--dry-run}\\[2pt]
+      \Tr{如果启用：在这里打印计划并返回；不会打开设备或执行 Handler。}
+         {If enabled: print the plan and return here; no device open or handler execution.}};
+  \node[sidebox,fill=tealbg,draw=teal!65,
+        right=\SideGap of acquire] (ctx)
+     {\textbf{struct pt\_context}\\[2pt]
+      \texttt{io\_fd} \(\leftarrow\) \texttt{open(...)}\\
+      \texttt{read\_buf} \(\leftarrow\) \texttt{posix\_memalign(...)}\\[2pt]
+      \Tr{Context 拥有这些资源，Handler 只借用}
+         {Context owns fd/buffers; handler borrows}};
+  \node[sidebox,fill=amberbg,draw=amber!65,
+        right=\SideGap of helper] (legacy)
+     {\textbf{\Tr{传统业务输出}{Legacy business output}}\\[2pt]
+      \texttt{pt\_print\_test\_result()}\\
+      \texttt{pt\_dump\_memory\_values()}\\[2pt]
+      \Tr{区别于统一的 pt\_result 摘要}
+         {Distinct from the unified pt\_result summary}};
+  \node[sidebox,fill=greenbg,draw=green!70,
+        right=\SideGap of result] (outcome)
+     {\textbf{struct pt\_result}\\[2pt]
+      \texttt{status / stage}\\
+      \texttt{execution\_code / elapsed\_us}\\[2pt]
+      \Tr{由 Runner 记录，Handler 不写入}
+         {Runner records it; handler does not}};
+
+  % ---- Shared control arrows: only node names, no manual XY coordinates ---
+  \foreach \upper/\lower in {argv/main,main/parse,parse/frontvalidate,frontvalidate/wrapper,wrapper/run,run/runvalidate,runvalidate/acquire,acquire/buffers,buffers/execute,execute/handler,handler/helper,helper/ioctl,ioctl/ret,ret/result,result/report,report/cleanup}{%
+    \draw[arrow] (\upper.south) -- (\lower.north);}%
+
+  % ---- Shared data / ownership arrows -------------------------------------
+  \draw[dataline] (parse.east) -- (cmd.west);
+  \draw[dataline] (acquire.east) -- (ctx.west);
+  \draw[dataline] (buffers.east) -- (ctx.south west);
+  \draw[dataline] (helper.east) -- (legacy.west);
+  \draw[returnline] (result.east) -- (outcome.west);
+  \draw[draw=muted, line width=0.7pt, dashed,-{Latex[length=2.0mm]}]
+      (frontvalidate.east) -- (dryrun.west);
+
+  % ---- One footer: the semantics are the same on both pages ----------------
+  \node[minor,below=0.33cm of cleanup,text width=13.7cm] (foot)
+    {\Tr{注：主线为非 dry-run 的成功路径。公共验证还会在 Acquire 与 Dispatcher 内进行防御性重复检查；任何阶段失败都会跳过后续执行，但最终由 main() 清理 Context。}
+         {Note: The main line shows success without dry-run. Acquisition and dispatch also revalidate. Failure skips later operations; main() still cleans up Context.}};
+
+\end{tikzpicture}%
+}
+
+\begin{document}
+  \Englishfalse\DrawBARRead
+  \Englishtrue\DrawBARRead
+\end{document}
